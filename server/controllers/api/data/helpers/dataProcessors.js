@@ -10,7 +10,7 @@ const reduceGeoPercision = (num, percision) => round(num, percision);
 const warReducer = warDataAll => warDataAll.map((year) => {
   const yearlyQuarters = Object.values(year.value).map((quarter) => {
     const sortedQuarter = quarter.sort((a, b) => b.fat - a.fat);
-    return uniqBy(sortedQuarter, i => i.lat && i.lng);
+    return uniqBy(sortedQuarter, i => `${i.lat},${i.lng}`);
   });
   return {
     Year: year.Year,
