@@ -6,7 +6,6 @@ import store from './redux/store';
 // import './styles/main.scss';
 import './styles/fonts.css';
 import './styles/reset.scss';
-import '../node_modules/mapbox-gl/dist/mapbox-gl.css';
 
 import Router from './components/router/Router';
 

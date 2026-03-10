@@ -2,11 +2,11 @@ import React from 'react';
 import styled from 'styled-components';
 import * as _ from 'underscore';
 import $ from "jquery";
-import * as mapboxgl from 'mapbox-gl';
+import maplibregl from 'maplibre-gl';
+import 'maplibre-gl/dist/maplibre-gl.css';
 import * as d3 from 'd3';
 import * as d3CanvasTransition from 'd3-canvas-transition';
 import { color_map } from '../data/routeDictionary';
-import { mapboxToken } from '../../config.js';
 import '../stylesheets/RefugeeRoute_map.css';
 
 const dataDict = require('../data/IBC_crossingCountByCountry.json');
@@ -43,16 +43,15 @@ export default class RefugeeRoute_map extends React.Component {
   }
 
   componentDidMount() {
-    mapboxgl.accessToken = mapboxToken;
-    this.map = new mapboxgl.Map({
+    this.map = new maplibregl.Map({
       container: this.mapContainer,
-      style: 'mapbox://styles/jiahao01121/cji9iqnff6xl52so1ienqz75o',
+      style: 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json',
       attributionControl: false,
       center: [this.currentMapParams.center_lng,this.currentMapParams.center_lat],
       zoom: this.currentMapParams.zoom,
       // bearing: -14.57,
       // pitch: 39.50,
-    }).addControl(new mapboxgl.NavigationControl(),'top-right');
+    }).addControl(new maplibregl.NavigationControl(),'top-right');
 
     this.mapContainer_width = $(this.mapContainer).width();
     this.mapContainer_height = $(this.mapContainer).height();
@@ -164,9 +163,9 @@ export default class RefugeeRoute_map extends React.Component {
   canvas_overlay_drawCall(d){
     if(-90 > d.lat || d.lat > 90){
       // data corruption on raw data part
-      var ready = this.map.project(new mapboxgl.LngLat(d.lng,90));
+      var ready = this.map.project(new maplibregl.LngLat(d.lng,90));
     }else{
-      var ready = this.map.project(new mapboxgl.LngLat(d.lng,d.lat));
+      var ready = this.map.project(new maplibregl.LngLat(d.lng,d.lat));
     }
     d.map_coord_x = ready.x;
     d.map_coord_y = ready.y;
