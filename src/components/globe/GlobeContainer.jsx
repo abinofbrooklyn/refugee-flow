@@ -328,6 +328,7 @@ class GlobeContainer extends React.Component {
       //loading state
       loadingStatus : true,
       loadingText   : 'Loading...',
+      loadingError  : null,
 
       data: [],
       controllerShow: true,
@@ -390,6 +391,11 @@ class GlobeContainer extends React.Component {
         }); // this takes a long time
       },10)
 
+    }).catch(err => {
+      this.setState({
+        loadingStatus: false,
+        loadingError: err.message || 'Failed to load data. Please refresh.'
+      });
     })
   }
 
@@ -554,6 +560,16 @@ class GlobeContainer extends React.Component {
 
   renderGlobeVisual(){
     console.count("---------- Globe's render called");
+
+    if (this.state.loadingError) {
+      return (
+        <div style={{width: '75%', display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh'}}>
+          <p style={{color: '#ff6b6b', fontFamily: 'Roboto', fontWeight: 300, fontSize: '16px', textAlign: 'center'}}>
+            {this.state.loadingError}
+          </p>
+        </div>
+      );
+    }
 
     return(
       <div style={{width: '75%' }}>
