@@ -12,7 +12,7 @@
   },
   "license": "ISC",
   "scripts": {
-    "start": "NODE_OPTIONS=--openssl-legacy-provider webpack-dev-server --env.PORT=8080 --env.NODE_ENV=development --hot --open --progress --config webpack/webpack.dev.js",
+    "start": "NODE_OPTIONS=--openssl-legacy-provider webpack-dev-server --env PORT=8080 --env NODE_ENV=development --hot --open --config webpack/webpack.dev.js",
     "build": "NODE_OPTIONS=--openssl-legacy-provider webpack --env.NODE_ENV=production --config webpack/webpack.prod.js",
     "nodemon": "PORT=2700 NODE_ENV=development nodemon ./server/server.js",
     "kickoff": "pm2 start pm2.ecosystem.json --env production",
