@@ -74,6 +74,7 @@
     "sass": "^1.77.0",
     "sass-loader": "^10.5.2",
     "style-loader": "^0.23.1",
+    "supertest": "^7.2.2",
     "url-loader": "^1.1.2",
     "webpack": "^4.32.2",
     "webpack-bundle-analyzer": "^3.3.2",
