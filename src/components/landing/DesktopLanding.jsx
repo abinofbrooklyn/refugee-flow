@@ -343,7 +343,11 @@ export default class DesktopLanding extends Component {
     const { videoLoop } = this.state;
     d3.select('#nav-show').style('display', 'none');
     window.setTimeout(() => this.setState({ animation: true }), 1000);
-    window.setInterval(() => this.setState({ videoLoop: !videoLoop }), 1650);
+    this.videoLoopInterval = window.setInterval(() => this.setState({ videoLoop: !videoLoop }), 1650);
+  }
+
+  componentWillUnmount() {
+    clearInterval(this.videoLoopInterval);
   }
 
   render() {

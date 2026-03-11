@@ -151,7 +151,11 @@ class MobileLanding extends React.Component {
   componentDidMount(){
     d3.select('#nav-show').style('display','none');
     window.setTimeout(() => this.setState({animation: true}) ,1000);
-    window.setInterval(() => this.setState({videoLoop: !this.state.videoLoop}),1650);
+    this.videoLoopInterval = window.setInterval(() => this.setState({videoLoop: !this.state.videoLoop}),1650);
+  }
+
+  componentWillUnmount(){
+    clearInterval(this.videoLoopInterval);
   }
 
   render(){
