@@ -25,9 +25,9 @@ module.exports = env => console.info(env) || merge(common, {
   devServer: {
     compress: true,
     port: env.PORT,
-    writeToDisk: true,
-    contentBase: path.join(__dirname, 'dist'),
+    devMiddleware: { writeToDisk: true },
+    static: { directory: path.join(__dirname, '..', 'dist') },
     historyApiFallback: { disableDotRule: true },
-    proxy: { '/data': 'http://localhost:2700' },
+    proxy: [{ context: ['/data'], target: 'http://localhost:2700' }],
   },
 });
