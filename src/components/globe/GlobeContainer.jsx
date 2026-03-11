@@ -944,6 +944,14 @@ class GlobeContainer extends React.Component {
           <Compass src='./assets/compass_icon.png' onClick={() => this.gv.setTarget([-11.874010, 44.605859],945)}></Compass>
           <ZoomIn  src='./assets/zoomin_icon.png'  onClick={() => this.gv.zoom(100)}></ZoomIn>
           <ZoomOut src='./assets/zoomout_icon.png' onClick={() => this.gv.zoom(-100)}></ZoomOut>
+          <GlobeControllerButton
+            onClick={() => this.setState(prev => ({ rotatePause: !prev.rotatePause }))}
+            aria-label={this.state.rotatePause ? 'Resume globe rotation' : 'Pause globe rotation'}
+            title={this.state.rotatePause ? 'Resume rotation' : 'Pause rotation'}
+            style={{ position: 'absolute', top: '110px', padding: '8px 14px', left: '-8px', fontSize: '18px' }}
+          >
+            {this.state.rotatePause ? '\u25B6' : '\u23F8'}
+          </GlobeControllerButton>
         </GlobeNavPanel>
         <LegendWrapper minMax = {this.state.warData && this.state.warData[+this.state.currentYear.charAt(3)]['scaler'].domain()}>
           <LegendTitle mode={this.state.currentControllerSelection}>Fatality Count</LegendTitle>
