@@ -10,8 +10,8 @@
 - [ ] **STAB-01**: App runs without memory leaks when navigating between views
 - [ ] **STAB-02**: App shows loading state while data is being fetched
 - [ ] **STAB-03**: App shows error message when data fetch fails (no silent failures)
-- [ ] **STAB-04**: Globe rotation can be toggled on/off by the user
-- [ ] **STAB-05**: No critical or high security vulnerabilities in dependencies
+- [x] **STAB-04**: Globe rotation can be toggled on/off by the user
+- [x] **STAB-05**: No critical or high security vulnerabilities in dependencies
 - [x] **STAB-06**: API endpoints have rate limiting and CORS whitelisting
 
 ### Modernization

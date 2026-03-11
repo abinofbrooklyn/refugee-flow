@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Completed 01-04 CORS and rate limiting
-last_updated: "2026-03-11T23:07:08.039Z"
+stopped_at: Completed 01-stabilize-03-PLAN.md (security patches + globe toggle)
+last_updated: "2026-03-11T23:08:18.297Z"
 last_activity: 2026-03-11 — Roadmap created
 progress:
   total_phases: 5
   completed_phases: 0
   total_plans: 4
-  completed_plans: 2
+  completed_plans: 3
   percent: 0
 ---
 
@@ -51,6 +51,7 @@ Progress: [░░░░░░░░░░] 0%
 
 *Updated after each plan completion*
 | Phase 01-stabilize P04 | 15 | 2 tasks | 4 files |
+| Phase 01-stabilize P03 | 25 | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -65,6 +66,7 @@ Recent decisions affecting current work:
 - Shared secret admin only — full auth is overkill for this traffic level
 - [Phase 01-stabilize]: CORS allows all origins via cors() with no whitelist — general internet traffic permitted
 - [Phase 01-stabilize]: Rate limit scoped to /data routes only at 200 req/15min/IP using express-rate-limit v8 API
+- [Phase 01-stabilize]: npm overrides (nth-check >=2.0.1, d3-color >=3.1.0) to resolve nested CVEs where upstream packages are stuck in circular --force loops
 
 ### Pending Todos
 
@@ -76,6 +78,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-11T23:07:08.033Z
-Stopped at: Completed 01-04 CORS and rate limiting
+Last session: 2026-03-11T23:08:18.292Z
+Stopped at: Completed 01-stabilize-03-PLAN.md (security patches + globe toggle)
 Resume file: None
