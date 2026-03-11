@@ -403,7 +403,7 @@ describe('fetchData', () => {
 npx jest src/components/utils/__tests__/fetchers.test.js --no-coverage
 ```
 
-Expected: 2nd and 3rd tests FAIL — no error handling in current `fetchData`.
+Expected: 2nd test FAIL — no error handling in current `fetchData`.
 
 - [ ] **Step 3: Update fetchers.js with error handling**
 
@@ -427,7 +427,7 @@ export const fetchData = (url, setter, setLoader) => fetch(new Request(
 npx jest src/components/utils/__tests__/fetchers.test.js --no-coverage
 ```
 
-Expected: All 3 PASS.
+Expected: All 2 PASS.
 
 - [ ] **Step 5: Commit**
 
