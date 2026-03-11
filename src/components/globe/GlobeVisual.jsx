@@ -135,7 +135,58 @@ class GlobeVisual extends React.Component{
   }
 
   componentWillUnmount() {
-    // TODO: delete stuff after unmount
+    // 1. Cancel animation loop
+    if (this.frameId) {
+      window.cancelAnimationFrame(this.frameId);
+    }
+
+    // 2. Remove all DOM event listeners (exact references used in init())
+    if (this.mount) {
+      this.mount.removeEventListener('mousemove', this.debouncedRaycast, false);
+      this.mount.removeEventListener('mousedown', this.onMouseDown, false);
+      this.mount.removeEventListener('mousewheel', this.onMouseWheel, false);
+      this.mount.removeEventListener('keydown', this.onDocumentKeyDown, false);
+      this.mount.removeEventListener('mouseover', this.onMouseOverHandler, false);
+      this.mount.removeEventListener('mouseout', this.onMouseOutHandler, false);
+    }
+    window.removeEventListener('resize', this.onWindowResize, false);
+
+    // 3. Dispose THREE.js scene objects (CPU-side)
+    if (this.scene) {
+      this.scene.traverse((object) => {
+        if (object.geometry) object.geometry.dispose();
+        if (object.material) {
+          if (Array.isArray(object.material)) {
+            object.material.forEach(m => {
+              Object.keys(m).forEach(key => {
+                const val = m[key];
+                if (val && typeof val === 'object' && 'minFilter' in val) val.dispose();
+              });
+              m.dispose();
+            });
+          } else {
+            Object.keys(object.material).forEach(key => {
+              const val = object.material[key];
+              if (val && typeof val === 'object' && 'minFilter' in val) val.dispose();
+            });
+            object.material.dispose();
+          }
+        }
+      });
+    }
+
+    // 4. Dispose renderer (releases WebGL/GPU context)
+    if (this.renderer) {
+      if (this.mount && this.renderer.domElement) {
+        this.mount.removeChild(this.renderer.domElement);
+      }
+      this.renderer.dispose();
+    }
+
+    // 5. Unbind mousetrap keyboard listener
+    if (typeof mousetrap !== 'undefined') {
+      mousetrap.unbind('esc');
+    }
   }
 
   init() {
@@ -246,8 +297,8 @@ class GlobeVisual extends React.Component{
     this.scene.add(this.tooltips_mouseoverFeedback);
 
     // debounced interaction listener little bigger than 60fps.
-    const debounced = _.debounce(this.raycast_listener, 1000/65);
-    this.mount.addEventListener('mousemove',debounced,false);
+    this.debouncedRaycast = _.debounce(this.raycast_listener, 1000/65);
+    this.mount.addEventListener('mousemove', this.debouncedRaycast, false);
 
     //
     this.renderer = new THREE.WebGLRenderer({antialias: true});
@@ -255,11 +306,13 @@ class GlobeVisual extends React.Component{
     this.mount.appendChild(this.renderer.domElement);
 
     //
+    this.onMouseOverHandler = () => { this.overRenderer = true; };
+    this.onMouseOutHandler = () => { this.overRenderer = false; };
     this.mount.addEventListener('mousedown', this.onMouseDown, false);
     this.mount.addEventListener('mousewheel', this.onMouseWheel, false);
     this.mount.addEventListener('keydown', this.onDocumentKeyDown, false);
-    this.mount.addEventListener('mouseover', () => { this.overRenderer = true  }, false);
-    this.mount.addEventListener('mouseout', ()=>   { this.overRenderer = false }, false);
+    this.mount.addEventListener('mouseover', this.onMouseOverHandler, false);
+    this.mount.addEventListener('mouseout', this.onMouseOutHandler, false);
 
     //
     mousetrap.bind('esc', () => this.state.tooltips_clicked && this.tooltips_onexit(), 'keyup');
