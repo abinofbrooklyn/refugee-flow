@@ -30,7 +30,13 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. User can toggle globe rotation on and off with a visible UI control
   4. npm audit reports zero critical or high severity vulnerabilities
   5. API endpoints reject requests from non-whitelisted origins and handle excessive traffic via rate limiting
-**Plans**: TBD
+**Plans**: 4 plans
+
+Plans:
+- [ ] 01-01-PLAN.md — Fix THREE.js and interval memory leaks in GlobeVisual, MobileLanding, DesktopLanding
+- [ ] 01-02-PLAN.md — Add loading spinners and error messages to all data-fetching components
+- [ ] 01-03-PLAN.md — Add globe rotation toggle button and patch security vulnerabilities
+- [ ] 01-04-PLAN.md — Add CORS and rate limiting middleware to Express server with integration test
 
 ### Phase 2: Modernize Stack
 **Goal**: The app builds and runs on a modern, maintainable toolchain with no deprecated warnings or legacy workarounds
@@ -82,7 +88,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Stabilize | 0/TBD | Not started | - |
+| 1. Stabilize | 0/4 | In progress | - |
 | 2. Modernize Stack | 0/TBD | Not started | - |
 | 3. Database Migration | 0/TBD | Not started | - |
 | 4. Data Ingestion Pipeline | 0/TBD | Not started | - |
