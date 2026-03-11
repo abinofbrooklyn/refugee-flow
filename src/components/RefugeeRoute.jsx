@@ -1,5 +1,6 @@
 import React from 'react';
 import * as _ from 'underscore';
+import { ScaleLoader } from 'react-spinners';
 
 import { get_routeDeath, get_routeIBC } from './../utils/api';
 import RefugeeRoute_titleGroup from './RefugeeRoute_titleGroup';
@@ -13,6 +14,7 @@ export default class RefugeeRoute extends React.Component {
     super(props);
     this.state = {
         loading: true,
+        error: null,
         currentRouteName: _.find(["Eastern Mediterranean","Central Mediterranean","Western Mediterranean","Western Balkans","Eastern Land Borders","Western African","Others" ],d => d.replace(' ','') === props.match.params.arg),
         banned_category: null,
         clicked_datapoint: null,
@@ -32,12 +34,15 @@ export default class RefugeeRoute extends React.Component {
   }
 
   fetchRefugeeRoutes () {
-    get_routeDeath().then( d => {
-      get_routeIBC().then( _d => {
-        this.setState({route_death : d,route_IBC : _d,loading: false});
+    this.setState({ loading: true, error: null });
+    Promise.all([get_routeDeath(), get_routeIBC()])
+      .then(([d, _d]) => {
+        this.setState({ route_death: d, route_IBC: _d, loading: false });
         this.checkCurrentRouteName(_.clone(_d));
       })
-    })
+      .catch(() => {
+        this.setState({ loading: false, error: 'Failed to load route data. Please refresh.' });
+      });
   }
 
   checkCurrentRouteName(data){
@@ -76,6 +81,24 @@ export default class RefugeeRoute extends React.Component {
   }
 
   render() {
+    if (this.state.loading) {
+      return (
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', background: '#1a1a2e' }}>
+          <ScaleLoader color={'#ffffff'} loading={true} />
+        </div>
+      );
+    }
+
+    if (this.state.error) {
+      return (
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', background: '#1a1a2e' }}>
+          <p style={{ color: '#ff6b6b', fontFamily: 'Roboto', fontWeight: 300, fontSize: '16px', textAlign: 'center' }}>
+            {this.state.error}
+          </p>
+        </div>
+      );
+    }
+
     const map = <RefugeeRoute_map
       data = {this.state.route_death}
       currentRouteName = {this.state.currentRouteName}

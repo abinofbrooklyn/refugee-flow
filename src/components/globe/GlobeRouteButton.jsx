@@ -166,6 +166,7 @@ class GlobeRouteButton extends React.Component {
       data: [],
       cross_count : [],
       popup_toggle: false,
+      error: null,
     };
     this.country = props.country;
     this.history = props.history;
@@ -177,8 +178,13 @@ class GlobeRouteButton extends React.Component {
     get_routeCountryList().then( d => {
       d.push({'country':'GLOBAL',route:[ 'Eastern Mediterranean','Central Mediterranean','Western Mediterranean','Western Balkans','Eastern Land Borders','Western African','Others']})
       this.setState({data: d});
-    })
-    get_routeCrossingCount().then(d => this.setState({ cross_count: d }));
+    }).catch(() => {
+      this.setState({ error: 'Failed to load route data.' });
+    });
+    get_routeCrossingCount().then(d => this.setState({ cross_count: d }))
+      .catch(() => {
+        this.setState({ error: 'Failed to load route data.' });
+      });
 
   }
 
@@ -233,14 +239,19 @@ class GlobeRouteButton extends React.Component {
 
     return(
       <div>
-        <Icon_popup className = 'route_popup' toggle = {this.state.popup_toggle}>
+        <Icon_popup className = ‘route_popup’ toggle = {this.state.popup_toggle}>
           <Icon_popup_exit onClick={() => this.setState({popup_toggle:false}) }>x</Icon_popup_exit>
           <Icon_popup_title>Refugee Flee Route - {this.country.charAt(0).toUpperCase() + this.country.toLowerCase().slice(1)}</Icon_popup_title>
           <Icon_popup_subtitle> people can’t get asylum application through or dont know how to. Include illegal border crossing(IBC). </Icon_popup_subtitle>
           <Route_list_title>Involved Routes</Route_list_title>
-          <Route_list>{(() =>{if(this.country && this.state.data.length > 0 ){return this.render_route_list()}})()}</Route_list>
+          <Route_list>
+            {this.state.error
+              ? <p style={{ color: ‘#ff6b6b’, fontFamily: ‘Roboto’, fontWeight: 300, fontSize: ‘12px’, padding: ‘10px’ }}>{this.state.error}</p>
+              : (() =>{ if(this.country && this.state.data.length > 0 ){ return this.render_route_list() } })()
+            }
+          </Route_list>
         </Icon_popup>
-        <Icon src='./assets/route_icon.svg'
+        <Icon src=’./assets/route_icon.svg’
           onClick={() => this.setState({popup_toggle:!this.state.popup_toggle})}
         />
         <Icon_text>ROUTE</Icon_text>
