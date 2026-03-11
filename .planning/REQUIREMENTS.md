@@ -12,7 +12,7 @@
 - [ ] **STAB-03**: App shows error message when data fetch fails (no silent failures)
 - [ ] **STAB-04**: Globe rotation can be toggled on/off by the user
 - [ ] **STAB-05**: No critical or high security vulnerabilities in dependencies
-- [ ] **STAB-06**: API endpoints have rate limiting and CORS whitelisting
+- [x] **STAB-06**: API endpoints have rate limiting and CORS whitelisting
 
 ### Modernization
 

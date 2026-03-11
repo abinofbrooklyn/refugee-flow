@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Phase 1 context gathered
-last_updated: "2026-03-11T19:33:34.059Z"
+stopped_at: Completed 01-04 CORS and rate limiting
+last_updated: "2026-03-11T23:07:08.039Z"
 last_activity: 2026-03-11 — Roadmap created
 progress:
   total_phases: 5
   completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
+  total_plans: 4
+  completed_plans: 2
   percent: 0
 ---
 
@@ -50,6 +50,7 @@ Progress: [░░░░░░░░░░] 0%
 - Trend: -
 
 *Updated after each plan completion*
+| Phase 01-stabilize P04 | 15 | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -62,6 +63,8 @@ Recent decisions affecting current work:
 - Vite over Webpack 5 — drops legacy OpenSSL hack, faster builds
 - Geo precision at ingestion time — store clean data, prevent GPU overload
 - Shared secret admin only — full auth is overkill for this traffic level
+- [Phase 01-stabilize]: CORS allows all origins via cors() with no whitelist — general internet traffic permitted
+- [Phase 01-stabilize]: Rate limit scoped to /data routes only at 200 req/15min/IP using express-rate-limit v8 API
 
 ### Pending Todos
 
@@ -73,6 +76,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-11T19:33:34.054Z
-Stopped at: Phase 1 context gathered
-Resume file: .planning/phases/01-stabilize/01-CONTEXT.md
+Last session: 2026-03-11T23:07:08.033Z
+Stopped at: Completed 01-04 CORS and rate limiting
+Resume file: None
