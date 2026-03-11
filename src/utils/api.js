@@ -10,12 +10,12 @@ function get_routeDeath() {
     method: 'GET',
     cache: 'force-cache'
   });
-  return new Promise((res) => {
+  return new Promise((res, rej) => {
     if(cached_routeDeath === null) {
       cached_routeDeath = fetch(request).then(res => res.json());
     }
     return res(cached_routeDeath);
-  })
+  }).catch(err => { throw err; })
 
 }
 
@@ -25,12 +25,12 @@ function get_routeCountryList() {
     method: 'GET',
     cache: 'force-cache'
   });
-  return new Promise((res) => {
+  return new Promise((res, rej) => {
     if(cached_routeCountryList === null) {
       cached_routeCountryList = fetch(request).then(res => res.json());
     }
     return res(cached_routeCountryList);
-  })
+  }).catch(err => { throw err; })
 
 }
 
@@ -40,12 +40,12 @@ function get_routeIBC() {
     method: 'GET',
     cache: 'force-cache'
   });
-  return new Promise((res) => {
+  return new Promise((res, rej) => {
     if(cached_routeIBC === null) {
       cached_routeIBC = fetch(request).then(res => res.json());
     }
     return res(cached_routeIBC);
-  })
+  }).catch(err => { throw err; })
 
 }
 
