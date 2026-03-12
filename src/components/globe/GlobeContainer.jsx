@@ -5,7 +5,7 @@ import { bindActionCreators } from 'redux';
 import styled, { css } from 'styled-components';
 import * as THREE from 'three';
 import * as d3 from 'd3';
-import * as _ from 'underscore';
+import _ from 'lodash';
 import $ from 'jquery';
 
 import { ScaleLoader } from 'react-spinners';

@@ -1,7 +1,7 @@
 import React from 'react';
 import styled from 'styled-components';
 import $ from "jquery";
-import * as _ from 'underscore';
+import _ from 'lodash';
 import * as d3 from 'd3';
 
 const Wrapper = styled.div`

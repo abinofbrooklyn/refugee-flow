@@ -1,5 +1,5 @@
 import React from 'react';
-import * as _ from 'underscore';
+import _ from 'lodash';
 import { ScaleLoader } from 'react-spinners';
 
 import { get_routeDeath, get_routeIBC } from './../utils/api';

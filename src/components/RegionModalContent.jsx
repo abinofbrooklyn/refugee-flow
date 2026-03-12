@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import styled, { css }from 'styled-components';
 import * as d3 from 'd3';
 import $ from "jquery";
-import _ from 'underscore';
+import _ from 'lodash';
 import {countryCode} from '../data/warDictionary';
 import { ScaleLoader } from 'react-spinners';
 import {LoadingDivWrapper, LoaderGraphWrapper, LoadingIndicator} from './LoadingBar';

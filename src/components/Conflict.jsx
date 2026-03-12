@@ -1,5 +1,5 @@
 import React from 'react';
-import * as _ from 'underscore';
+import _ from 'lodash';
 import * as d3 from 'd3';
 
 import GlobeContainer from './globe/GlobeContainer';

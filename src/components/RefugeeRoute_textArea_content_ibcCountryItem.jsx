@@ -2,7 +2,7 @@ import React from 'react';
 import styled, { css } from 'styled-components';
 import * as d3 from 'd3';
 import { countryList, year } from '../data/warDictionary';
-import * as _ from 'underscore';
+import _ from 'lodash';
 import $ from "jquery";
 
 const Wrapper = styled.div`

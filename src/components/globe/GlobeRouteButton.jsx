@@ -1,6 +1,6 @@
 import React from 'react';
 import styled, { css , keyframes } from 'styled-components';
-import * as _ from 'underscore';
+import _ from 'lodash';
 import * as d3 from 'd3';
 import { get_routeCountryList , get_routeCrossingCount } from '../../utils/api';
 // import { BrowserRouter as Router, Route, Switch, Link, Redirect } from 'react-router-dom'

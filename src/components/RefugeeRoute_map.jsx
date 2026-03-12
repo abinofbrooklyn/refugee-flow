@@ -1,6 +1,6 @@
 import React from 'react';
 import styled from 'styled-components';
-import * as _ from 'underscore';
+import _ from 'lodash';
 import $ from "jquery";
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
