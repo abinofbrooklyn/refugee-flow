@@ -85,7 +85,7 @@ class GlobeStatsBoard extends React.Component {
     this.container_width = (window.innerWidth*.75) - 165 - 90;
   }
 
-  componentWillReceiveProps(nextProps){
+  UNSAFE_componentWillReceiveProps(nextProps){
     if(!_.isMatch(this.data, nextProps.data)){
       const keys = Object.keys(nextProps.data);
       if(!this.data) this.data = {'Total Fatality': 0,'Civilian Fatality': 0,'Armed Conflict Count': 0};

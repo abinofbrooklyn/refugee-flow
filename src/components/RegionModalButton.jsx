@@ -113,7 +113,7 @@ class RegionModalButton extends Component {
     this.removeCountryHandler = this.props.removeCountryHandler;
   }
 
-  componentWillReceiveProps(nextProps){
+  UNSAFE_componentWillReceiveProps(nextProps){
     this.data = nextProps.data;
     this.currentCountry = nextProps.currentCountry;
   }

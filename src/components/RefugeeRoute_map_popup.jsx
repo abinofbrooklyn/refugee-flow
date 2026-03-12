@@ -10,7 +10,7 @@ export default class RefugeeRoute_map_popup extends React.Component {
     super(props);
   }
 
-  componentWillReceiveProps(nextProps){
+  UNSAFE_componentWillReceiveProps(nextProps){
 
   }
 

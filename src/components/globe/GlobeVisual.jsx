@@ -631,7 +631,7 @@ class GlobeVisual extends React.Component{
     })
   }
 
-  componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps) {
 
 
     this.rotatePause = nextProps.rotatePause;

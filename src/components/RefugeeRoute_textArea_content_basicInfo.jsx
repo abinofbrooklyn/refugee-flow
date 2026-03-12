@@ -626,7 +626,7 @@ export default class RefugeeRoute_textArea_content_basicInfo extends React.Compo
 
   }
 
-  componentWillReceiveProps(nextProps){
+  UNSAFE_componentWillReceiveProps(nextProps){
     $('#CurrentSituation__text').stop(true,true);
     $('#CurrentSituation__text').scrollTop(0);
     $('#CurrentSituation__text').animate({scrollTop: $('#CurrentSituation__text')[0].scrollHeight}, 25000);

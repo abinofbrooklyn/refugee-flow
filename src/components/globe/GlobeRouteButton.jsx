@@ -188,7 +188,7 @@ class GlobeRouteButton extends React.Component {
 
   }
 
-  componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps) {
     this.country = nextProps.country;
     this.history = nextProps.history;
   }

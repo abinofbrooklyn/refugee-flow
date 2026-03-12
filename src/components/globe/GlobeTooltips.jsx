@@ -186,7 +186,7 @@ class GlobeTooltips extends React.Component {
 
   }
 
-  componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps) {
     this.id = nextProps.mv_tooltips[0];
     this.cot = nextProps.mv_tooltips[1];
     this.fat = nextProps.mv_tooltips[2];
