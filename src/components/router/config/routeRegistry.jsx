@@ -1,6 +1,6 @@
 import React from 'react';
 
-import * as MobileDetect from 'mobile-detect';
+import MobileDetect from 'mobile-detect';
 
 import Navbar from '../../Navbar';
 import DesktopLanding from '../../landing/DesktopLanding';

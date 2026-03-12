@@ -1,7 +1,7 @@
 import React from 'react';
 import styled, { css } from 'styled-components';
 import * as _ from 'underscore';
-import * as CountUp from 'countup.js';
+import CountUp from 'countup.js';
 
 const BoardWrapper = styled.div`
   width: ${props => props.container_width +'px'};
