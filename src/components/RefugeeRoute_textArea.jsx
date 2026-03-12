@@ -41,13 +41,13 @@ const Icon = styled.img`
 `
 const CollapseButton = styled.div`
   width: 25px;
-  height: 150px;
+  height: 50px;
   border-radius: 3px;
-  background: #1D2133CC;
+  background: #1D2133;
   position: absolute;
   transform: translateY(-50%);
-  top: 47%;
-  left: 12px;
+  top: 50%;
+  left: -30px;
   cursor: pointer;
   z-index: 3;
 
