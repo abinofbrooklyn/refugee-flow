@@ -5,7 +5,6 @@ import {countryList} from '../data/warDictionary';
 import _ from 'underscore';
 
 const RegionContainer = styled.div`
-  top: 14%;
   position: relative;
 `
 const Regions = styled.ul`

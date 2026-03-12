@@ -80,19 +80,17 @@ const RegionTitle = styled.p`
   font-size: 25px;
   color: white;
   font-weight: 300;
-  z-index: 111111;
-  position: absolute;
-  left: 30px;
+  z-index: 1;
+  padding: 20px 30px 0;
+  margin: 0 0 40px 0;
 
   &::after{
     content: 'Select a region to view regional conflict data. Click on a year to view conflict data for a selected country by year';
     font-weight: 300;
     color: white;
     font-size: 12px;
-    position: absolute;
-    width: 650px;
-    top: 42px;
-    left: 0;
+    display: block;
+    margin-top: 10px;
   }
 `
 const ModalInnerContainer = styled.div`
