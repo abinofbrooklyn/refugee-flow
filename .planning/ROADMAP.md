@@ -47,7 +47,13 @@ Plans:
   2. React 18 renders the app with zero deprecated lifecycle method warnings in the console
   3. Globe renders correctly using THREE.js r150+ with no regression in behavior
   4. node_modules contains no jquery, underscore, or legacy mapbox-gl packages
-**Plans**: TBD
+**Plans**: 4 plans
+
+Plans:
+- [ ] 02-01-PLAN.md — Rename componentWillReceiveProps to UNSAFE_ prefix in all 16 components
+- [ ] 02-02-PLAN.md — Upgrade THREE.js to r165 and migrate GlobeVisual.jsx to BufferGeometry API
+- [ ] 02-03-PLAN.md — Replace Webpack 4 with Vite build tool and dev server
+- [ ] 02-04-PLAN.md — Remove jquery, underscore, and mapbox-gl legacy dependencies
 
 ### Phase 3: Database Migration
 **Goal**: All app data is served from a Supabase PostgreSQL database the owner controls — MongoDB is fully removed
@@ -89,7 +95,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Stabilize | 3/4 | In Progress|  |
-| 2. Modernize Stack | 0/TBD | Not started | - |
+| 2. Modernize Stack | 0/4 | Not started | - |
 | 3. Database Migration | 0/TBD | Not started | - |
 | 4. Data Ingestion Pipeline | 0/TBD | Not started | - |
 | 5. Data Coverage | 0/TBD | Not started | - |
