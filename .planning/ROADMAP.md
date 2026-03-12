@@ -95,7 +95,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Stabilize | 3/4 | In Progress|  |
-| 2. Modernize Stack | 2/4 | In Progress|  |
+| 2. Modernize Stack | 3/4 | In Progress|  |
 | 3. Database Migration | 0/TBD | Not started | - |
 | 4. Data Ingestion Pipeline | 0/TBD | Not started | - |
 | 5. Data Coverage | 0/TBD | Not started | - |

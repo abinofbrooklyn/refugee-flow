@@ -16,7 +16,7 @@
 
 ### Modernization
 
-- [ ] **MOD-01**: App builds and runs using Vite (no legacy OpenSSL workaround needed)
+- [x] **MOD-01**: App builds and runs using Vite (no legacy OpenSSL workaround needed)
 - [x] **MOD-02**: App uses React 18 with no deprecated lifecycle method warnings
 - [x] **MOD-03**: App uses THREE.js r150+ for globe rendering
 - [ ] **MOD-04**: Unused legacy dependencies removed (jquery, underscore, old mapbox-gl)
