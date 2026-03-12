@@ -2,13 +2,14 @@ import React from 'react';
 // import style from './GlobeVisual.css'
 import * as d3 from 'd3';
 import * as _ from 'underscore';
-import THREE from '../../THREEJSScript/Octree';
+import * as THREE from 'three';
+import { Octree } from '@brakebein/threeoctree';
 
 // import OctreeWorker from '../workers/Octree.worker.js';
 import GlobeTooltips from './GlobeTooltips'; //child component
-const mousetrap = require('mousetrap');
+import mousetrap from 'mousetrap';
 
-const country_borderLine = require('../../data/countries_states.json');
+import country_borderLine from '../../data/countries_states.json';
 
 class GlobeVisual extends React.Component{
   constructor(props){
