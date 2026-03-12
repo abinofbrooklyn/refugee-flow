@@ -256,7 +256,10 @@ class GlobeVisual extends React.Component{
     //switch to "data points"
     geometry = new THREE.BoxGeometry(0.75, 0.75, 1);
     // 为了让数据条不往里纵深,因为boxGeometry在基平面两侧延伸？
-    geometry.applyMatrix(new THREE.Matrix4().makeTranslation(0,0,-0.5));
+    geometry.applyMatrix4(new THREE.Matrix4().makeTranslation(0,0,-0.5));
+    // Pre-allocate color attribute for BufferGeometry (BoxGeometry has 24 vertices)
+    const pointColors = new Float32Array(24 * 3);
+    geometry.setAttribute('color', new THREE.BufferAttribute(pointColors, 3));
     this.point = new THREE.Mesh(geometry);
 
     // raycasting
@@ -265,7 +268,7 @@ class GlobeVisual extends React.Component{
     this.interscted = undefined;
 
     const tooltips_mouseoverFeedback_geo = new THREE.BoxGeometry(2.5, 2.5, 1);
-    tooltips_mouseoverFeedback_geo.applyMatrix(new THREE.Matrix4().makeTranslation(0,0,-0.5));
+    tooltips_mouseoverFeedback_geo.applyMatrix4(new THREE.Matrix4().makeTranslation(0,0,-0.5));
     const tooltips_mouseoverFeedback_mat = new THREE.ShaderMaterial({
           uniforms: {},
           vertexShader: [
@@ -290,7 +293,7 @@ class GlobeVisual extends React.Component{
         })
     this.tooltips_mouseoverFeedback = new THREE.Mesh(tooltips_mouseoverFeedback_geo,tooltips_mouseoverFeedback_mat);
     this.tooltips_mouseoverFeedback.name = 'raycast-mouseover';
-    this.octree = new THREE.Octree({
+    this.octree = new Octree({
       // scene: this.scene,
       undeferred: false,
       depthMax: Infinity,
@@ -341,24 +344,37 @@ class GlobeVisual extends React.Component{
       throw('error: format not supported: '+ this.opts.format);
     }
 
+    const pointCount = data.length / step;
+    // Each BoxGeometry has 24 vertices
+    const vertsPerPoint = 24;
+
     if(this.opts.animated) {
 
       if(this._baseGeometry === undefined) {
-
-        this._baseGeometry = new THREE.Geometry();
+        // Build base geometry (size=null means no height -- zero-scale bars)
+        // Accumulate positions+colors for all points into typed arrays
+        const basePositions = new Float32Array(pointCount * vertsPerPoint * 3);
+        const baseColors = new Float32Array(pointCount * vertsPerPoint * 3);
+        let pointIdx = 0;
         for (let i = 0; i < data.length; i+= step) {
           lat = data[i];
           lng = data[i + 1];
           color = colorFnWrapper(data,i);
           // baseGeo 没有高度
-          // merge point to _baseGeometry(_baseGeometry is the one we using to do animation, data bar etc)
-          this.addPoint(lat, lng, null, color, this._baseGeometry);
+          this.addPoint(lat, lng, null, color, basePositions, baseColors, pointIdx);
+          pointIdx++;
         }
+        this._baseGeometry = new THREE.BufferGeometry();
+        this._baseGeometry.setAttribute('position', new THREE.BufferAttribute(basePositions, 3));
+        this._baseGeometry.setAttribute('color', new THREE.BufferAttribute(baseColors, 3));
+        this._morphTargetNames = [];
       }
     }
 
-
-    var subgeo = new THREE.Geometry();
+    // Build subgeo for this time slice (with height data)
+    const subPositions = new Float32Array(pointCount * vertsPerPoint * 3);
+    const subColors = new Float32Array(pointCount * vertsPerPoint * 3);
+    let pointIdx = 0;
 
     for (let i = 0; i < data.length; i += step) {
       lat = data[i];
@@ -367,23 +383,36 @@ class GlobeVisual extends React.Component{
       size = data[i + 2];
       // set size of the bar
       size = size*200;
-      this.addPoint(lat, lng, size, color, subgeo);
+      this.addPoint(lat, lng, size, color, subPositions, subColors, pointIdx);
+      pointIdx++;
     }
 
     if (this.opts.animated) {
       // morphTargets use to do animation
       // morphTarget to the data contains height value
       // (第一步的addPoint是没高度数据的，第二步的subgeo是有高度数据的)
-      this._baseGeometry.morphTargets.push({'name': this.opts.name, vertices: subgeo.vertices});
+      if (!this._baseGeometry.morphAttributes.position) {
+        this._baseGeometry.morphAttributes.position = [];
+      }
+      this._baseGeometry.morphAttributes.position.push(
+        new THREE.BufferAttribute(subPositions, 3)
+      );
+      this._morphTargetNames.push(this.opts.name);
     }
     else {
-      this._baseGeometry = subgeo;
+      this._baseGeometry = new THREE.BufferGeometry();
+      this._baseGeometry.setAttribute('position', new THREE.BufferAttribute(subPositions, 3));
+      this._baseGeometry.setAttribute('color', new THREE.BufferAttribute(subColors, 3));
     }
 
 
   }// addData
 
-  addPoint(lat, lng, size, color, subgeo) {
+  addPoint(lat, lng, size, color, positionsArray, colorsArray, pointIdx) {
+    // Each BoxGeometry has 24 vertices; pointIdx is the 0-based index of this point
+    const vertsPerPoint = 24;
+    const posOffset = pointIdx * vertsPerPoint * 3;
+    const colOffset = pointIdx * vertsPerPoint * 3;
 
     // equirectangular map projection
     const phi = (90 - lat) * Math.PI / 180;
@@ -400,32 +429,47 @@ class GlobeVisual extends React.Component{
 
     this.point.updateMatrix();
 
-    for (var i = 0; i < this.point.geometry.faces.length; i++) {
-      // color for every faces
-      this.point.geometry.faces[i].color = color;
-
-      //give top tip a gray color
-      if (i == 10) this.point.geometry.faces[i].color = new THREE.Color().setStyle('rgb(90,90,90)')
-      if (i == 11) this.point.geometry.faces[i].color = new THREE.Color().setStyle('rgb(90,90,90)')
+    // Fill vertex color array: BoxGeometry has 24 vertices (6 faces * 4 vertices)
+    // Top face (vertices 20-23, old faces 10-11) gets gray
+    for (let v = 0; v < vertsPerPoint; v++) {
+      if (v >= 20 && v < 24) {
+        // gray top tip
+        colorsArray[colOffset + v * 3]     = 90/255;
+        colorsArray[colOffset + v * 3 + 1] = 90/255;
+        colorsArray[colOffset + v * 3 + 2] = 90/255;
+      } else {
+        colorsArray[colOffset + v * 3]     = color.r;
+        colorsArray[colOffset + v * 3 + 1] = color.g;
+        colorsArray[colOffset + v * 3 + 2] = color.b;
+      }
     }
-    if(this.point.matrixAutoUpdate){
-      this.point.updateMatrix();
+
+    // Bake the point's world transform into the geometry positions
+    // Read existing position attribute, apply matrix, write to output array
+    const srcPositions = this.point.geometry.attributes.position;
+    for (let v = 0; v < vertsPerPoint; v++) {
+      const vx = srcPositions.getX(v);
+      const vy = srcPositions.getY(v);
+      const vz = srcPositions.getZ(v);
+      // Apply point matrix (position, orientation, scale)
+      const vec = new THREE.Vector3(vx, vy, vz).applyMatrix4(this.point.matrix);
+      positionsArray[posOffset + v * 3]     = vec.x;
+      positionsArray[posOffset + v * 3 + 1] = vec.y;
+      positionsArray[posOffset + v * 3 + 2] = vec.z;
     }
-
-
-    subgeo.merge(this.point.geometry, this.point.matrix);
 
   }
 
   createPoints(userData) {
     // _baseGeometry is then transform to 'points' to do visualization
     if (this._baseGeometry !== undefined) {
-        if (this._baseGeometry.morphTargets.length >= 8) console.log("maybe too many data?");
+        const morphCount = this._morphTargetNames ? this._morphTargetNames.length : 0;
+        if (morphCount >= 8) console.log("maybe too many data?");
 
         // points is the ultimate thing used to do visualization
         this.points = new THREE.Mesh(this._baseGeometry, new THREE.MeshBasicMaterial({
               color: 0xffffff,
-              vertexColors: THREE.FaceColors,
+              vertexColors: true,
               // animation
               morphTargets: true,
             }));
@@ -850,23 +894,22 @@ class GlobeVisual extends React.Component{
       }
 
       function drawLine(x_values, y_values, z_values, options) {
-          var line_geom = new THREE.Geometry();
-          createVertexForEachPoint(line_geom, x_values, y_values, z_values);
+          var positions = new Float32Array(x_values.length * 3);
+          for (var i = 0; i < x_values.length; i++) {
+              var v = new THREE.Vector3(x_values[i], y_values[i], z_values[i]).applyEuler(euler);
+              positions[i * 3]     = v.x;
+              positions[i * 3 + 1] = v.y;
+              positions[i * 3 + 2] = v.z;
+          }
+          var line_geom = new THREE.BufferGeometry();
+          line_geom.setAttribute('position', new THREE.BufferAttribute(positions, 3));
 
           var line_material = new THREE.LineDashedMaterial(options);
           var line = new THREE.Line(line_geom, line_material);
+          line.computeLineDistances(); // required for LineDashedMaterial with BufferGeometry
           container.add(line);
 
           clearArrays();
-      }
-
-      function createVertexForEachPoint(object_geometry, values_axis1, values_axis2, values_axis3) {
-
-          for (var i = 0; i < values_axis1.length; i++) {
-              object_geometry.vertices.push(
-                new THREE.Vector3(values_axis1[i],values_axis2[i], values_axis3[i]).applyEuler(euler)
-                );
-          }
       }
 
       function clearArrays() {
