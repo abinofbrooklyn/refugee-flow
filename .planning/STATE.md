@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Completed 02-modernize-stack-01-PLAN.md (UNSAFE_ lifecycle rename)
-last_updated: "2026-03-12T03:37:00.552Z"
+stopped_at: Completed 02-02-PLAN.md (THREE.js r165 + BufferGeometry migration) — awaiting Task 3 human-verify checkpoint
+last_updated: "2026-03-12T03:49:03.387Z"
 last_activity: 2026-03-11 — Roadmap created
 progress:
   total_phases: 5
   completed_phases: 1
   total_plans: 8
-  completed_plans: 5
+  completed_plans: 6
   percent: 0
 ---
 
@@ -53,6 +53,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 01-stabilize P04 | 15 | 2 tasks | 4 files |
 | Phase 01-stabilize P03 | 25 | 2 tasks | 2 files |
 | Phase 02-modernize-stack P01 | 17 | 2 tasks | 16 files |
+| Phase 02-modernize-stack P02 | 10 | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -69,6 +70,7 @@ Recent decisions affecting current work:
 - [Phase 01-stabilize]: Rate limit scoped to /data routes only at 200 req/15min/IP using express-rate-limit v8 API
 - [Phase 01-stabilize]: npm overrides (nth-check >=2.0.1, d3-color >=3.1.0) to resolve nested CVEs where upstream packages are stuck in circular --force loops
 - [Phase 02-modernize-stack]: Use UNSAFE_ prefix (not componentDidUpdate refactor) — preserves identical behavior, defers full lifecycle migration to later phase
+- [Phase 02-modernize-stack]: Pin three@0.165.0 exactly (no caret); manual typed-array accumulation for geometry merge to preserve per-point matrix transforms
 
 ### Pending Todos
 
@@ -80,6 +82,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-12T03:37:00.545Z
-Stopped at: Completed 02-modernize-stack-01-PLAN.md (UNSAFE_ lifecycle rename)
+Last session: 2026-03-12T03:49:03.382Z
+Stopped at: Completed 02-02-PLAN.md (THREE.js r165 + BufferGeometry migration) — awaiting Task 3 human-verify checkpoint
 Resume file: None
