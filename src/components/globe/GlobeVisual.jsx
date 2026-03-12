@@ -680,18 +680,11 @@ class GlobeVisual extends React.Component{
   }
 
   rotateGlobe(deltaSeconds,cancel) {
-    // TODO: rotate toogle in UI
-    // if (self.rotationSpeed != 0) {
-    if (deltaSeconds > 0 && deltaSeconds < 1 && cancel == false) {
+    if (cancel) return;
+    if (deltaSeconds > 0 && deltaSeconds < 1) {
       this.target.x += 1 * deltaSeconds / -20;
       this.target.y += 1 * deltaSeconds / -100;
     }
-
-    if(cancel){
-      this.target.x = this.target.x;
-      this.target.y = this.target.y;
-    }
-    // }
   }
 
   drawThreeGeo(json, radius, shape, materalOptions, container) {

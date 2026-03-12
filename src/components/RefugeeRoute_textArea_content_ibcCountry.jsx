@@ -480,7 +480,7 @@ export default class RefugeeRoute_textArea_content_ibcCountry extends React.Comp
           placeholder="Enter Country Name.."
           inputOn={this.state.inputOn}
           type="text"
-          innerRef={(searchBar) => {return this.searchBar = searchBar }}
+          ref={(searchBar) => {return this.searchBar = searchBar }}
           onInput={() => this.setState({
             currentPage: 1,
             dropDownItem: this.fuse.search(this.searchBar.value).map(d => d.key).slice(0,10) })}>

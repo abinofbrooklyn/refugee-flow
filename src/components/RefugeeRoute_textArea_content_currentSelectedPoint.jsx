@@ -4,12 +4,23 @@ import moment from 'moment';
 const mapboxgl = require('mapbox-gl');
 
 const Wrapper = styled.div`
-  width: 83%;
+  width: 100%;
   position: relative;
   height: ${() => window.innerHeight-40-90 + 'px'};
   top: 90px;
-  left: 50%;
-  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  padding: 0 25px 20px 25px;
+  box-sizing: border-box;
+  &::-webkit-scrollbar { width: 4px; margin-right: 2px; }
+  &::-webkit-scrollbar-thumb { background-color: #5a5a61; border-radius: 4px; }
+  &::-webkit-scrollbar-track { background: transparent; margin: 10px 0; }
+`
+const HeaderSection = styled.div`
+  position: relative;
+  min-height: 70px;
+  margin-bottom: 10px;
 `
 const Cause_of_death = styled.h1`
   font-family: 'Roboto';
@@ -17,7 +28,6 @@ const Cause_of_death = styled.h1`
   font-size: 16px;
   font-weight: 200;
   margin: 0;
-  position: absolute;
   width: 80%;
   &>em{
     font-size: 16px;
@@ -29,8 +39,8 @@ const Cause_of_death = styled.h1`
 const DataSource = styled.div`
   fill: white;
   position: absolute;
-  top: -3px;
-  right: 0;
+  top: 0;
+  right: 5px;
   cursor: pointer;
   opacity: 0.8;
   transition: all 200ms;
@@ -55,15 +65,13 @@ const Date = styled.p`
   font-size: 15px;
   font-weight: 300;
   font-style: italic;
-  position: absolute;
-  margin: 0;
-  top: 40px;
+  margin: 8px 0 0 0;
 `
 const UrlLink = styled.div`
   fill: white;
   position: absolute;
-  top: 45px;
-  right: 0;
+  top: 40px;
+  right: 5px;
   cursor: pointer;
   opacity: 0.8;
   transition: all 200ms;
@@ -86,8 +94,14 @@ const Delimiter = styled.div`
   height: 1px;
   transition: all 200ms;
   background: #76819ea3;
-  top: ${props => props.offset};
-  position: absolute;
+  margin-top: ${props => props.offset || '15px'};
+  position: relative;
+`
+const LocationRow = styled.div`
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-top: 15px;
 `
 const Location = styled.h1`
   font-family: 'Roboto';
@@ -97,8 +111,6 @@ const Location = styled.h1`
   font-weight: 500;
   color: white;
   margin: 0;
-  top: 100px;
-  position: relative;
 `
 const Route = styled.h1`
   font-family: 'Roboto';
@@ -108,9 +120,6 @@ const Route = styled.h1`
   font-weight: 400;
   color: white;
   margin: 0;
-  top: 100px;
-  right: 0;
-  position: absolute;
 `
 
 const LocationDesc = styled.p`
@@ -119,26 +128,23 @@ const LocationDesc = styled.p`
   font-size: 15px;
   font-weight: 300;
   font-style: italic;
-  position: absolute;
-  margin: 0;
-  top: 134px;
+  margin: 5px 0 10px 0;
   line-height: 2;
 `
 const StatsBoardWrapper = styled.div`
   width: 100%;
-  height: 40px;
-  top: 395px;
-  position: relative;
+  display: flex;
+  gap: 8px;
+  margin-top: 15px;
+  flex-shrink: 0;
 `
 const StatsBoardItem = styled.div`
   height: 40px;
   background: #2f2f4ab3;
   border-radius: 4px;
   position: relative;
-  float: left;
+  flex: 1;
   transition: all 300ms;
-  margin: ${props => props.index === 2 && '0 10px'};
-  width: ${() => ((window.innerWidth*0.55)*0.83)/3 - 20/3 -1 + 'px' }
 
   &:hover{
     background: #2f2f4a;
@@ -148,44 +154,38 @@ const StatsBoardItem = styled.div`
     font-family: 'Roboto';
     color: white;
     font-weight: 100;
-    font-size: 25px;
-    position: relative;
-    margin: auto;
-    right: 15px;
-    text-align: end;
-    transform: translateY(-50%);
-    top: 50%;
+    font-size: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 100%;
+    margin: 0;
+    padding: 0 10px 0 30px;
     transition: all 300ms;
-    margin-right: 10px;
     &:after{
       content:${props => "'" + props.name + "'"};
-      left: 38px;
       font-weight: 500;
-      font-size: 12px;
-      position: absolute;
-
-      top: 47%;
-      transform: translateY(-50%);
+      font-size: 11px;
+      white-space: nowrap;
     }
 
     &:before{
       content: "";
       width: 5px;
       height: 5px;
-      left: 25px;
+      left: 12px;
       position: absolute;
       border-radius: 50%;
       background: #8383ab;
-      top: 50%;
-      transform: translateY(-50%);
     }
   }
 `
 const MediaSectionWrapper = styled.div`
-  position: absolute;
-  top: 490px;
+  position: relative;
+  margin-top: 15px;
   width: 100%;
-  height: ${() => window.innerHeight -60-90-490 + 'px'};
+  padding-bottom: 20px;
+  flex-shrink: 0;
 `
 const MediaCoverage = styled.h1`
   font-family: 'Roboto';
@@ -204,12 +204,11 @@ const MediaCoverageDesc = styled.p`
   font-size: 18px;
   font-weight: 300;
   font-style: italic;
-  position: absolute;
+  position: relative;
   margin: 0;
-  ${'' /* top: 30px; */}
-  top: 50%;
-  transform: translateY(-50%);
-  left: 30px;
+  margin-top: 15px;
+  padding-left: 30px;
+  line-height: 1.6;
 
   &>em{
     font-size: 40px;
@@ -218,23 +217,19 @@ const MediaCoverageDesc = styled.p`
     font-family: cursive;
   }
   &>em:first-child{
-    top: -20px;
-    left: -30px;
+    top: -10px;
+    left: 0px;
   }
 `
 const Source = styled.p`
   font-family: 'Roboto';
   font-size: 14px;
-  padding-right: 10px;
   font-style: normal;
   font-weight: 400;
   color: white;
-  margin: 0;
-  position: absolute;
-  bottom: 0;
-  right: 0;
+  margin: 15px 0 0 0;
+  text-align: right;
   cursor: pointer;
-  padding: 0;
   &>em{
     text-decoration: underline;
     font-weight: 800;
@@ -305,14 +300,15 @@ export default class RefugeeRoute_textArea_content_currentSelectedPoint extends 
     // console.log("rendered");
 
     const style = {
-      position: 'absolute',
+      position: 'relative',
       width: '100%',
-      height: '230px',
-      top: '170px',
+      flex: '1 1 200px',
+      minHeight: '180px',
     };
 
     return(
       <Wrapper>
+        <HeaderSection>
         <Cause_of_death><em>Cause of Death</em> {this.selected_dataPoint && (this.selected_dataPoint.cause_of_death_displayText + '/ ' + this.selected_dataPoint.cause_of_death )}</Cause_of_death>
         <DataSource onClick={() => window.open('http://missingmigrants.iom.int/downloads', '_blank')}>
           <svg x="0px" y="0px" width="18.014px" height="19.304px" viewBox="0 0 18.014 19.304">
@@ -370,11 +366,13 @@ export default class RefugeeRoute_textArea_content_currentSelectedPoint extends 
           </g>
           </svg>
         </UrlLink>
-        <Delimiter offset={'80px'}/>
+        </HeaderSection>
+        <Delimiter offset={'15px'}/>
 
-        <Location>Location</Location>
-        <Route>Route: {this.selected_dataPoint && this.selected_dataPoint.route_displayText}</Route>
-
+        <LocationRow>
+          <Location>Location</Location>
+          <Route>Route: {this.selected_dataPoint && this.selected_dataPoint.route_displayText}</Route>
+        </LocationRow>
         <LocationDesc>{this.selected_dataPoint && this.selected_dataPoint.location}</LocationDesc>
         <div style={style} ref={el => this.mapContainer = el} />
         <StatsBoardWrapper>
@@ -383,7 +381,7 @@ export default class RefugeeRoute_textArea_content_currentSelectedPoint extends 
           <StatsBoardItem index={3} name='Dead and Missing: '><p>{this.selected_dataPoint && this.selected_dataPoint.dead_and_missing}</p></StatsBoardItem>
         </StatsBoardWrapper>
 
-        <Delimiter offset={'485px'}/>
+        <Delimiter offset={'15px'}/>
         <MediaSectionWrapper>
           <MediaCoverage>Media coverage</MediaCoverage>
           <MediaCoverageDesc><em>“</em>{this.selected_dataPoint && this.selected_dataPoint.description}<em>”</em></MediaCoverageDesc>

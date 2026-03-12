@@ -161,7 +161,7 @@ export default class RefugeeRoute_textArea extends React.Component {
         <TabWrapper>
           <TabItem onClick={()=> this.handleTabClick(1)} tabIndex={1} currentTab={this.state.currentTab}><TabText>Basic Info</TabText></TabItem>
           <TabItem onClick={()=> this.handleTabClick(2)} tabIndex={2} currentTab={this.state.currentTab}><TabText>IBC Involved Country</TabText></TabItem>
-          <TabItem  tabIndex={3} clickedPointRemoved ={this.clickedPointRemoved} currentTab={this.state.currentTab}><TabText>Current Select Point</TabText></TabItem>
+          <TabItem onClick={()=> !this.clickedPointRemoved && this.selected_dataPoint && this.handleTabClick(3)} tabIndex={3} clickedPointRemoved ={this.clickedPointRemoved} currentTab={this.state.currentTab}><TabText>Current Select Point</TabText></TabItem>
         </TabWrapper>
         <RefugeeRoute_textArea_contentManager
           currentRouteName = {this.currentRouteName}

@@ -219,7 +219,15 @@ export default class RefugeeRoute_textArea_content_basicInfo extends React.Compo
     this.drawChart();
   }
 
+  componentDidUpdate(){
+    if (!this._chartDrawn && this.chartContainer && this.stats) {
+      this.drawChart();
+    }
+  }
+
   drawChart(){
+    if (!this.chartContainer || !this.stats) return;
+    this._chartDrawn = true;
 
     d3.select(this.chartContainer).selectAll('svg').remove();
 
@@ -686,7 +694,7 @@ export default class RefugeeRoute_textArea_content_basicInfo extends React.Compo
         </DataSource>
         <DeathSummary>
           <p>Incident Summary - {this.currentRouteName}</p>
-          <Stats innerRef={(stats) => {return this.stats = stats }}><p>{this.calculateDeathTotal()}</p></Stats>
+          <Stats ref={(stats) => {return this.stats = stats }}><p>{this.calculateDeathTotal()}</p></Stats>
           <DataSource top='48px' onClick={(e) => {
             e.preventDefault();
             window.open('https://missingmigrants.iom.int/downloads', '_blank');
@@ -716,30 +724,30 @@ export default class RefugeeRoute_textArea_content_basicInfo extends React.Compo
             </g>
             </svg>
           </DataSource>
-          <ChartController innerRef={(ChartController) => {return this.ChartController = ChartController }}>
+          <ChartController ref={(ChartController) => {return this.ChartController = ChartController }}>
             <ChartControllerButton
                ChartControllerWidth = {this.state.ChartControllerWidth}
                index="0"
-               innerRef={(button2) => {return this.button2 = button2 }}
+               ref={(button2) => {return this.button2 = button2 }}
                button2W = {$(this.button2).width()}
                mode={this.state.mode}
                onClick={() => {this.handleChartMode(1)}}>Total Fatality </ChartControllerButton>
             <ChartControllerButton
                ChartControllerWidth = {this.state.ChartControllerWidth}
                index="1"
-               innerRef={(button2) => {return this.button2 = button2 }}
+               ref={(button2) => {return this.button2 = button2 }}
                button2W = {$(this.button2).width()}
                mode={this.state.mode}
                onClick={() => {this.handleChartMode(2)}}>Incident Type</ChartControllerButton>
             <ChartControllerButton
                ChartControllerWidth = {this.state.ChartControllerWidth}
                index="2"
-               innerRef={(button2) => {return this.button2 = button2 }}
+               ref={(button2) => {return this.button2 = button2 }}
                button2W = {$(this.button2).width()}
                mode={this.state.mode}
                onClick={() => {this.handleChartMode(3)}}>Death/Missing Ratio</ChartControllerButton>
           </ChartController>
-          <ChartContainer innerRef={(chartContainer) => {return this.chartContainer = chartContainer }}></ChartContainer>
+          <ChartContainer ref={(chartContainer) => {return this.chartContainer = chartContainer }}></ChartContainer>
         </DeathSummary>
       </Wrapper>
     )
