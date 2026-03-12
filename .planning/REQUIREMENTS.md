@@ -11,7 +11,7 @@
 - [ ] **STAB-02**: App shows loading state while data is being fetched
 - [ ] **STAB-03**: App shows error message when data fetch fails (no silent failures)
 - [x] **STAB-04**: Globe rotation can be toggled on/off by the user
-- [x] **STAB-05**: No critical or high security vulnerabilities in dependencies
+- [x] **STAB-05**: No critical or high security vulnerabilities in dependencies (accepted risk: three@0.91.0 HIGH CVE GHSA-fq6p-x6j3-cmmq — DoS only, pinned due to THREE.Geometry removal in 0.125+; fix deferred to Phase 2 MOD-03)
 - [x] **STAB-06**: API endpoints have rate limiting and CORS whitelisting
 
 ### Modernization
