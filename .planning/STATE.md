@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Completed 02-03-PLAN.md (Webpack to Vite migration)
-last_updated: "2026-03-12T04:54:50.914Z"
+stopped_at: Completed 02-04-PLAN.md (Remove jquery, underscore, mapbox-gl)
+last_updated: "2026-03-12T05:56:23.129Z"
 last_activity: 2026-03-11 — Roadmap created
 progress:
   total_phases: 5
-  completed_phases: 1
+  completed_phases: 2
   total_plans: 8
-  completed_plans: 7
+  completed_plans: 8
   percent: 0
 ---
 
@@ -55,6 +55,7 @@ Progress: [░░░░░░░░░░] 0%
 | Phase 02-modernize-stack P01 | 17 | 2 tasks | 16 files |
 | Phase 02-modernize-stack P02 | 10 | 2 tasks | 3 files |
 | Phase 02-modernize-stack P03 | 7 | 2 tasks | 13 files |
+| Phase 02-modernize-stack P04 | 7 | 2 tasks | 21 files |
 
 ## Accumulated Context
 
@@ -75,6 +76,8 @@ Recent decisions affecting current work:
 - [Phase 02-modernize-stack]: d3-canvas-transition broken module field pinned via vite alias to CJS build — no behavioral change
 - [Phase 02-modernize-stack]: warDictionary.js and routeDictionary.js converted from module.exports to named ES exports for Rollup/Vite strict ESM compliance
 - [Phase 02-modernize-stack]: NODE_OPTIONS=--openssl-legacy-provider hack eliminated — Vite uses modern crypto stack
+- [Phase 02-modernize-stack]: Replace mapbox:// style URL with CartoCDN dark-matter public style for maplibre-gl compatibility (no token required)
+- [Phase 02-modernize-stack]: Use npm --legacy-peer-deps for uninstalls in this project due to pre-existing eslint-config-airbnb peer conflict
 
 ### Pending Todos
 
@@ -86,6 +89,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-12T04:54:50.910Z
-Stopped at: Completed 02-03-PLAN.md (Webpack to Vite migration)
+Last session: 2026-03-12T05:56:23.124Z
+Stopped at: Completed 02-04-PLAN.md (Remove jquery, underscore, mapbox-gl)
 Resume file: None
