@@ -1,5 +1,5 @@
 import React from 'react';
-import { render } from 'react-dom';
+import { createRoot } from 'react-dom/client';
 import { Provider } from 'react-redux';
 import store from './redux/store';
 
@@ -9,9 +9,8 @@ import './styles/reset.scss';
 
 import Router from './components/router/Router';
 
-render(
+createRoot(document.getElementById('root')).render(
   <Provider store={store}>
     <Router />
   </Provider>,
-  document.getElementById('root'),
 );
