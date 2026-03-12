@@ -48,7 +48,7 @@ class AsyApplicationChartContainer extends React.Component {
     this.callGMountTransition = this.callGMountTransition.bind(this);
   }
 
-  componentWillReceiveProps(nextProps) {
+  UNSAFE_componentWillReceiveProps(nextProps) {
     this.setState({
       data: nextProps.data,
       selectedYear: nextProps.selectedYear,

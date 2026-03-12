@@ -134,7 +134,7 @@ export default class RefugeeRoute_titleGroup extends React.Component {
     };
   }
 
-  componentWillReceiveProps(nextProps){
+  UNSAFE_componentWillReceiveProps(nextProps){
     this.currentRouteName = nextProps.currentRouteName;
   }
 

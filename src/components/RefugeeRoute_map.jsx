@@ -29,7 +29,7 @@ export default class RefugeeRoute_map extends React.Component {
     }
   }
 
-  componentWillReceiveProps(nextProps){
+  UNSAFE_componentWillReceiveProps(nextProps){
     this.banned_category = nextProps.banned_category;
     this.data = _.groupBy(nextProps.data,d => d.route);
     this.currentMapParams = _.find(dataDict,d => d.route === nextProps.currentRouteName);

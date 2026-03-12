@@ -339,7 +339,7 @@ export default class RefugeeRoute_textArea_content_ibcCountry extends React.Comp
 
   }
 
-  componentWillReceiveProps(nextProps){
+  UNSAFE_componentWillReceiveProps(nextProps){
     const trans = d3.select('.route-map-titleGroup__IBC');
 
     trans && trans

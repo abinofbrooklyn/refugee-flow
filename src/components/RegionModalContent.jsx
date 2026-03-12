@@ -150,7 +150,7 @@ class RegionModalContent extends Component {
     }
   }
 
-  componentWillReceiveProps(nextProps){
+  UNSAFE_componentWillReceiveProps(nextProps){
     this.data = nextProps.data;
     d3.select('.sectionItemWrapper').style('opacity',1);
     this.setState({loadingStatus: false});

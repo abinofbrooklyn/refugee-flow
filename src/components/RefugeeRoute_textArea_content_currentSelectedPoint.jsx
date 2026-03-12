@@ -245,7 +245,7 @@ export default class RefugeeRoute_textArea_content_currentSelectedPoint extends 
     this.mapFly = this.mapFly.bind(this);
   }
 
-  componentWillReceiveProps(nextProps){
+  UNSAFE_componentWillReceiveProps(nextProps){
     this.selected_dataPoint = JSON.parse(nextProps.selected_dataPoint);
 
     const map_lng = this.selected_dataPoint ? this.selected_dataPoint.lng : 0;

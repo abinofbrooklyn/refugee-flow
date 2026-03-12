@@ -133,7 +133,7 @@ export default class RefugeeRoute_textArea extends React.Component {
     this.IBC_data = this.props.route_IBC;
   }
 
-  componentWillReceiveProps(nextProps){
+  UNSAFE_componentWillReceiveProps(nextProps){
     this.currentRouteName = nextProps.currentRouteName;
 
     this.selected_dataPoint = nextProps.selected_data;

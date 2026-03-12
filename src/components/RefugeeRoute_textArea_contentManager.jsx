@@ -19,7 +19,7 @@ export default class RefugeeRoute_textArea_contentManager extends React.Componen
     this.IBC_data = props.IBC_data;
   }
 
-  componentWillReceiveProps(nextProps){
+  UNSAFE_componentWillReceiveProps(nextProps){
     this.currentRouteName = nextProps.currentRouteName;
     this.currentTab = nextProps.currentTab;
     this.setState({selected_dataPoint: nextProps.selected_dataPoint})
