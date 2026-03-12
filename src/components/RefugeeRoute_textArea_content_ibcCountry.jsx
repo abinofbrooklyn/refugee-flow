@@ -2,7 +2,7 @@ import React from 'react';
 import styled, { css } from 'styled-components';
 import * as d3 from 'd3';
 import * as _ from 'underscore';
-import * as Fuse from 'fuse.js';
+import Fuse from 'fuse.js';
 import $ from "jquery";
 import { year } from '../data/warDictionary';
 import RefugeeRoute_textArea_content_ibcCountryItem from './RefugeeRoute_textArea_content_ibcCountryItem';

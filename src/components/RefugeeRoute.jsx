@@ -123,7 +123,7 @@ export default class RefugeeRoute extends React.Component {
       clickedPointRemoved = {this.state.clickedPointRemoved}
     />
     return(
-      <div>
+      <div style={{ position: 'relative' }}>
         {this.state.route_death && title}
         {this.state.route_death && map}
         {this.state.route_death && map_popup}

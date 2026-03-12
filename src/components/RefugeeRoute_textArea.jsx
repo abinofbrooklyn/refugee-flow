@@ -12,7 +12,7 @@ const Wrapper = styled.div`
   width: 55%;
   margin: 0;
   right:   ${props => props.toggle ? (-window.innerWidth * 0.55) + 21 + 27 + 'px' : 0};${'' /* +27 is showing the route icon */}
-  background: ${props => props.toggle ? '#1111177a': '#111117f7'};
+  background: ${props => props.toggle ? '#1111177a': '#111117'};
   box-shadow: 5px 0px 78px -6px rgba(0,0,0,0.62);
   z-index: 1;
   transition: all cubic-bezier(0.63, 0.13, 0.01, 0.99) 500ms;
@@ -49,6 +49,7 @@ const CollapseButton = styled.div`
   top: 47%;
   left: 12px;
   cursor: pointer;
+  z-index: 3;
 
   &>svg{
     top: 50%;
