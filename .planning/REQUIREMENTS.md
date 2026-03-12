@@ -7,9 +7,9 @@
 
 ### Stability
 
-- [ ] **STAB-01**: App runs without memory leaks when navigating between views
-- [ ] **STAB-02**: App shows loading state while data is being fetched
-- [ ] **STAB-03**: App shows error message when data fetch fails (no silent failures)
+- [x] **STAB-01**: App runs without memory leaks when navigating between views
+- [x] **STAB-02**: App shows loading state while data is being fetched
+- [x] **STAB-03**: App shows error message when data fetch fails (no silent failures)
 - [x] **STAB-04**: Globe rotation can be toggled on/off by the user
 - [x] **STAB-05**: No critical or high security vulnerabilities in dependencies (accepted risk: three@0.91.0 HIGH CVE GHSA-fq6p-x6j3-cmmq — DoS only, pinned due to THREE.Geometry removal in 0.125+; fix deferred to Phase 2 MOD-03)
 - [x] **STAB-06**: API endpoints have rate limiting and CORS whitelisting
@@ -70,8 +70,8 @@
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| STAB-01 through STAB-06 | Phase 1 | Pending |
-| MOD-01 through MOD-04 | Phase 2 | Pending |
+| STAB-01 through STAB-06 | Phase 1 | Complete |
+| MOD-01 through MOD-04 | Phase 2 | Complete |
 | DB-01 through DB-04 | Phase 3 | Pending |
 | INGEST-01 through INGEST-07 | Phase 4 | Pending |
 | DATA-01 through DATA-03 | Phase 5 | Pending |

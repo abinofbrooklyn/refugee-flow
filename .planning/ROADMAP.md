@@ -12,8 +12,8 @@ The project modernizes a brownfield conflict/refugee visualization app from a fr
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Stabilize** - Fix memory leaks, error handling, security vulnerabilities, and UX gaps in the existing app
-- [ ] **Phase 2: Modernize Stack** - Replace Webpack 4 with Vite, upgrade React 18 and THREE.js r150+, remove dead dependencies
+- [x] **Phase 1: Stabilize** - Fix memory leaks, error handling, security vulnerabilities, and UX gaps in the existing app
+- [x] **Phase 2: Modernize Stack** - Replace Webpack 4 with Vite, upgrade React 18 and THREE.js r150+, remove dead dependencies
 - [ ] **Phase 3: Database Migration** - Move all data from MongoDB to PostgreSQL/Supabase with geo precision baked in
 - [ ] **Phase 4: Data Ingestion Pipeline** - Automate ACLED, UNHCR, and IOM data ingestion plus admin CSV upload
 - [ ] **Phase 5: Data Coverage** - Audit, validate, and close gaps in data coverage across years and corridors
@@ -33,10 +33,10 @@ Decimal phases appear between their surrounding integers in numeric order.
 **Plans**: 4 plans
 
 Plans:
-- [ ] 01-01-PLAN.md — Fix THREE.js and interval memory leaks in GlobeVisual, MobileLanding, DesktopLanding
-- [ ] 01-02-PLAN.md — Add loading spinners and error messages to all data-fetching components
-- [ ] 01-03-PLAN.md — Add globe rotation toggle button and patch security vulnerabilities
-- [ ] 01-04-PLAN.md — Add CORS and rate limiting middleware to Express server with integration test
+- [x] 01-01-PLAN.md — Fix THREE.js and interval memory leaks in GlobeVisual, MobileLanding, DesktopLanding
+- [x] 01-02-PLAN.md — Add loading spinners and error messages to all data-fetching components
+- [x] 01-03-PLAN.md — Add globe rotation toggle button and patch security vulnerabilities
+- [x] 01-04-PLAN.md — Add CORS and rate limiting middleware to Express server with integration test
 
 ### Phase 2: Modernize Stack
 **Goal**: The app builds and runs on a modern, maintainable toolchain with no deprecated warnings or legacy workarounds
@@ -50,10 +50,10 @@ Plans:
 **Plans**: 4 plans
 
 Plans:
-- [ ] 02-01-PLAN.md — Rename componentWillReceiveProps to UNSAFE_ prefix in all 16 components
-- [ ] 02-02-PLAN.md — Upgrade THREE.js to r165 and migrate GlobeVisual.jsx to BufferGeometry API
-- [ ] 02-03-PLAN.md — Replace Webpack 4 with Vite build tool and dev server
-- [ ] 02-04-PLAN.md — Remove jquery, underscore, and mapbox-gl legacy dependencies
+- [x] 02-01-PLAN.md — Rename componentWillReceiveProps to UNSAFE_ prefix in all 16 components
+- [x] 02-02-PLAN.md — Upgrade THREE.js to r165 and migrate GlobeVisual.jsx to BufferGeometry API
+- [x] 02-03-PLAN.md — Replace Webpack 4 with Vite build tool and dev server
+- [x] 02-04-PLAN.md — Remove jquery, underscore, and mapbox-gl legacy dependencies
 
 ### Phase 3: Database Migration
 **Goal**: All app data is served from a Supabase PostgreSQL database the owner controls — MongoDB is fully removed
@@ -94,8 +94,8 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Stabilize | 3/4 | In Progress|  |
-| 2. Modernize Stack | 3/4 | In Progress|  |
+| 1. Stabilize | 4/4 | Complete | 2026-03-12 |
+| 2. Modernize Stack | 4/4 | Complete | 2026-03-12 |
 | 3. Database Migration | 0/TBD | Not started | - |
 | 4. Data Ingestion Pipeline | 0/TBD | Not started | - |
 | 5. Data Coverage | 0/TBD | Not started | - |

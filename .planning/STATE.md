@@ -21,16 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-11)
 
 **Core value:** Users can explore the human cost of conflict through an interactive, data-accurate visualization.
-**Current focus:** Phase 1 — Stabilize
+**Current focus:** Phase 3 — Database Migration
 
 ## Current Position
 
-Phase: 1 of 5 (Stabilize)
+Phase: 3 of 5 (Database Migration)
 Plan: 0 of TBD in current phase
 Status: Ready to plan
-Last activity: 2026-03-11 — Roadmap created
+Last activity: 2026-03-12 — Phase 2 complete
 
-Progress: [░░░░░░░░░░] 0%
+Progress: [████░░░░░░] 40%
 
 ## Performance Metrics
 
