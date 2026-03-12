@@ -364,32 +364,33 @@ class GlobeContainer extends React.Component {
       })
 
     }).then((loadingState) =>{
-      this.setState({
-        loadingStatus: loadingState.loadingStatus,
-        loadingText: loadingState.loadingText,
-        warData: loadingState.warData
-      })
-      return;
+      return new Promise((resolve) => {
+        this.setState({
+          loadingStatus: loadingState.loadingStatus,
+          loadingText: loadingState.loadingText,
+          warData: loadingState.warData
+        }, resolve);
+      });
 
     }).then(() =>{
 
-      setTimeout(() => {
-        this.drawData(this.state.warData[0].value); // Default view : 2010
-        this.gv.scaler = this.state.warData[0].scaler; // Default scaler : 2010's
-        // this.gv.setTarget([40.226460, 17.442115], 250)
-        this.gv.lastIndex = 0; // For animation purpose;
-        this.gv.transition(this.gv.lastIndex); // Animate interface;
-        this.gv.octree.update( () => {
-          this.setState({loadingStatus: false});
-          console.time('animate takes');
-          this.gv.animate();
-          this.gv.setTarget([-11.874010, 44.605859],945) // set initial position
-          console.timeEnd('animate takes');
-          this.props.loadingManager(false);
+      if (!this.state.warData || !this.state.warData[0] || !this.gv) {
+        throw new Error('Globe data or renderer not ready after load.');
+      }
+      this.drawData(this.state.warData[0].value); // Default view : 2010
+      this.gv.scaler = this.state.warData[0].scaler; // Default scaler : 2010's
+      this.gv.lastIndex = 0; // For animation purpose;
+      this.gv.transition(this.gv.lastIndex); // Animate interface;
+      this.gv.octree.update( () => {
+        this.setState({loadingStatus: false});
+        console.time('animate takes');
+        this.gv.animate();
+        this.gv.setTarget([-11.874010, 44.605859],945) // set initial position
+        console.timeEnd('animate takes');
+        this.props.loadingManager(false);
 
-          this.setState({controllerShow: false})
-        }); // this takes a long time
-      },10)
+        this.setState({controllerShow: false})
+      }); // this takes a long time
 
     }).catch(err => {
       this.setState({
