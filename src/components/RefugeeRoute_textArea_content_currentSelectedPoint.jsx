@@ -1,7 +1,7 @@
 import React from 'react';
 import styled, { css } from 'styled-components';
 import moment from 'moment';
-const mapboxgl = require('mapbox-gl');
+import mapboxgl from 'mapbox-gl';
 
 const Wrapper = styled.div`
   width: 100%;

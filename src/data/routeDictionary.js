@@ -29,6 +29,4 @@ const color_map = [
   },
 ]
 
-module.exports = {
-  color_map: color_map
-};
+export { color_map };

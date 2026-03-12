@@ -6,7 +6,7 @@ import $ from "jquery";
 import { year } from '../data/warDictionary'
 import { color_map } from '../data/routeDictionary';
 
-const routeDescDict = require('../data/route_desc.json');
+import routeDescDict from '../data/route_desc.json';
 
 const Wrapper = styled.div`
   width: 83%;

@@ -3,7 +3,7 @@ import styled from 'styled-components';
 import { BrowserRouter as Router, Route, Switch, Redirect, Link } from 'react-router-dom'
 import * as _ from 'underscore';
 import { color_map } from '../data/routeDictionary';
-const dataDict = require('../data/IBC_crossingCountByCountry.json');
+import dataDict from '../data/IBC_crossingCountByCountry.json';
 
 const Wrapper = styled.div`
   position: absolute;
