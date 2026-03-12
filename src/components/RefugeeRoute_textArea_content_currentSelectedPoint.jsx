@@ -1,7 +1,7 @@
 import React from 'react';
 import styled, { css } from 'styled-components';
 import moment from 'moment';
-import mapboxgl from 'mapbox-gl';
+import maplibregl from 'maplibre-gl';
 
 const Wrapper = styled.div`
   width: 100%;
@@ -257,10 +257,9 @@ export default class RefugeeRoute_textArea_content_currentSelectedPoint extends 
   componentDidMount() {
     const map_lng = this.selected_dataPoint ? this.selected_dataPoint.lng : 0;
     const map_lat = this.selected_dataPoint? this.selected_dataPoint.lat: 0;
-    mapboxgl.accessToken = 'pk.eyJ1IjoiamlhaGFvMDExMjEiLCJhIjoiY2l6bjI5ZHI1MDJkYzJxbzg1NXJmYWxvMSJ9.AhMpv-yiSAvqlo7bi2UBig';
-    this.map = new mapboxgl.Map({
+    this.map = new maplibregl.Map({
       container: this.mapContainer,
-      style: 'mapbox://styles/jiahao01121/cji9iqnff6xl52so1ienqz75o',
+      style: 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json',
       attributionControl: false,
       center: [map_lng,map_lat],
       zoom: 4,

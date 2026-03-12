@@ -1,7 +1,6 @@
 import React, { Component } from 'react';
 import styled, { css }from 'styled-components';
 import * as d3 from 'd3';
-import $ from "jquery";
 import _ from 'lodash';
 import {countryCode} from '../data/warDictionary';
 import { ScaleLoader } from 'react-spinners';
@@ -43,7 +42,7 @@ const SectionItemWrapper = styled.div`
   `}
 `
 const SectionItem = styled.div`
-  width: ${() =>$('.sectionItemWrapper').width() / 3 - 20 + 'px'};
+  width: ${() => (document.querySelector('.sectionItemWrapper')?.offsetWidth || 0) / 3 - 20 + 'px'};
   height: 350px;
   margin: 10px;
   background: #3535504d;
@@ -106,7 +105,7 @@ const Fat_num = styled.p`
   }
 `
 const MouseoverButton = styled.div`
-  width: ${() =>($('.sectionItemWrapper').width() / 3 - 20) / 9 - 8 + 'px'};
+  width: ${() => ((document.querySelector('.sectionItemWrapper')?.offsetWidth || 0) / 3 - 20) / 9 - 8 + 'px'};
   height: ${props => props.heightMap + 'px'};
   background: white;
   position: relative;

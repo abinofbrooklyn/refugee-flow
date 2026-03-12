@@ -2,7 +2,6 @@ import React from 'react';
 import styled, { css } from 'styled-components';
 import * as d3 from 'd3';
 import _ from 'lodash';
-import $ from "jquery";
 import { year } from '../data/warDictionary'
 import { color_map } from '../data/routeDictionary';
 
@@ -215,7 +214,7 @@ export default class RefugeeRoute_textArea_content_basicInfo extends React.Compo
   }
 
   componentDidMount(){
-    this.setState({ChartControllerWidth:$(this.ChartController).width()});
+    this.setState({ChartControllerWidth: this.ChartController ? this.ChartController.offsetWidth : 0});
     this.drawChart();
   }
 
@@ -232,8 +231,8 @@ export default class RefugeeRoute_textArea_content_basicInfo extends React.Compo
     d3.select(this.chartContainer).selectAll('svg').remove();
 
     const margin = {top: 20, right: 15, bottom: 20, left: 35};
-    const width = $(this.chartContainer).width() - margin.left - margin.right;
-    const height = ($(this.chartContainer).offset().top - $(this.stats).offset().top) - 100
+    const width = this.chartContainer.offsetWidth - margin.left - margin.right;
+    const height = (this.chartContainer.getBoundingClientRect().top - this.stats.getBoundingClientRect().top) - 100
       - margin.top - margin.bottom;
 
     this.g = d3.select(this.chartContainer).append('svg')
@@ -627,9 +626,11 @@ export default class RefugeeRoute_textArea_content_basicInfo extends React.Compo
   }
 
   UNSAFE_componentWillReceiveProps(nextProps){
-    $('#CurrentSituation__text').stop(true,true);
-    $('#CurrentSituation__text').scrollTop(0);
-    $('#CurrentSituation__text').animate({scrollTop: $('#CurrentSituation__text')[0].scrollHeight}, 25000);
+    const csText = document.getElementById('CurrentSituation__text');
+    if (csText) {
+      csText.scrollTop = 0;
+      csText.scrollTo({top: csText.scrollHeight, behavior: 'smooth'});
+    }
 
     if(nextProps.currentRouteName != this.currentRouteName){
       this.currentRouteName = nextProps.currentRouteName;
@@ -664,7 +665,7 @@ export default class RefugeeRoute_textArea_content_basicInfo extends React.Compo
     return(
       <Wrapper className='route-map-titleGroup__basic'>
         <CurrentSituation currentRouteName = {this.currentRouteName} id="CurrentSituation__text"
-          onClick={()=> $('#CurrentSituation__text').stop(true,true).scrollTop(0)}>
+          onClick={()=> { const el = document.getElementById('CurrentSituation__text'); if (el) el.scrollTop = 0; }}>
           {this.description(_.find(routeDescDict,d => d.route === this.currentRouteName).desc)}
         </CurrentSituation>
         <DataSource top='-5px' onClick={() => window.open('https://frontex.europa.eu/along-eu-borders/migratory-routes/central-mediterranean-route/', '_blank')}>
@@ -729,21 +730,21 @@ export default class RefugeeRoute_textArea_content_basicInfo extends React.Compo
                ChartControllerWidth = {this.state.ChartControllerWidth}
                index="0"
                ref={(button2) => {return this.button2 = button2 }}
-               button2W = {$(this.button2).width()}
+               button2W = {this.button2 ? this.button2.offsetWidth : 0}
                mode={this.state.mode}
                onClick={() => {this.handleChartMode(1)}}>Total Fatality </ChartControllerButton>
             <ChartControllerButton
                ChartControllerWidth = {this.state.ChartControllerWidth}
                index="1"
                ref={(button2) => {return this.button2 = button2 }}
-               button2W = {$(this.button2).width()}
+               button2W = {this.button2 ? this.button2.offsetWidth : 0}
                mode={this.state.mode}
                onClick={() => {this.handleChartMode(2)}}>Incident Type</ChartControllerButton>
             <ChartControllerButton
                ChartControllerWidth = {this.state.ChartControllerWidth}
                index="2"
                ref={(button2) => {return this.button2 = button2 }}
-               button2W = {$(this.button2).width()}
+               button2W = {this.button2 ? this.button2.offsetWidth : 0}
                mode={this.state.mode}
                onClick={() => {this.handleChartMode(3)}}>Death/Missing Ratio</ChartControllerButton>
           </ChartController>

@@ -3,7 +3,6 @@ import styled, { css } from 'styled-components';
 import * as d3 from 'd3';
 import _ from 'lodash';
 import Fuse from 'fuse.js';
-import $ from "jquery";
 import { year } from '../data/warDictionary';
 import RefugeeRoute_textArea_content_ibcCountryItem from './RefugeeRoute_textArea_content_ibcCountryItem';
 
@@ -352,7 +351,7 @@ export default class RefugeeRoute_textArea_content_ibcCountry extends React.Comp
   }
 
   componentWillUnmount(){
-    $(this.searchBar).off();
+    // No-op: component is unmounting, DOM event listeners are garbage collected automatically
   }
 
   cardGenerator(){

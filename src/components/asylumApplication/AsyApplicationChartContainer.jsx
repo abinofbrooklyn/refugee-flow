@@ -1,7 +1,6 @@
 import React from 'react';
 import styled from 'styled-components';
 import * as d3 from 'd3';
-import $ from 'jquery';
 
 import AsyApplicationChart from './AsyApplicationChart'
 
@@ -62,8 +61,8 @@ class AsyApplicationChartContainer extends React.Component {
   componentDidMount(){
 
     this.setState({
-      width : $(this.mount).width() - this.state.margin.left - this.state.margin.right,
-      height : $(this.mount).height() - this.state.margin.top - this.state.margin.bottom,
+      width : this.mount.getBoundingClientRect().width - this.state.margin.left - this.state.margin.right,
+      height : this.mount.getBoundingClientRect().height - this.state.margin.top - this.state.margin.bottom,
     })
 
     this.processData(this.state.data,this.state.selectedYear,this.chartMode);
