@@ -19,6 +19,7 @@ const TooltipWarpper = styled.div`
   height: 100px;
   color: white;
   overflow: hidden;
+  cursor: ${props => props.expendornot ? 'default' : 'pointer'};
   transition: all 300ms ease-in-out;
 
   ${'' /* hide tooltips when mouseleave */}
@@ -233,6 +234,7 @@ class GlobeTooltips extends React.Component {
         showornot = {this.mv_show}
         mv_position = {this.mv_position}
         expendornot = {this.tooltips_clicked}
+        onClick = {() => !this.tooltips_clicked && this.props.tooltips_onclick()}
       >
 
         <ExitButton onClick={() => this.props.tooltips_onexit() }>x</ExitButton>
