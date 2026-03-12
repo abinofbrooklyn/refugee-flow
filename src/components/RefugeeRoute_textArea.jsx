@@ -1,7 +1,6 @@
 import React from 'react';
 import styled, { css } from 'styled-components';
 import _ from 'lodash';
-import $ from "jquery";
 
 import RefugeeRoute_textArea_contentManager from './RefugeeRoute_textArea_contentManager';
 
@@ -152,7 +151,8 @@ export default class RefugeeRoute_textArea extends React.Component {
   render(){
 
     // mapbox nav position will change if the tab collapsed
-    this.state.collapseToggle ? $('.mapboxgl-ctrl-top-right').css('right','3.3%') : $('.mapboxgl-ctrl-top-right').css('right','57%');
+    const navCtrl = document.querySelector('.mapboxgl-ctrl-top-right');
+    if (navCtrl) navCtrl.style.right = this.state.collapseToggle ? '3.3%' : '57%';
 
     return(
       <Wrapper toggle={this.state.collapseToggle}>

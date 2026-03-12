@@ -1,6 +1,5 @@
 import React from 'react';
 import styled from 'styled-components';
-import $ from "jquery";
 import _ from 'lodash';
 import * as d3 from 'd3';
 
@@ -108,7 +107,8 @@ const TimelineAnnotation = styled.p`
   position: absolute;
   top: 406px;
   left: ${() =>{
-    return $($('.years')[2]).position() ? $($('.years')[2]).position().left + 130 + 'px' : '100000px';
+    const el = document.querySelectorAll('.years')[2];
+    return el ? el.offsetLeft + 130 + 'px' : '100000px';
     }};
   font-family: 'Roboto';
   font-size: 16px;

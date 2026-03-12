@@ -1,7 +1,6 @@
 import React from 'react';
 import styled from 'styled-components';
 import _ from 'lodash';
-import $ from "jquery";
 import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import * as d3 from 'd3';
@@ -53,8 +52,8 @@ export default class RefugeeRoute_map extends React.Component {
       // pitch: 39.50,
     }).addControl(new maplibregl.NavigationControl(),'top-right');
 
-    this.mapContainer_width = $(this.mapContainer).width();
-    this.mapContainer_height = $(this.mapContainer).height();
+    this.mapContainer_width = this.mapContainer.offsetWidth;
+    this.mapContainer_height = this.mapContainer.offsetHeight;
 
     d3.select(this.map.getCanvasContainer())
       .append('canvas')

@@ -3,7 +3,6 @@ import styled, { css } from 'styled-components';
 import * as d3 from 'd3';
 import { countryList, year } from '../data/warDictionary';
 import _ from 'lodash';
-import $ from "jquery";
 
 const Wrapper = styled.div`
   height: 150px;
@@ -166,8 +165,8 @@ export default class RefugeeRoute_textArea_content_ibcCountryItem extends React.
 
   componentDidMount() {
 
-    this.width = $(this.svg).width() - this.margin.left - this.margin.right;
-    this.height = $(this.svg).height() - this.margin.top - this.margin.bottom;
+    this.width = this.svg.getBoundingClientRect().width - this.margin.left - this.margin.right;
+    this.height = this.svg.getBoundingClientRect().height - this.margin.top - this.margin.bottom;
 
 
     this.xScale = d3.scaleTime()

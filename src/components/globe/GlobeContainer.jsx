@@ -6,7 +6,6 @@ import styled, { css } from 'styled-components';
 import * as THREE from 'three';
 import * as d3 from 'd3';
 import _ from 'lodash';
-import $ from 'jquery';
 
 import { ScaleLoader } from 'react-spinners';
 import { rgbToHsl } from '../../utils/color-conversion-algorithms';
@@ -349,7 +348,7 @@ class GlobeContainer extends React.Component {
 
   componentDidMount(){
 
-    this.timeLineScroll = new Scroll($('.TimelineWrapper')[0]);
+    this.timeLineScroll = new Scroll(document.querySelector('.TimelineWrapper'));
 
     const url = `${window.location.protocol}//${window.location.host}/data/reduced_war_data`;
     this.fetchData(url).then(d =>{
@@ -607,7 +606,7 @@ class GlobeContainer extends React.Component {
     } else {
       //switch data
       this.setState({loadingStatus : true, loadingText : 'Switching data to '+ year,currentControllerSelection:1})
-      this.timeLineScroll.toElement($('.individualWrapper')[year.charAt(3)]).then(()=>console.log('aaaaa'));
+      this.timeLineScroll.toElement(document.querySelectorAll('.individualWrapper')[year.charAt(3)]).then(()=>console.log('aaaaa'));
 
       this.gv.transition(5,() => {
         //update visualization
@@ -770,7 +769,7 @@ class GlobeContainer extends React.Component {
 
     if(year === null){year = '2010'}else{year = '201'+ year}
 
-    this.timeLineScroll.toElement($('.individualWrapper')[year.charAt(3)]);
+    this.timeLineScroll.toElement(document.querySelectorAll('.individualWrapper')[year.charAt(3)]);
 
     const data = JSON.parse(JSON.stringify(this.state.warData));
     const country_totalFatality = []
@@ -879,7 +878,7 @@ class GlobeContainer extends React.Component {
             this.gv.scaler = d.scaler;
             //after init octree, present animation
             this.gv.octree.update(() =>{
-              this.timeLineScroll.toElement($('.individualWrapper')[this.state.currentYear.charAt(3)]).then(()=>console.log('aaaaa'));
+              this.timeLineScroll.toElement(document.querySelectorAll('.individualWrapper')[this.state.currentYear.charAt(3)]).then(()=>console.log('aaaaa'));
               this.gv.transition(0);
               this.gv.setTarget([-11.874010, 44.605859],945) // set initial position
               // inform parent component loading status
