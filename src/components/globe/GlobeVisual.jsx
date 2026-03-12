@@ -29,8 +29,10 @@ class GlobeVisual extends React.Component{
     this.rotateGlobe = this.rotateGlobe.bind(this);
     this.drawThreeGeo = this.drawThreeGeo.bind(this);
     this.tooltips_onexit = this.tooltips_onexit.bind(this);
+    this.tooltips_expand = this.tooltips_expand.bind(this);
 
     this.rotatePause = this.props.rotatePause;
+    this._tooltipPause = false; // internal pause from tooltip hover, separate from user pause
     this.state = {
       mv_show: false,
       mv_tooltips: Array(7).fill(0),
@@ -483,12 +485,7 @@ class GlobeVisual extends React.Component{
           ],
         })
         this.WarID = displayData.id;
-        this.rotatePause = true;
-
-        console.log("mouse pos");
-        console.log(event.clientX+ ' | ' + event.clientY);
-        console.log("target x");
-        console.log(this.target.x + ' | ' + this.target.y);
+        this._tooltipPause = true;
       }
 
       // check height( if height = -1 then data is not in the current selection)
@@ -514,7 +511,7 @@ class GlobeVisual extends React.Component{
       this.state.mv_show && this.setState({
         mv_show : false
       });
-      this.rotatePause = false;
+      this._tooltipPause = false;
       this.setState({
         tooltips_clicked : false,
         tooltips_clicked_id : Math.random() // reset clickedID
@@ -544,28 +541,8 @@ class GlobeVisual extends React.Component{
     this.targetOnDown.y = this.target.y;
     this.mount.style.cursor = 'move';
 
-    // fetchDataFromServer
-    // console.log(this.WarID);
-    // console.log(this.state.tooltips_clicked_id);
-    if(this.state.mv_show && this.state.tooltips_clicked_id != this.WarID) {
-      let url = `${window.location.protocol}//${window.location.host}/data/note/${this.WarID}`;
-      fetch(new Request( url, {
-          method: 'GET',
-          cache: 'force-cache'
-        })).then(res => res.json()).then(d =>{
-
-        this.setTarget([this.state.mv_tooltips[5],this.state.mv_tooltips[6]],700)
-        console.log('called');
-        this.setState({
-          mv_position:[ (window.innerWidth*0.75)*0.75 - 400/1.5 , window.innerHeight* 0.75 - 300 + 25 -80 ],
-          tooltips_clicked : true,
-          tooltips_expendInfo : d,
-          tooltips_clicked_id : d[0].id
-        })
-
-      })
-
-    }
+    // fetchDataFromServer — expand tooltip on globe click too
+    this.tooltips_expand();
 
   }
 
@@ -898,13 +875,47 @@ class GlobeVisual extends React.Component{
       }
   }
 
+  tooltips_expand(){
+    if(this.state.mv_show && this.state.tooltips_clicked_id != this.WarID) {
+      let url = `${window.location.protocol}//${window.location.host}/data/note/${this.WarID}`;
+      fetch(new Request( url, {
+          method: 'GET',
+          cache: 'force-cache'
+        })).then(res => res.json()).then(d => {
+
+        // d may be empty array (no DB) or error object — handle gracefully
+        const noteData = Array.isArray(d) && d.length > 0
+          ? d
+          : [{ id: this.WarID, notes: 'No additional details available.', source: '' }];
+
+        this.setTarget([this.state.mv_tooltips[5],this.state.mv_tooltips[6]],700)
+        this.setState({
+          mv_position:[ (window.innerWidth*0.75)*0.75 - 400/1.5 , window.innerHeight* 0.75 - 300 + 25 -80 ],
+          tooltips_clicked : true,
+          tooltips_expendInfo : noteData,
+          tooltips_clicked_id : noteData[0].id
+        })
+
+      }).catch(() => {
+        // Network error or bad JSON — still expand with placeholder
+        this.setTarget([this.state.mv_tooltips[5],this.state.mv_tooltips[6]],700)
+        this.setState({
+          mv_position:[ (window.innerWidth*0.75)*0.75 - 400/1.5 , window.innerHeight* 0.75 - 300 + 25 -80 ],
+          tooltips_clicked : true,
+          tooltips_expendInfo : [{ id: this.WarID, notes: 'Unable to load details.', source: '' }],
+          tooltips_clicked_id : this.WarID
+        })
+      })
+    }
+  }
+
   tooltips_onexit(){
 
     // hide tooltips component
     this.state.mv_show && this.setState({
       mv_show : false
     });
-    this.rotatePause = false;
+    this._tooltipPause = false;
     this.setState({
       tooltips_clicked : false,
       tooltips_clicked_id : Math.random() // reset clickedID
@@ -922,7 +933,7 @@ class GlobeVisual extends React.Component{
 
   animate() {
     // console.time('animate takes');
-    this.rotateGlobe(2/1000,this.rotatePause);
+    this.rotateGlobe(2/1000, this.rotatePause || this._tooltipPause);
 
     // get frameID, frameID is for cancelling when unmount
     this.frameId = window.requestAnimationFrame(this.animate)
@@ -964,6 +975,7 @@ class GlobeVisual extends React.Component{
           tooltips_clicked = {this.state.tooltips_clicked}
           tooltips_expendInfo = {this.state.tooltips_expendInfo}
           tooltips_onexit = {this.tooltips_onexit}
+          tooltips_onclick = {this.tooltips_expand}
         />
         <div id="globev"
           style={{ width: '100%', height: window.innerHeight - 60, backgroundColor: 'red'}}
