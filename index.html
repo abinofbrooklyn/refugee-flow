@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="theme-color" content="#000000">
+    <meta property="og:image" content="./assets/project_preview.png">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@100;300;400;500;600;700&family=Ubuntu:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="shortcut icon" href="./assets/favicon.ico">
+    <title>Refugee Flow: A Comparative Study on Global Conflict and Human Movement</title>
+
+    <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-122478730-1"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'UA-122478730-1');
+    </script>
+  </head>
+  <body>
+    <div id="root">
+      <div id="initial-loader" style="
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+        background: #111116;
+        font-family: 'Roboto', sans-serif;
+      ">
+        <div style="
+          width: 40px;
+          height: 40px;
+          border: 3px solid #2d2d3f;
+          border-top-color: #6c63ff;
+          border-radius: 50%;
+          animation: spin 0.8s linear infinite;
+        "></div>
+        <p style="color: #868686; margin-top: 20px; font-size: 14px; font-weight: 300;">Loading Refugee Flow...</p>
+      </div>
+    </div>
+    <style>
+      @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+    <script type="module" src="/src/index.jsx"></script>
+  </body>
+</html>

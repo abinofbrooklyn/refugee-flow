@@ -9,7 +9,7 @@ import * as d3CanvasTransition from 'd3-canvas-transition';
 import { color_map } from '../data/routeDictionary';
 import '../stylesheets/RefugeeRoute_map.css';
 
-const dataDict = require('../data/IBC_crossingCountByCountry.json');
+import dataDict from '../data/IBC_crossingCountByCountry.json';
 
 export default class RefugeeRoute_map extends React.Component {
 

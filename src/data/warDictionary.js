@@ -16,9 +16,9 @@ const eventDict = [ 'violence against civilians',
   'non-violent transfer of territory',
   'headquarters or base established' ]
 
-module.exports = {
-  year: year,
-  countryList: countryList,
-  eventDict: eventDict,
-  countryCode:countryCode
+export {
+  year,
+  countryList,
+  eventDict,
+  countryCode,
 };

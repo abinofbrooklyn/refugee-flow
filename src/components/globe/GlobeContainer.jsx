@@ -19,8 +19,8 @@ import GlobeRouteButton from './GlobeRouteButton';
 
 import { setSelectedYear, setCurrentCountry } from '../../redux/actions/conflictActions';
 
-const Scroll = require('scroll-js');
-const cot_latLng = require('../../data/cot_latLng.json');
+import Scroll from 'scroll-js';
+import cot_latLng from '../../data/cot_latLng.json';
 
 const Wrapper = styled.div`
   & ::selection {

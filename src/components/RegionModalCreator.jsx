@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import styled, { keyframes } from 'styled-components';
 import ModalCreator from 'react-modal';
-import GlobalModal from '../stylesheets/GlobeModal.css'
+import '../stylesheets/GlobeModal.css'
 
 class RegionModalCreator extends Component {
 
