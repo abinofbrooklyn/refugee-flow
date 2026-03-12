@@ -900,9 +900,8 @@ class GlobeVisual extends React.Component{
           var line_geom = new THREE.BufferGeometry();
           line_geom.setAttribute('position', new THREE.BufferAttribute(positions, 3));
 
-          var line_material = new THREE.LineDashedMaterial(options);
+          var line_material = new THREE.LineBasicMaterial(options);
           var line = new THREE.Line(line_geom, line_material);
-          line.computeLineDistances(); // required for LineDashedMaterial with BufferGeometry
           container.add(line);
 
           clearArrays();
