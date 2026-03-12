@@ -10,7 +10,7 @@ export default defineConfig({
       svgrOptions: { exportType: 'default' },
     }),
   ],
-  publicDir: 'src/assets',
+  publicDir: 'public',
   resolve: {
     alias: {
       // d3-canvas-transition has a broken "module" field pointing to a non-existent path;
