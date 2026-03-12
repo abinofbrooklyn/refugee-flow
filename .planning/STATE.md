@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: planning
-stopped_at: Completed 01-stabilize-03-PLAN.md (security patches + globe toggle)
-last_updated: "2026-03-12T02:45:41.239Z"
+stopped_at: Completed 02-modernize-stack-01-PLAN.md (UNSAFE_ lifecycle rename)
+last_updated: "2026-03-12T03:37:00.552Z"
 last_activity: 2026-03-11 — Roadmap created
 progress:
   total_phases: 5
   completed_phases: 1
-  total_plans: 4
-  completed_plans: 4
+  total_plans: 8
+  completed_plans: 5
   percent: 0
 ---
 
@@ -52,6 +52,7 @@ Progress: [░░░░░░░░░░] 0%
 *Updated after each plan completion*
 | Phase 01-stabilize P04 | 15 | 2 tasks | 4 files |
 | Phase 01-stabilize P03 | 25 | 2 tasks | 2 files |
+| Phase 02-modernize-stack P01 | 17 | 2 tasks | 16 files |
 
 ## Accumulated Context
 
@@ -67,6 +68,7 @@ Recent decisions affecting current work:
 - [Phase 01-stabilize]: CORS allows all origins via cors() with no whitelist — general internet traffic permitted
 - [Phase 01-stabilize]: Rate limit scoped to /data routes only at 200 req/15min/IP using express-rate-limit v8 API
 - [Phase 01-stabilize]: npm overrides (nth-check >=2.0.1, d3-color >=3.1.0) to resolve nested CVEs where upstream packages are stuck in circular --force loops
+- [Phase 02-modernize-stack]: Use UNSAFE_ prefix (not componentDidUpdate refactor) — preserves identical behavior, defers full lifecycle migration to later phase
 
 ### Pending Todos
 
@@ -78,6 +80,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-11T23:08:18.292Z
-Stopped at: Completed 01-stabilize-03-PLAN.md (security patches + globe toggle)
+Last session: 2026-03-12T03:37:00.545Z
+Stopped at: Completed 02-modernize-stack-01-PLAN.md (UNSAFE_ lifecycle rename)
 Resume file: None
