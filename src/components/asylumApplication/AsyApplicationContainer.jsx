@@ -170,16 +170,21 @@ class AsyApplicationContainer extends React.Component {
   }
 
   componentDidMount() {
+    this._isMounted = true;
     const url = `${window.location.protocol}//${window.location.host}/data/asy_application_all`;
     fetchData(url, this.setData, this.setLoadingStatus);
   }
 
+  componentWillUnmount() {
+    this._isMounted = false;
+  }
+
   setData(data) {
-    this.setState({ data });
+    if (this._isMounted) this.setState({ data });
   }
 
   setLoadingStatus(loadingStatus) {
-    this.setState({ loadingStatus });
+    if (this._isMounted) this.setState({ loadingStatus });
   }
 
   buttonClick(i) {
