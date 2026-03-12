@@ -56,13 +56,16 @@ export default class RefugeeRoute_map extends React.Component {
     this.mapContainer_width = $(this.mapContainer).width();
     this.mapContainer_height = $(this.mapContainer).height();
 
-    window.d3.select(this.map.getCanvasContainer())
+    d3.select(this.map.getCanvasContainer())
       .append('canvas')
       .attr('height',this.mapContainer_height)
       .attr('width',this.mapContainer_width)
       .style('opacity',0.999)
-      .attr('class','canvas_overlay')
-      .canvas(true);
+      .style('position','absolute')
+      .style('top','0')
+      .style('left','0')
+      .style('pointer-events','none')
+      .attr('class','canvas_overlay');
 
     this.size_change =1;
     this.canvas = document.querySelector('.canvas_overlay');
