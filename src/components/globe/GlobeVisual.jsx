@@ -233,8 +233,6 @@ class GlobeVisual extends React.Component{
       transparent: true,
       linewidth: 1,
       opacity: 0.6,
-      dashSize: 1,
-      gapSize: 5,
     }, this.mesh);
     this.scene.add(this.mesh);
     this.borderLine = this.mesh.children;
@@ -1017,7 +1015,7 @@ class GlobeVisual extends React.Component{
           tooltips_onclick = {this.tooltips_expand}
         />
         <div id="globev"
-          style={{ width: '100%', height: window.innerHeight - 60, backgroundColor: 'red'}}
+          style={{ width: '100%', height: window.innerHeight - 60, backgroundColor: '#111117'}}
           ref={(mount) => {return this.mount = mount }} />
       </div>
     )
