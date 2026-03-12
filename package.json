@@ -50,6 +50,9 @@
     "three": "0.91.0",
     "underscore": "^1.9.1"
   },
+  "acceptedRisks": {
+    "three@0.91.0": "HIGH CVE GHSA-fq6p-x6j3-cmmq (DoS). Pinned because THREE.Geometry was removed in 0.125+; upgrading breaks GlobeVisual. Fix deferred to Phase 2 (MOD-03: THREE.js r150+ upgrade)."
+  },
   "overrides": {
     "nth-check": ">=2.0.1",
     "d3-color": ">=3.1.0"
