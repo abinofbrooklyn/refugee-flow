@@ -1,6 +1,6 @@
 import React from 'react';
 import styled, { css } from 'styled-components';
-import * as _ from 'underscore';
+import _ from 'lodash';
 import CountUp from 'countup.js';
 
 const BoardWrapper = styled.div`

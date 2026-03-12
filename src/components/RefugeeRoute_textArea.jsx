@@ -1,6 +1,6 @@
 import React from 'react';
 import styled, { css } from 'styled-components';
-import * as _ from 'underscore';
+import _ from 'lodash';
 import $ from "jquery";
 
 import RefugeeRoute_textArea_contentManager from './RefugeeRoute_textArea_contentManager';

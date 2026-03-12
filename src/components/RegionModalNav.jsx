@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import styled from 'styled-components';
 import {countryList} from '../data/warDictionary';
-import _ from 'underscore';
+import _ from 'lodash';
 
 const RegionContainer = styled.div`
   position: relative;

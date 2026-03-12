@@ -49,8 +49,7 @@
     "redux": "^4.0.1",
     "scroll-js": "^1.8.8",
     "styled-components": "^6.3.11",
-    "three": "0.165.0",
-    "underscore": "^1.9.1"
+    "three": "0.165.0"
   },
   "acceptedRisks": {},
   "overrides": {

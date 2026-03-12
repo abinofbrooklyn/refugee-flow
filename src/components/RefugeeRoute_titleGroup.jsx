@@ -1,7 +1,7 @@
 import React from 'react';
 import styled from 'styled-components';
 import { BrowserRouter as Router, Route, Switch, Redirect, Link } from 'react-router-dom'
-import * as _ from 'underscore';
+import _ from 'lodash';
 import { color_map } from '../data/routeDictionary';
 import dataDict from '../data/IBC_crossingCountByCountry.json';
 

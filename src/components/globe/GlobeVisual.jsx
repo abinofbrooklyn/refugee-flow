@@ -1,7 +1,7 @@
 import React from 'react';
 // import style from './GlobeVisual.css'
 import * as d3 from 'd3';
-import * as _ from 'underscore';
+import _ from 'lodash';
 import * as THREE from 'three';
 // Octree disabled — @brakebein/threeoctree useFaces on large merged BufferGeometry causes browser crash
 // import { Octree } from '@brakebein/threeoctree';
