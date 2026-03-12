@@ -3,7 +3,8 @@ import React from 'react';
 import * as d3 from 'd3';
 import * as _ from 'underscore';
 import * as THREE from 'three';
-import { Octree } from '@brakebein/threeoctree';
+// Octree disabled — @brakebein/threeoctree useFaces on large merged BufferGeometry causes browser crash
+// import { Octree } from '@brakebein/threeoctree';
 
 // import OctreeWorker from '../workers/Octree.worker.js';
 import GlobeTooltips from './GlobeTooltips'; //child component
@@ -52,7 +53,7 @@ class GlobeVisual extends React.Component{
     this.Shaders = {
         'earth' : {
           uniforms: {
-            'texture': { type: 't', value: null }
+            'mapTexture': { type: 't', value: null }
           },
           vertexShader: [
             'varying vec3 vNormal;',
@@ -66,12 +67,12 @@ class GlobeVisual extends React.Component{
             '}'
           ].join('\n'),
           fragmentShader: [
-            'uniform sampler2D texture;',
+            'uniform sampler2D mapTexture;',
             'varying vec3 vNormal;',
             'varying vec2 vUv;',
             'void main() {',
               //diffuse is actually apply texture(apply globe img to geometry)
-              'vec3 diffuse = texture2D( texture, vUv ).xyz;',
+              'vec3 diffuse = texture2D( mapTexture, vUv ).xyz;',
               // intensity provide lighting
               'float intensity = 1.02 - dot( vNormal, vec3( 0.0, 0.0, 1.0 ) );',
               // color of atmosphere
@@ -213,7 +214,9 @@ class GlobeVisual extends React.Component{
     //construct globe
     shader = this.Shaders['earth'];
     uniforms = THREE.UniformsUtils.clone(shader.uniforms);
-    uniforms['texture'].value = new THREE.TextureLoader().load(this.opts.imgDir+'world.jpg');
+    const earthTexture = new THREE.TextureLoader().load(this.opts.imgDir+'world.jpg');
+    earthTexture.colorSpace = THREE.LinearSRGBColorSpace;
+    uniforms['mapTexture'].value = earthTexture;
     material = new THREE.ShaderMaterial({
       uniforms: uniforms,
       vertexShader: shader.vertexShader,
@@ -293,13 +296,9 @@ class GlobeVisual extends React.Component{
         })
     this.tooltips_mouseoverFeedback = new THREE.Mesh(tooltips_mouseoverFeedback_geo,tooltips_mouseoverFeedback_mat);
     this.tooltips_mouseoverFeedback.name = 'raycast-mouseover';
-    this.octree = new Octree({
-      // scene: this.scene,
-      undeferred: false,
-      depthMax: Infinity,
-      objectsThreshold: 4,
-      overlapPct: 0.15
-    });
+    // Octree removed — direct raycasting used instead.
+    // Stub so GlobeContainer's this.gv.octree.update(cb) calls still work.
+    this.octree = { update: (cb) => { if (cb) cb(); }, remove: () => {} };
     this.scene.add(this.tooltips_mouseoverFeedback);
 
     // debounced interaction listener little bigger than 60fps.
@@ -308,6 +307,7 @@ class GlobeVisual extends React.Component{
 
     //
     this.renderer = new THREE.WebGLRenderer({antialias: true});
+    this.renderer.outputColorSpace = THREE.LinearSRGBColorSpace;
     this.renderer.setSize(w * 1.5, h* 1.5);
     this.mount.appendChild(this.renderer.domElement);
 
@@ -470,15 +470,12 @@ class GlobeVisual extends React.Component{
         this.points = new THREE.Mesh(this._baseGeometry, new THREE.MeshBasicMaterial({
               color: 0xffffff,
               vertexColors: true,
-              // animation
-              morphTargets: true,
             }));
         //add userData to the points in order to raycast
         this.points.userData =  {'userData': userData};
 
-        //add to octree
-
-        this.octree.add(this.points,{ useFaces: true,useVertices: true });
+        // Raycasting uses intersectObject directly (octree indexing disabled —
+        // @brakebein/threeoctree's useFaces on large merged BufferGeometry causes memory explosion)
 
 
 
@@ -504,12 +501,11 @@ class GlobeVisual extends React.Component{
 
     this.raycaster.setFromCamera( this.raycasterMouse, this.camera );
 
-    const octreeObjects = this.octree.search( this.raycaster.ray.origin, this.raycaster.ray.far, true, this.raycaster.ray.direction );
-    const intersections = this.raycaster.intersectOctreeObjects( octreeObjects );
+    const intersections = this.points ? this.raycaster.intersectObject( this.points ) : [];
     if ( intersections.length > 0 ) {
 
       this.intersected = intersections[ 0 ];
-      const dataIndex = Math.floor(this.intersected.face.a / 8);
+      const dataIndex = Math.floor(this.intersected.face.a / 24);
       const displayData =  this.points.userData.userData[ this.currentSelectedTimeFrame /* current item selected on timeLine*/ ][1] [ (dataIndex*4) + 3];
 
       //check if interscetions changed
