@@ -9,18 +9,19 @@ import {LoadingDivWrapper, LoaderGraphWrapper, LoadingIndicator} from './Loading
 
 const RegionContainer = styled.div`
   display: flex;
+  flex-direction: column;
   width: 100%;
-  height: 100%;
-  position: absolute;
+  flex: 1;
+  min-height: 0;
   background-color: #15151cd1;
   box-shadow: 0px 16px 20px 11px rgba(6, 6, 14, 0.38);
   border-radius: 10px;
 `
 const SectionContainer = styled.div`
   width: 100%;
-  height: 75%;
-  top: 25%;
-  position: absolute;
+  flex: 1;
+  min-height: 0;
+  position: relative;
 `
 const SectionItemWrapper = styled.div`
   width: 95%;

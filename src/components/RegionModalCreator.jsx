@@ -18,6 +18,17 @@ class RegionModalCreator extends Component {
           overlayClassName="Overlay"
           ariaHideApp={false}
           closeTimeoutMS={200}
+          style={{
+            overlay: {
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: '#01010ecc',
+              zIndex: 100
+            }
+          }}
         >
           <div className="CloseButtonPostioning">
             <span
