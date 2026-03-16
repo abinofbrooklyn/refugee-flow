@@ -25,13 +25,13 @@ Move all app data from static JSON files and MongoDB to a PostgreSQL database on
 - War data: flatten the nested Year → quarter → events structure into a relational war_events table (or similar)
 - Asylum data: normalize the year + mixed-type value object into proper columns
 - Route data (route_death, IBC_all, country_route_list): each gets its own table with proper columns
-- **LOCKED:** Migrate war_all_note from MongoDB to a war_notes table in Postgres (id, notes, source)
+- **LOCKED:** Create war_notes table in Postgres (id, notes, source). MongoDB data is LOST (former partner's account inaccessible). War notes must be sourced from ACLED API during Phase 4 ingestion. For Phase 3: create the table schema and seed with placeholder/empty data so the /data/note/:id endpoint works
 - **LOCKED:** Geo coordinates stored pre-reduced (2 decimal places) and deduplicated on lat,lng composite key at insert time — no runtime precision reduction needed
 - The existing `reduceGeoPercision()` and `uniqBy(sorted, i => lat,lng)` logic moves to the seed/insert layer
 
 ### Migration & Seeding
 - **LOCKED:** Node seed script (scripts/seed.js or similar) reads JSON files, applies precision reduction + dedup, inserts into Postgres
-- **LOCKED:** Seed from JSON files only — if MongoDB war notes data exists, export to JSON manually first
+- **LOCKED:** Seed from JSON files only — MongoDB is inaccessible, no export possible. War notes table created empty (ACLED sourcing deferred to Phase 4 ingestion)
 - **LOCKED:** Use a migration tool (knex migrations, dbmate, or similar) for versioned schema creation — not raw SQL
 - **LOCKED:** All-at-once endpoint cutover — build all Postgres queries, seed all data, swap all 6 endpoints together
 - Claude's discretion on specific migration tool choice
@@ -120,7 +120,7 @@ Move all app data from static JSON files and MongoDB to a PostgreSQL database on
 <deferred>
 ## Deferred Ideas
 
-- None — discussion stayed within phase scope
+- War notes data population from ACLED API — Phase 4 ingestion pipeline will source notes/descriptions for war events
 
 </deferred>
 
