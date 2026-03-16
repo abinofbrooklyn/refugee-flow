@@ -1,7 +1,7 @@
-# Phase 3: Database Migration - Research
+# Phase 03: Database Migration - Research
 
 **Researched:** 2026-03-15
-**Domain:** PostgreSQL / Knex.js / Docker Compose / Express data layer
+**Domain:** PostgreSQL migration, Knex.js, dotenv, Docker Compose, data seeding
 **Confidence:** HIGH
 
 ---
@@ -15,20 +15,20 @@
 - Switch from config.js to .env + dotenv for all configuration
 - .env.example ships with local docker-compose defaults; production .env points to Supabase
 - Normalize ALL 5 JSON datasets into proper relational tables — no JSONB blobs
-- War data: flatten the nested Year → quarter → events structure into a relational war_events table (or similar)
+- War data: flatten the nested Year → quarter → events structure into a relational war_events table
 - Asylum data: normalize the year + mixed-type value object into proper columns
 - Route data (route_death, IBC_all, country_route_list): each gets its own table with proper columns
-- Create war_notes table in Postgres (id, notes, source). MongoDB data is LOST. War notes table created empty for Phase 3; ACLED sourcing deferred to Phase 4
+- Create war_notes table in Postgres (id, notes, source). MongoDB data is LOST. War notes must be sourced from ACLED API during Phase 4. For Phase 3: create the table schema and seed with placeholder/empty data so /data/note/:id endpoint works
 - Geo coordinates stored pre-reduced (2 decimal places) and deduplicated on lat,lng composite key at insert time
-- Existing reduceGeoPercision() and uniqBy logic moves to the seed/insert layer
+- The existing reduceGeoPercision() and uniqBy(sorted, i => lat,lng) logic moves to the seed/insert layer
 - Node seed script (scripts/seed.js or similar) reads JSON files, applies precision reduction + dedup, inserts into Postgres
-- Seed from JSON files only — MongoDB is inaccessible, no export possible
+- Seed from JSON files only — MongoDB is inaccessible. War notes table created empty
 - Use a migration tool (knex migrations, dbmate, or similar) for versioned schema creation — not raw SQL
 - All-at-once endpoint cutover — build all Postgres queries, seed all data, swap all 6 endpoints together
 - Postgres container only — Express still runs on host via npm
 - Auto-seed on first run via Docker entrypoint init script
 - Named Docker volume for data persistence across restarts (docker-compose down -v to reset)
-- Expose port 5432 to host for direct DB access (psql, pgAdmin, GUI tools)
+- Expose port 5432 to host for direct DB access
 
 ### Claude's Discretion
 - Database client/ORM choice (pg, knex, drizzle, or Supabase JS client)
@@ -40,7 +40,7 @@
 ### Deferred Ideas (OUT OF SCOPE)
 - War notes data population from ACLED API — Phase 4 ingestion pipeline
 - ACLED incremental sync (filter by date range since last sync), last_synced timestamp per source
-- Incremental pattern for all ingestion sources (ACLED, UNHCR, IOM)
+- Same incremental pattern for all ingestion sources (ACLED, UNHCR, IOM)
 </user_constraints>
 
 ---
@@ -50,23 +50,23 @@
 
 | ID | Description | Research Support |
 |----|-------------|-----------------|
-| DB-01 | All data served from PostgreSQL (Supabase) — no MongoDB dependency | Knex + pg as client; remove mongoose; dotenv replaces config.js; all 6 endpoints rewritten against Postgres tables |
-| DB-02 | All 6 existing API endpoints return identical response shapes from PostgreSQL | Response shape analysis below confirms exact shapes; JSON aggregation via jsonb_build_object + jsonb_agg needed for war and asylum nested formats |
-| DB-03 | Geo coordinates stored precision-reduced and deduplicated in the database | Seed script applies reduceGeoPercision(n,2) and dedup before INSERT; UNIQUE constraint on (lat,lng) enforces dedup at DB level for war_events |
-| DB-04 | Local PostgreSQL dev environment available via docker-compose | Docker official postgres image + /docker-entrypoint-initdb.d pattern for auto-seed on first run; named volume for persistence |
+| DB-01 | All data served from PostgreSQL (Supabase) — no MongoDB dependency | Knex + pg client replaces Mongoose; dotenv replaces config.js |
+| DB-02 | All 6 existing API endpoints return identical response shapes from PostgreSQL | Endpoint response shapes documented below; Postgres queries reconstruct them exactly |
+| DB-03 | Geo coordinates stored precision-reduced and deduplicated in the database | Apply reduceGeoPercision(v, 2) + uniqBy at seed time; not at query time |
+| DB-04 | Local PostgreSQL dev environment available via docker-compose | Standard postgres:16 image, /docker-entrypoint-initdb.d/ auto-seed pattern |
 </phase_requirements>
 
 ---
 
 ## Summary
 
-This phase replaces a MongoDB/Mongoose-backed Express API with a PostgreSQL-backed one using Knex.js as both the query builder and migration runner. The app has 5 static JSON dataset files (26 MB total) that need to be normalized into relational tables and seeded via a one-time seed script. Six Express endpoints must return response shapes byte-for-byte identical to the current JSON-file-backed implementations — no frontend changes permitted.
+Phase 3 migrates the app from MongoDB + static JSON files to a PostgreSQL database (Supabase in production, Docker in development). The Express server currently loads all data from 5 JSON files at startup and queries MongoDB only for war notes — the JSON files handle 5 of 6 API endpoints. All data becomes database-backed.
 
-The war data is the trickiest normalization challenge. It's currently a 9-entry array (one per year, 2010-2018) where each year has 4 quarters (q1-q4), and each quarter contains 1000-1700 conflict event objects. The API endpoint reconstructs this exact nested shape, so the Postgres query must use `jsonb_build_object` + `jsonb_agg` aggregate functions to reproduce the `{Year, value: {q1:[...], q2:[...], q3:[...], q4:[...]}}` shape. Alternatively, and more robustly, the controller can re-assemble the nested shape in Node.js from flat SELECT results — this is simpler to write and debug, and the dataset is small enough (9 years * ~5000 events) that application-layer assembly is fast.
+The recommended stack is **knex@3.1.0** as both the query builder and migration runner, **pg@8.20.0** as the PostgreSQL adapter, and **dotenv@17.3.1** for configuration. This combo is well-established for CommonJS Express apps (no TypeScript friction), has built-in migration versioning, and gives the Phase 4 ingestion pipeline a shared query layer to build on. Drizzle and Prisma are better TypeScript-first tools; for this CommonJS project they add unnecessary build complexity.
 
-For local dev, the official Docker postgres image auto-runs any `.sql` or `.sh` scripts placed in `/docker-entrypoint-initdb.d/` on first container start. The seed is triggered there by a shell script that calls `node scripts/seed.js`. Supabase's free tier provides a standard PostgreSQL connection string; `pg` (node-postgres) connects to both the local Docker container and Supabase using the same `DATABASE_URL` env var, making environment switching trivial.
+The trickiest part is faithfully reconstructing the API response shapes from normalized tables — particularly war events (`warReducer` output) and asylum applications (both use nested Year/quarter/events structures). The seed script is the key artifact: it applies precision reduction and dedup at insert time, making runtime data processing unnecessary. The docker-compose setup uses the standard `/docker-entrypoint-initdb.d/` pattern for auto-seeding schema on first container run, with Node-based seeding as a separate npm script.
 
-**Primary recommendation:** Use Knex.js for migrations + query builder, with `pg` (node-postgres) as the underlying driver. This is the most battle-tested combination for Express + PostgreSQL, has the best `batchInsert` support for seeding, and avoids TypeScript requirement of Drizzle.
+**Primary recommendation:** Use knex (migrations + query builder) + pg. Seed script applies existing dataProcessors.js logic. All 6 endpoints swap at once after seeding is verified.
 
 ---
 
@@ -75,26 +75,26 @@ For local dev, the official Docker postgres image auto-runs any `.sql` or `.sh` 
 ### Core
 | Library | Version | Purpose | Why Standard |
 |---------|---------|---------|--------------|
-| pg (node-postgres) | ^8.x | PostgreSQL driver | Canonical Node.js Postgres driver; used by Knex under the hood; connects to both local Docker and Supabase with same connection string |
-| knex | ^3.x | Migration runner + query builder | Built-in migration versioning (knex_migrations table), batchInsert utility, works identically against local Docker and Supabase |
-| dotenv | ^16.x | Env var loading | Industry standard; loads .env into process.env before any other require; supports .env.example convention |
+| knex | 3.1.0 | Query builder + migration runner | CommonJS-native, built-in versioned migrations, batteries-included for this stack |
+| pg | 8.20.0 | PostgreSQL client (knex peer dep) | Standard node-postgres driver; required by knex |
+| dotenv | 17.3.1 | Load .env into process.env | Universal; explicit; cross-Node-version compatible |
 
 ### Supporting
 | Library | Version | Purpose | When to Use |
 |---------|---------|---------|-------------|
-| lodash (already installed) | ^4.x | round + uniqBy in seed script | Already in package.json; reuse existing reduceGeoPercision and uniqBy implementations directly |
+| lodash | already installed | reduceGeoPercision, uniqBy in seed script | Already in package.json; reuse existing logic from dataProcessors.js |
 
 ### Alternatives Considered
 | Instead of | Could Use | Tradeoff |
 |------------|-----------|----------|
-| Knex | Drizzle ORM | Drizzle requires TypeScript; project is JS; Knex is simpler for a project with no schema evolution after seed |
-| Knex | @supabase/supabase-js | Supabase JS client wraps PostgREST REST API, not direct SQL; adds latency; overkill when we control the server |
-| Knex | raw pg queries | Would need to hand-roll migration state tracking; Knex migrations give version history for free |
-| dotenv | Node.js --env-file flag (v20.6+) | --env-file is native but dotenv works across all Node versions and is more explicit about where loading happens |
+| knex | drizzle-orm | Drizzle is TypeScript-first; adds friction in this CommonJS project with no TypeScript |
+| knex | @supabase/supabase-js | Supabase JS client targets browser/edge; adds REST overhead; use pg directly for server |
+| knex | raw pg queries | knex adds migration versioning we need; raw pg is fine for queries but lacks migration CLI |
+| dotenv | Node --env-file flag | --env-file is native in Node v20+ but dotenv is explicit, cross-version, and familiar |
 
 **Installation:**
 ```bash
-npm install pg knex dotenv
+npm install knex pg dotenv
 npm uninstall mongoose
 ```
 
@@ -106,26 +106,31 @@ npm uninstall mongoose
 ```
 server/
 ├── database/
-│   ├── connection.js          # Knex instance configured from DATABASE_URL (replaces mongoose connection.js)
-│   └── migrations/
-│       └── 20240101_initial_schema.js   # One migration file — all tables
+│   ├── connection.js        # REPLACE: knex instance (was mongoose)
+│   └── Models.js            # DELETE: Mongoose models go away
 ├── controllers/api/data/
-│   └── dataController.js      # Replace Mongoose queries with Knex queries (same export shape)
+│   ├── dataController.js    # REPLACE: pg queries instead of JSON loads
+│   └── helpers/
+│       └── dataProcessors.js  # KEEP: reduceGeoPercision, warReducer reused in seed
 scripts/
-├── seed.js                    # Node seed script: reads JSON, reduces, deduplicates, batchInserts
-docker/
-└── init-db.sh                 # Entrypoint script: runs migrations + seed on first container start
-docker-compose.yml             # Postgres container + volume definition
-.env.example                   # Template with local docker-compose defaults
-.env                           # Git-ignored; local = docker, production = Supabase URL
+└── seed.js                  # NEW: reads JSON, applies dedup+precision, inserts
+db/
+├── knexfile.js              # NEW: knex config for dev/production
+└── migrations/
+    └── 001_create_tables.js # NEW: schema creation migration
+docker-compose.yml           # NEW: postgres:16 container + named volume
+.env.example                 # NEW: local defaults (committed)
+.env                         # NEW: gitignored, real credentials
 ```
 
-### Pattern 1: Knex Connection Singleton
-**What:** Export a single configured Knex instance; all query code imports from this one location.
-**When to use:** Everywhere that touches the database.
-**Example:**
+### Pattern 1: Knex Instance (Replaces connection.js)
+**What:** Single knex instance shared across all controllers, initialized once at startup.
+**When to use:** Always — this replaces the mongoose connection promise.
+
 ```javascript
-// server/database/connection.js
+// server/database/connection.js (new)
+// Source: https://knexjs.org/guide/
+require('dotenv').config();
 const knex = require('knex');
 
 const db = knex({
@@ -137,131 +142,125 @@ const db = knex({
 module.exports = db;
 ```
 
-### Pattern 2: dataRoute.js Migration — Drop `connection.then()` Wrapper
-**What:** Current routes wrap all queries in `connection.then(...)` because Mongoose connection is async. With Knex, the connection is synchronous at require-time (pool is managed internally). Routes become simpler.
-**When to use:** All 6 route handlers in `server/routes/dataRoute.js`.
-**Example:**
-```javascript
-// BEFORE (Mongoose):
-router.get('/reduced_war_data', (req, res) => {
-  connection.then(() => {
-    findReducedWar().then(d => res.json(d));
-  }).catch(err => res.json({ error: err }));
-});
+### Pattern 2: knexfile.js (Migration Config)
+**What:** Separate config file for the knex CLI, pointing at development (Docker) and production (Supabase).
 
-// AFTER (Knex):
-router.get('/reduced_war_data', (req, res) => {
-  findReducedWar()
-    .then(d => res.json(d))
-    .catch(err => res.json({ error: err }));
-});
-```
-
-### Pattern 3: War Data — App-Layer Shape Reconstruction (Simpler than SQL Aggregation)
-**What:** SELECT all war_events rows, group by year+quarter in Node.js to rebuild `{Year, value: {q1,q2,q3,q4}}` shape. Avoids complex jsonb_build_object SQL nesting.
-**When to use:** `findReducedWar()` controller function.
-**Example:**
 ```javascript
-// server/controllers/api/data/dataController.js
-const findReducedWar = async () => {
-  const rows = await db('war_events').select('*').orderBy(['year', 'quarter', db.raw('fat DESC')]);
-  // Group into {Year, value: {q1:[], q2:[], q3:[], q4:[]}} — mirrors warReducer() output
-  const byYear = {};
-  for (const row of rows) {
-    if (!byYear[row.year]) byYear[row.year] = { Year: String(row.year), value: {q1:[],q2:[],q3:[],q4:[]} };
-    byYear[row.year].value[row.quarter].push({
-      id: row.id, fat: row.fat, int: row.int, evt: row.evt,
-      cot: row.cot,  // stored as JSONB array
-      lat: row.lat, lng: row.lng
-    });
-  }
-  return Object.values(byYear);
+// db/knexfile.js
+// Source: https://knexjs.org/guide/migrations.html
+require('dotenv').config({ path: '../.env' });
+
+module.exports = {
+  development: {
+    client: 'pg',
+    connection: process.env.DATABASE_URL,
+    migrations: { directory: './migrations' },
+    seeds: { directory: '../scripts/seeds' },
+  },
+  production: {
+    client: 'pg',
+    connection: process.env.DATABASE_URL,
+    migrations: { directory: './migrations' },
+    pool: { min: 2, max: 10 },
+  },
 };
 ```
 
-### Pattern 4: Knex Migration File
-**What:** Single migration file creates all tables in `up()`, drops them in `down()`.
-**When to use:** Schema creation before seeding.
-**Example:**
+### Pattern 3: Migration File (Schema Creation)
+**What:** Versioned schema in a knex migration file. Knex tracks what's been run in a `knex_migrations` table automatically.
+
 ```javascript
-// server/database/migrations/20240101_initial_schema.js
-exports.up = function(knex) {
-  return knex.schema
-    .createTable('war_events', t => {
-      t.integer('id').primary();
-      t.string('year', 4).notNullable();
-      t.string('quarter', 2).notNullable(); // 'q1'|'q2'|'q3'|'q4'
-      t.integer('fat');
-      t.integer('int');
-      t.integer('evt');
-      t.jsonb('cot');             // ["Country","Region"] array
-      t.decimal('lat', 8, 2).notNullable();
-      t.decimal('lng', 8, 2).notNullable();
-      t.index(['year', 'quarter']);
-      t.unique(['lat', 'lng', 'year', 'quarter']); // dedup enforcement
-    })
-    // ... more createTable calls
+// db/migrations/001_create_tables.js
+// Source: https://knexjs.org/guide/migrations.html
+exports.up = async (knex) => {
+  await knex.schema.createTable('war_events', (t) => {
+    t.integer('event_id').notNullable();
+    t.string('year', 4).notNullable();
+    t.string('quarter', 2).notNullable(); // 'q1'|'q2'|'q3'|'q4'
+    t.integer('fat');
+    t.integer('int');
+    t.integer('evt');
+    t.specificType('cot', 'text[]');       // cot is always a 2-element array
+    t.decimal('lat', 8, 2).notNullable();  // pre-reduced 2dp
+    t.decimal('lng', 8, 2).notNullable();
+  });
+  // ... other tables
 };
-exports.down = function(knex) {
-  return knex.schema
-    .dropTableIfExists('war_events')
-    // ...
+
+exports.down = async (knex) => {
+  await knex.schema.dropTableIfExists('war_events');
+  // ...
 };
 ```
 
-### Pattern 5: Knex batchInsert for Seeding
-**What:** Insert thousands of rows in transaction-wrapped chunks of 1000.
-**When to use:** seed.js for large tables (war_events ~55K rows after dedup).
-**Example:**
+### Pattern 4: Idempotent Seed Script
+**What:** Seed script that is rerunnable using TRUNCATE RESTART IDENTITY CASCADE.
+
 ```javascript
 // scripts/seed.js
-await knex.batchInsert('war_events', rows, 1000);
-```
+// Source: knex docs + existing dataProcessors.js
+const db = require('../server/database/connection');
+const { dataLoader, reduceGeoPercision, warReducer } = require('../server/controllers/api/data/helpers/dataProcessors');
 
-### Pattern 6: Idempotent Seed Script
-**What:** Check if data already exists before inserting; skip if seeded. Allows rerunning seed.js safely.
-**Example:**
-```javascript
-const count = await db('war_events').count('id as n').first();
-if (parseInt(count.n) > 0) {
-  console.log('war_events already seeded, skipping');
-  return;
+async function seed() {
+  // TRUNCATE resets sequences; CASCADE handles FK constraints
+  await db.raw('TRUNCATE TABLE war_events, war_notes, asy_applications, route_deaths, ibc_crossings, country_routes RESTART IDENTITY CASCADE');
+
+  // War events: apply precision reduction at load, then dedup via warReducer
+  const warRaw = dataLoader('war_all.json', (key, value) =>
+    (key === 'lat' || key === 'lng' ? reduceGeoPercision(value, 2) : value)
+  );
+  const warReduced = warReducer(warRaw); // applies sort by fat DESC + dedup on lat,lng
+  const warRows = [];
+  warReduced.forEach(yr => {
+    ['q1','q2','q3','q4'].forEach(q => {
+      yr.value[q].forEach(ev => warRows.push({ ...ev, year: yr.Year, quarter: q }));
+    });
+  });
+  await db.batchInsert('war_events', warRows, 500);
+  console.log('Seeded war_events:', warRows.length); // ~56,154
+
+  await db.destroy();
 }
-await db.batchInsert('war_events', rows, 1000);
+
+seed().catch(err => { console.error(err); process.exit(1); });
 ```
 
-### Pattern 7: Docker Compose with Named Volume + Auto-Seed
-**What:** Named volume persists Postgres data across `docker-compose up/down`. Init script triggers migrations + seed on first run only.
-**Example:**
+### Pattern 5: Docker Compose
+**What:** Postgres-only container with named volume and healthcheck.
+
 ```yaml
 # docker-compose.yml
 services:
-  db:
-    image: postgres:16-alpine
+  postgres:
+    image: postgres:16
+    container_name: refugeeflow-postgres
     environment:
+      POSTGRES_USER: rfuser
+      POSTGRES_PASSWORD: rfpassword
       POSTGRES_DB: refugeeflow
-      POSTGRES_USER: refugeeflow
-      POSTGRES_PASSWORD: password
     ports:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
-      - ./docker/init-db.sh:/docker-entrypoint-initdb.d/init-db.sh
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U rfuser -d refugeeflow"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
 volumes:
   pgdata:
 ```
-```bash
-# docker/init-db.sh — runs once on first postgres volume init
-#!/bin/bash
-cd /app && node scripts/migrate.js && node scripts/seed.js
-```
+
+**Note on auto-seed:** The `/docker-entrypoint-initdb.d/` approach only runs on empty data volume (first initialization). The locked "auto-seed on first run" requirement is satisfied by this mechanism for schema creation. Data seeding via `npm run db:seed` runs after `docker-compose up`. Keep seeding in Node to reuse existing dataProcessors.js logic — not in SQL inside the container.
 
 ### Anti-Patterns to Avoid
-- **Keeping `connection.then()` wrappers:** Knex pools connections internally; wrapping Knex queries in a Promise gate adds no value and clutters code.
-- **Storing war cot[] as TEXT:** Store as JSONB to preserve array structure and avoid JSON.parse on every read.
-- **Running migrations inside seed.js:** Separate concerns — migrations go in one script, seeding in another. Orchestrate from Docker init.
-- **Using supabase-js in the Express server:** The server has direct database access via connection string; supabase-js adds an HTTP round-trip and is designed for browser clients.
-- **TRUNCATE + re-insert in idempotent seed:** Prefer count-check approach; TRUNCATE on a named volume with real data would destroy it.
+- **Storing war data as JSONB:** Locked decision is normalized tables. JSONB makes future ACLED queries much harder.
+- **Running seed inside Docker init.d with SQL:** The data transforms require existing Node.js logic; duplicating this in raw SQL is error-prone. Schema creation via init.d SQL is fine; data seeding should stay in Node.
+- **Leaving Mongoose in package.json after code removal:** Run `npm uninstall mongoose` as part of the cutover.
+- **Keeping `connection.then()` wrapper pattern:** The existing route pattern wraps everything in `connection.then()` because Mongoose needed a connection promise. With knex, the pool is ready immediately — no wrapping needed in new controllers.
+- **Applying precision reduction at query time:** The CONTEXT.md locks precision reduction at insert time. Never do `round(lat, 2)` in SQL queries.
 
 ---
 
@@ -269,245 +268,143 @@ cd /app && node scripts/migrate.js && node scripts/seed.js
 
 | Problem | Don't Build | Use Instead | Why |
 |---------|-------------|-------------|-----|
-| Schema version tracking | Custom knex_ran[] table | knex.migrate.latest() | Knex manages its own migration state table (knex_migrations); handles ordering, rollback, locking |
-| Bulk insert chunking | Manual loop with pg | knex.batchInsert(table, rows, 1000) | batchInsert wraps in transaction with configurable chunk size; handles parameter limit |
-| Connection pooling | Manual pg.Pool management | Knex pool config (min/max) | Knex wraps pg.Pool; handles acquire/release, reconnect on error |
-| DB env switching | Conditional config.js logic | DATABASE_URL env var | One connection string switches between local Docker and Supabase; no code changes |
-| Dedup on read | uniqBy in dataController | UNIQUE constraint + seed-time dedup | Dedup once at insert time; reads are clean from day 1; matches DB-03 requirement |
+| Schema versioning | Custom SQL file tracking | knex migrations | Knex tracks applied migrations in `knex_migrations` table; handles ordering, rollback |
+| Batch insert | Manual chunked pg inserts | `knex.batchInsert(table, rows, 500)` | Handles chunk sizing, transactions; critical for 56K war events |
+| Postgres array column for cot | JSONB column or join table | `t.specificType('cot', 'text[]')` | cot is always exactly 2 elements; array column preserves API response shape |
+| Connection pooling | Manual pg.Pool management | knex pool config `{ min: 2, max: 10 }` | knex wraps pg.Pool with sane defaults |
 
-**Key insight:** Knex's batchInsert and migrate.latest() cover 80% of what a custom migration/seeding system would need, without the edge cases.
-
----
-
-## Current Endpoint Response Shapes (Contract)
-
-This is the contract that Postgres queries MUST reproduce. The frontend cannot change.
-
-### GET /data/reduced_war_data
-```json
-[
-  {
-    "Year": "2010",
-    "value": {
-      "q1": [{"id":205358,"fat":1,"int":17,"evt":0,"cot":["Egypt","Northern Africa"],"lat":31.29,"lng":34.24}, ...],
-      "q2": [...],
-      "q3": [...],
-      "q4": [...]
-    }
-  },
-  ...
-]
-```
-- Array of 9 year objects (2010–2018)
-- Each quarter array is sorted DESC by `fat` and deduplicated on `lat,lng`
-- lat/lng are already precision-reduced to 2 decimal places (in current code at load time)
-
-### GET /data/asy_application_all
-```json
-[
-  {
-    "2010": {
-      "q1": [{"Origin":"Indonesia","Value":12,"id":138,"destination":"Australia"}, ...],
-      "q2": [...], "q3": [...], "q4": [...]
-    },
-    "2011": {...},
-    ...
-  }
-]
-```
-- Wrapped in outer array (single-element array containing the entire object)
-- Keys are year strings; values are quarter objects
-- No lat/lng — no precision reduction needed
-
-### GET /data/route_death
-```json
-[
-  {
-    "id":"4625","date":"29-Sep-10","quarter":"3Q2010","year":"2010",
-    "dead":"0","missing":"0","dead_and_missing":"2",
-    "cause_of_death_displayText":"drowned",
-    "cause_of_death":"drowning or exhaustion related death",
-    "location":"evros","description":"...","source":"Zaman/NOB",
-    "lat":"41.24","lng":"26.14","route":"Eastern Mediterranean",
-    "route_displayText":"Eastern Mediterranean","source_url":""
-  },
-  ...
-]
-```
-- Flat array of 4736 records
-- All values are strings (even numeric id, dead, lat, lng) — must cast to TEXT on SELECT or store as text
-- lat/lng stored as strings in source; need precision-reduction before store
-
-### GET /data/route_IBC
-```json
-{
-  "Eastern Mediterranean": [
-    {"2009":{"q4":119,...},"2010":{...},...,"Route":"Eastern Mediterranean","BorderLocation":"Land/Sea","NationalityLong":"Syria"},
-    ...
-  ],
-  "Central Mediterranean": [...],
-  ...
-}
-```
-- Object keyed by route name (9 routes)
-- Each route is array of nationality records; each record has year keys (dynamic: "2009"–"2018") containing quarter objects, plus Route/BorderLocation/NationalityLong metadata
-- No lat/lng
-- **Tricky to normalize:** The year columns are dynamic (2009, 2010, ..., 2018). Better stored as a flat table with (route, nationality, year, quarter, value) and reassembled in Node.js.
-
-### GET /data/route_IBC_country_list
-```json
-[{"country":"CAMEROON","route":["Eastern Mediterranean",...]}, ...]
-```
-- Flat array of 73 country objects; route is a string array
-- Store route as JSONB array, or normalize into a country_routes join table and re-assemble
-
-### GET /data/note/:id
-```json
-[{"_id":"...","id":1,"notes":"...","source":"...","__v":0}]
-```
-- Array (may be empty) — Mongoose returned array for `.find()`
-- Phase 3: table is seeded empty; endpoint returns `[]` for all ids
-- CRITICAL: Response must be an array, not null/object
-
----
-
-## Schema Design Recommendations
-
-### Table: war_events
-```sql
-CREATE TABLE war_events (
-  id          INTEGER PRIMARY KEY,
-  year        SMALLINT NOT NULL,
-  quarter     CHAR(2)  NOT NULL CHECK (quarter IN ('q1','q2','q3','q4')),
-  fat         INTEGER,
-  int         INTEGER,
-  evt         INTEGER,
-  cot         JSONB,                    -- ["Country","Region"]
-  lat         NUMERIC(5,2) NOT NULL,
-  lng         NUMERIC(6,2) NOT NULL
-);
-CREATE INDEX war_events_year_quarter ON war_events(year, quarter);
--- Dedup enforced at seed time (sort by fat DESC, uniqBy lat,lng per quarter)
--- No UNIQUE on lat,lng because same location can appear in different year/quarters
-```
-
-### Table: asy_applications
-```sql
-CREATE TABLE asy_applications (
-  id          SERIAL PRIMARY KEY,
-  year        SMALLINT NOT NULL,
-  quarter     CHAR(2)  NOT NULL CHECK (quarter IN ('q1','q2','q3','q4')),
-  origin      TEXT NOT NULL,
-  destination TEXT NOT NULL,
-  value       INTEGER,
-  record_id   INTEGER               -- original JSON 'id' field
-);
-CREATE INDEX asy_apps_year_quarter ON asy_applications(year, quarter);
-```
-
-### Table: route_deaths
-```sql
-CREATE TABLE route_deaths (
-  id                        INTEGER PRIMARY KEY,
-  date                      TEXT,
-  quarter                   TEXT,
-  year                      SMALLINT,
-  dead                      TEXT,
-  missing                   TEXT,
-  dead_and_missing          TEXT,
-  cause_of_death_display    TEXT,
-  cause_of_death            TEXT,
-  location                  TEXT,
-  description               TEXT,
-  source                    TEXT,
-  lat                       TEXT,          -- store as text to preserve "41.24" string format
-  lng                       TEXT,
-  route                     TEXT,
-  route_display             TEXT,
-  source_url                TEXT
-);
-```
-
-### Table: ibc_crossings
-```sql
-CREATE TABLE ibc_crossings (
-  id              SERIAL PRIMARY KEY,
-  route           TEXT NOT NULL,
-  nationality     TEXT NOT NULL,
-  border_location TEXT,
-  year            SMALLINT NOT NULL,
-  quarter         CHAR(2) NOT NULL,
-  value           INTEGER               -- nullable (source has nulls)
-);
-CREATE INDEX ibc_crossings_route ON ibc_crossings(route);
-```
-
-### Table: country_routes
-```sql
-CREATE TABLE country_routes (
-  id       SERIAL PRIMARY KEY,
-  country  TEXT NOT NULL,
-  routes   JSONB NOT NULL              -- ["Eastern Mediterranean", ...]
-);
--- 73 rows; route array stored as JSONB for simple round-trip
-```
-
-### Table: war_notes
-```sql
-CREATE TABLE war_notes (
-  id      INTEGER PRIMARY KEY,
-  notes   TEXT,
-  source  TEXT
-);
--- Seeded empty for Phase 3; ACLED populates in Phase 4
-```
+**Key insight:** The existing `warReducer()` + `reduceGeoPercision()` + `uniqBy` logic in dataProcessors.js is the most valuable reusable asset. The seed script imports and reuses it directly — no reimplementation needed.
 
 ---
 
 ## Common Pitfalls
 
-### Pitfall 1: Route Death lat/lng String Type
-**What goes wrong:** route_death.json has lat/lng as string values ("41.244376"). The API response currently returns strings too. If you cast to NUMERIC and store as numbers, the response shape changes and the frontend breaks.
-**Why it happens:** The JSON source stores them as strings; the frontend may be comparing them as strings.
-**How to avoid:** Store lat and lng as TEXT in route_deaths table OR cast back to TEXT on SELECT. Apply precision reduction to the numeric value but store the rounded string representation ("41.24").
-**Warning signs:** Frontend map shows wrong pin positions or missing pins after cutover.
+### Pitfall 1: warReducer Dedup Output Order Must Be Preserved
+**What goes wrong:** After reading from Postgres, the API reconstructs the war response by grouping events by year+quarter. If the ORDER of events within each quarter differs from what warReducer produced, the frontend may render differently.
+**Why it happens:** Postgres does not guarantee row order without `ORDER BY`. warReducer sorts by `fat` descending before dedup.
+**How to avoid:** The Postgres query for war data must include `ORDER BY fat DESC` within each year+quarter group. This matches the seeded order.
+**Warning signs:** Frontend renders but event density on globe differs from pre-migration behavior.
 
-### Pitfall 2: asy_application_all Response is Array-Wrapped Object
-**What goes wrong:** The controller calls `findAsyApplicationAll()` which returns `[dataLoader('asy_application_all.json')]` — note the wrapping array. The JSON file itself is an object (`{"2010":{...}}`). The API returns a single-element array containing the whole object.
-**Why it happens:** Careless copying of `findAsyApplicationAll` without noticing the `[]` wrapper in the current code.
-**How to avoid:** When reconstructing the asylum response, wrap the entire year-keyed object in an array: `return [{ "2010": {...}, "2011": {...}, ... }]`.
+### Pitfall 2: asy_application_all Response Shape is Unusual
+**What goes wrong:** The current `findAsyApplicationAll()` returns `[dataLoader('asy_application_all.json')]` — an array wrapping a single year-keyed dict. Not a flat array of records.
+**Why it happens:** The dataLoader returns the raw JSON object and the function wraps it in an array.
+**How to avoid:** The Postgres query must reconstruct this exact shape: aggregate all rows back into one nested object keyed by year → quarter → array of records, then wrap in `[...]`. The shape is `[{2010: {q1:[...], q2:[...], ...}, 2011: {...}, ...}]`.
+**Warning signs:** AsyApplicationContainer.jsx breaks silently or shows empty data.
 
-### Pitfall 3: Docker Init Script Only Runs on First Volume Creation
-**What goes wrong:** Developer modifies seed data and re-runs `docker-compose up` expecting re-seed. Nothing happens because `/docker-entrypoint-initdb.d/` scripts only run when the named volume is empty.
-**Why it happens:** Docker official postgres image design — init scripts are for initial setup only.
-**How to avoid:** Document clearly: `docker-compose down -v && docker-compose up` to fully reset. Alternatively, make seed.js runnable standalone: `node scripts/seed.js` with TRUNCATE + re-insert behavior when `--force` flag is passed.
-**Warning signs:** "Already seeded" message but with stale data.
+### Pitfall 3: IBC_all Response Is a Route-Keyed Object (Not an Array)
+**What goes wrong:** `IBC_all.json` is an object keyed by route name. Each value is an array of crossing records with year-quarter time series embedded as direct properties. The API returns this object shape directly.
+**Why it happens:** The structure has the route name as the outer key, with one object per nationality/border-location/route combination, containing year→quarter counts as direct properties (e.g., `{2009: {q1: 119, q2: 106, ...}, Route: "Eastern Mediterranean", BorderLocation: "Land/Sea", NationalityLong: "Syria"}`).
+**How to avoid:** Schema: table `ibc_crossings` with columns (route, border_location, nationality, year, quarter, count). Query retrieves all rows, Node.js reconstructs the route-keyed object. The reconstruction must pivot the year+quarter rows back into the nested object shape.
+**Warning signs:** Route IBC chart renders no data.
 
-### Pitfall 4: Knex Migration Directory Must Match Config
-**What goes wrong:** Knex looks for migrations in `./migrations` by default; if migrations live in `server/database/migrations/`, knex will not find them unless config specifies `directory`.
-**How to avoid:** Create `knexfile.js` at project root (or pass config object) with explicit `migrations: { directory: './server/database/migrations' }`.
+### Pitfall 4: Docker init.d Only Runs on Empty Volume
+**What goes wrong:** Developer runs `docker-compose up`, expects fresh schema, but `pgdata` volume already exists — init scripts are skipped silently.
+**Why it happens:** Postgres `/docker-entrypoint-initdb.d/` only runs when the data directory is empty (first initialization).
+**How to avoid:** Document: `docker-compose down -v` destroys the named volume, triggering re-initialization on next up. Use `npm run db:seed` to re-seed without destroying the volume.
+**Warning signs:** Schema changes don't appear after `docker-compose restart`.
 
-### Pitfall 5: Supabase Free Tier Pauses After Inactivity
-**What goes wrong:** Supabase free projects pause after 7 days of inactivity. Connection attempts fail with connection refused.
-**Why it happens:** Supabase free tier resource management.
-**How to avoid:** Document this clearly. The app can be "woken up" by visiting the Supabase dashboard. Not a migration concern — an operational concern for production deployment.
+### Pitfall 5: Supabase Requires SSL in CONNECTION_URL
+**What goes wrong:** Default pg connection without SSL fails in production against Supabase.
+**Why it happens:** Supabase's connection pooler requires SSL; local Docker does not.
+**How to avoid:** Use the Supabase-provided connection string which already includes `?sslmode=require`. For local Docker, no SSL suffix needed. The knexfile reads DATABASE_URL verbatim from .env — the URL itself carries the SSL config.
+**Warning signs:** `ECONNREFUSED` or SSL handshake errors when deploying.
 
-### Pitfall 6: war_events IBC Response Shape — IBC Object Not Array
-**What goes wrong:** `/data/route_IBC` returns an OBJECT keyed by route name, not an array. If you accidentally return `SELECT * FROM ibc_crossings` rows as a flat array, the frontend breaks.
-**How to avoid:** Reassemble the route-keyed object in the controller before `res.json()`.
+### Pitfall 6: war event `cot` Array Insert in Postgres
+**What goes wrong:** When inserting JavaScript arrays into a `text[]` column via knex, the pg client may serialize the array incorrectly.
+**Why it happens:** pg client needs to see a JavaScript array to map to a Postgres `text[]` column. If knex serializes it as a string first, the insert fails or stores garbage.
+**How to avoid:** Test a single insert of a war event with `cot: ['Egypt', 'Northern Africa']` before running batch. The pg client handles JS arrays natively for array columns — this should work, but verify.
+**Warning signs:** `cot` column stores `"{Egypt,Northern Africa}"` as a string literal instead of a proper Postgres array; `res.json()` returns it as a string not an array.
 
-### Pitfall 7: Mongoose `find()` Returns Array — war_notes Must Too
-**What goes wrong:** `findWarNote(id)` currently returns `warNoteModel.find({id: query}, ...)` which resolves to an array. The new Postgres query must also return an array. If you use `knex('war_notes').where({id}).first()`, it returns a single object or `undefined`, not an array.
-**How to avoid:** Use `knex('war_notes').where({id})` (no `.first()`) so it returns an array (possibly empty).
+### Pitfall 7: Mongoose Removal Must Be Both Code and Package
+**What goes wrong:** Removing Mongoose from code but leaving it in package.json — or vice versa.
+**How to avoid:** `npm uninstall mongoose` uninstalls the package. Grep for any remaining `require('mongoose')` after removal. `config.js` can be deleted once dotenv is in place.
+**Warning signs:** `mongoose` still in package.json dependencies.
+
+### Pitfall 8: Knex decimal() returns strings, not numbers
+**What goes wrong:** Postgres `NUMERIC` columns (from `t.decimal(8, 2)`) are returned by the pg driver as JavaScript strings, not numbers.
+**Why it happens:** The pg driver does not automatically cast NUMERIC to JavaScript floats to avoid precision loss.
+**How to avoid:** In the query layer, explicitly `parseFloat(row.lat)` and `parseFloat(row.lng)` when constructing API response objects. Alternatively, use `FLOAT8` instead of `NUMERIC(8,2)` for lat/lng since 2dp precision is already enforced at seed time.
+**Warning signs:** Globe renders no points because lat/lng are strings not numbers; THREE.js silently fails on NaN geometry.
+
+---
+
+## Data Structure Reference
+
+Critical for schema design and response reconstruction. All verified by running Node against actual JSON files.
+
+### Dataset 1: war_all.json
+**Source shape:** Array of 9 year objects: `[{Year: '2010', value: {q1: [...events], q2: [...], q3: [...], q4: [...]}}]`
+**Event fields:** `{id: number, fat: number, int: number, evt: number, cot: [string, string], lat: number, lng: number}`
+**cot:** Always exactly 2 elements — `[country_name, region_name]` — 74 unique values total
+**Raw event count:** 179,010 events pre-dedup; 56,154 after warReducer dedup (68% reduction)
+**Years covered:** 2010–2018
+**Key transform:** `warReducer()` sorts each quarter by `fat DESC`, then deduplicates on `lat,lng` composite key
+**API response shape:** Same nested structure as source
+**Postgres table:** `war_events(event_id integer, year varchar(4), quarter varchar(2), fat integer, int integer, evt integer, cot text[], lat float8, lng float8)`
+
+### Dataset 2: asy_application_all.json
+**Source shape:** Object (not array) keyed by year string: `{"2010": {q1: [...], q2: [...], q3: [...], q4: [...]}, ...}`
+**Record fields:** `{Origin: string, Value: number, id: number, destination: string}`
+**Record count:** ~82,197 records across 9 years (2010–2018)
+**API response shape:** `[{2010: {q1:[...], q2:[...], ...}, 2011: {...}, ...}]` — array wrapping one object
+**Postgres table:** `asy_applications(record_id integer, year varchar(4), quarter varchar(2), origin text, destination text, value integer)`
+
+### Dataset 3: route_death.json
+**Source shape:** Flat array of 4,736 records
+**Record fields (all text unless noted):** `{id, date, quarter, year, dead, missing, dead_and_missing, cause_of_death_displayText, cause_of_death, location, description, source, lat, lng (nullable), route, route_displayText, source_url}`
+**Note:** `dead`, `missing`, `dead_and_missing` are string values (e.g., `"0"`, `"2"`) — keep as text to preserve response shape
+**Lat/lng presence:** 4,734 of 4,736 have lat/lng; 2 records have null
+**API response shape:** Raw flat array — same as source
+**Postgres table:** `route_deaths(id text, date text, quarter text, year text, dead text, missing text, dead_and_missing text, cause_of_death_display_text text, cause_of_death text, location text, description text, source text, lat float8, lng float8, route text, route_display_text text, source_url text)`
+
+### Dataset 4: IBC_all.json
+**Source shape:** Object keyed by route name (9 routes). Each value is an array of crossing records.
+**Crossing record fields:** `{Route: string, BorderLocation: string, NationalityLong: string, [year]: {q1: N, q2: N, q3: N, q4: N}}` — years 2009–2018 as direct properties, some quarters null
+**Total records:** 347 crossing rows across 9 routes
+**API response shape:** Same route-keyed object
+**Postgres table:** `ibc_crossings(route text, border_location text, nationality_long text, year varchar(4), quarter varchar(2), count integer)` — fully normalized
+**Reconstruct query:** GROUP BY route → pivot year+quarter rows into nested object → reconstruct route-keyed response
+
+### Dataset 5: country_route_list.json
+**Source shape:** Array of `{country: string, route: string[]}` objects (route is an array of route names)
+**API response shape:** Same flat array
+**Postgres table:** `country_routes(country text, routes text[])` — one row per country, routes as Postgres text array
+
+### war_notes (MongoDB — lost)
+**Schema from Models.js:** `{id: Number, notes: String, source: String}`
+**API endpoint:** `GET /data/note/:id` returns array of matching notes
+**Phase 3 action:** Create empty table; return `[]` for all queries
+**Postgres table:** `war_notes(id integer, notes text, source text)`
+
+### IBC_crossingCountByCountry.json (client-side, bypasses API)
+**Current state:** Imported directly in `src/utils/api.js` as a local JSON file. Not served from the Express API. 7 records with `{route, total_cross, center_lng, center_lat, zoom}`.
+**Decision:** Leave as-is in Phase 3. Moving it to a DB-backed endpoint is Phase 4/5 work.
+
+---
+
+## API Response Shape Contract
+
+All 6 endpoints must return these exact shapes. Frontend MUST NOT need changes.
+
+| Route | Handler | Returns | Shape |
+|-------|---------|---------|-------|
+| `GET /data/note/:id` | findWarNote | Array | `[]` for Phase 3 (table empty) |
+| `GET /data/reduced_war_data` | findReducedWar | Array | `[{Year: '2010', value: {q1:[events], q2:[events], q3:[events], q4:[events]}}, ...]` |
+| `GET /data/asy_application_all` | findAsyApplicationAll | Array (1-element) | `[{2010: {q1:[records], ...}, 2011: {...}, ...}]` |
+| `GET /data/route_death` | findRouteDeath | Array | flat array of route_death records with original field names |
+| `GET /data/route_IBC_country_list` | findRouteIbcCountryList | Array | `[{country: string, route: [string, ...]}, ...]` |
+| `GET /data/route_IBC` | findRouteIbc | Object | `{"Eastern Mediterranean": [{2009:{q1,q2,q3,q4}, ..., Route, BorderLocation, NationalityLong}], ...}` |
+
+**Note on field name casing:** The API returns data in the original JSON field name casing (e.g., `cause_of_death_displayText` not `cause_of_death_display_text`). Postgres column names are snake_case; the query layer must alias or remap to original field names when building response objects.
 
 ---
 
 ## Code Examples
 
-### Knex connection setup
+### Knex + pg Connection (replaces connection.js)
 ```javascript
 // server/database/connection.js
-// Source: knexjs.org/guide/ (official docs)
+// Source: https://knexjs.org/guide/
 require('dotenv').config();
 const knex = require('knex');
 
@@ -520,83 +417,71 @@ const db = knex({
 module.exports = db;
 ```
 
-### dotenv in server entry point
-```javascript
-// server/server.js — add at very top
-require('dotenv').config();
-// ... rest of server.js unchanged
-```
+### .env Files
+```bash
+# .env.example (committed to git — local docker-compose defaults)
+DATABASE_URL=postgresql://rfuser:rfpassword@localhost:5432/refugeeflow
+PORT=2700
+NODE_ENV=development
 
-### .env.example (local docker defaults)
-```
-DATABASE_URL=postgresql://refugeeflow:password@localhost:5432/refugeeflow
+# .env (gitignored — developer copies from .env.example)
+DATABASE_URL=postgresql://rfuser:rfpassword@localhost:5432/refugeeflow
 PORT=2700
 NODE_ENV=development
 ```
 
-### Running Knex migrations programmatically
-```javascript
-// scripts/migrate.js
-require('dotenv').config();
-const db = require('../server/database/connection');
-
-db.migrate.latest({ directory: './server/database/migrations' })
-  .then(() => { console.log('migrations complete'); process.exit(0); })
-  .catch(err => { console.error(err); process.exit(1); });
+```bash
+# Production .env (Supabase connection string from project dashboard)
+DATABASE_URL=postgresql://postgres.[project-ref]:[password]@aws-0-[region].pooler.supabase.com:6543/postgres
+PORT=2700
+NODE_ENV=production
 ```
 
-### Seed script structure
-```javascript
-// scripts/seed.js
-require('dotenv').config();
-const { round, uniqBy } = require('lodash');
-const db = require('../server/database/connection');
-const dataLoader = (file) => require(`./server/controllers/api/data/datasets/${file}`);
-
-const reduceGeoPercision = (num, precision) => round(num, precision);
-
-async function seedWarEvents() {
-  const count = (await db('war_events').count('id as n').first()).n;
-  if (parseInt(count) > 0) return console.log('war_events: already seeded');
-
-  const warData = dataLoader('war_all.json');
-  const rows = [];
-  for (const yearEntry of warData) {
-    for (const [quarter, events] of Object.entries(yearEntry.value)) {
-      const sorted = events.sort((a, b) => b.fat - a.fat);
-      const deduped = uniqBy(sorted, i => `${reduceGeoPercision(i.lat, 2)},${reduceGeoPercision(i.lng, 2)}`);
-      for (const e of deduped) {
-        rows.push({
-          id: e.id, year: yearEntry.Year, quarter,
-          fat: e.fat, int: e.int, evt: e.evt, cot: JSON.stringify(e.cot),
-          lat: reduceGeoPercision(e.lat, 2), lng: reduceGeoPercision(e.lng, 2),
-        });
-      }
-    }
+### package.json Scripts
+```json
+{
+  "scripts": {
+    "db:migrate": "knex --knexfile db/knexfile.js migrate:latest",
+    "db:seed": "node scripts/seed.js",
+    "db:reset": "knex --knexfile db/knexfile.js migrate:rollback --all && npm run db:migrate && npm run db:seed",
+    "db:up": "docker-compose up -d"
   }
-  await db.batchInsert('war_events', rows, 1000);
-  console.log(`war_events: inserted ${rows.length} rows`);
 }
 ```
 
-### docker-compose.yml
-```yaml
-# Source: Docker Docs — https://docs.docker.com/guides/pre-seeding/
-version: '3.9'
-services:
-  db:
-    image: postgres:16-alpine
-    environment:
-      POSTGRES_DB: refugeeflow
-      POSTGRES_USER: refugeeflow
-      POSTGRES_PASSWORD: password
-    ports:
-      - "5432:5432"
-    volumes:
-      - pgdata:/var/lib/postgresql/data
-      - ./docker/init-db.sh:/docker-entrypoint-initdb.d/init-db.sh
-volumes:
-  pgdata:
+### War Events Query (reconstructs warReducer output shape)
+```javascript
+// Returns [{Year: '2010', value: {q1:[...], q2:[...], q3:[...], q4:[...]}}]
+async function findReducedWar() {
+  const rows = await db('war_events')
+    .select('*')
+    .orderBy([{ column: 'year' }, { column: 'quarter' }, { column: 'fat', order: 'desc' }]);
+
+  const byYear = {};
+  rows.forEach(row => {
+    if (!byYear[row.year]) {
+      byYear[row.year] = { Year: row.year, value: { q1:[], q2:[], q3:[], q4:[] } };
+    }
+    byYear[row.year].value[row.quarter].push({
+      id: row.event_id,
+      fat: row.fat,
+      int: row.int,
+      evt: row.evt,
+      cot: row.cot,            // pg driver returns as JS array for text[] column
+      lat: parseFloat(row.lat), // NUMERIC returns as string from pg; must cast
+      lng: parseFloat(row.lng),
+    });
+  });
+  return Object.values(byYear).sort((a, b) => a.Year.localeCompare(b.Year));
+}
+```
+
+### Dotenv Loading Pattern (replaces config.js)
+```javascript
+// server/server.js — add as very first line, before any require
+require('dotenv').config();
+// Then use process.env.DATABASE_URL, process.env.PORT
+// Remove: const { database } = require('./config.js')
 ```
 
 ---
@@ -605,98 +490,95 @@ volumes:
 
 | Old Approach | Current Approach | When Changed | Impact |
 |--------------|------------------|--------------|--------|
-| Mongoose with MongoDB | Knex + pg with PostgreSQL | This phase | Relational queries, SQL power, owner-controlled data |
-| config.js checked into repo | .env + dotenv (git-ignored) | This phase | Credentials never in git; standard 12-factor practice |
-| JSON file loading at startup | Postgres queries at request time | This phase | Data can be updated without redeploying the server |
-| Geo reduction at request time | Precision stored at insert time | This phase | No CPU cost on every request; data is always clean |
-| Mongoose `find()` promises | Knex query promises | This phase | `connection.then()` wrapper no longer needed; simpler route handlers |
+| Mongoose for MongoDB | knex + pg for PostgreSQL | This phase | Removes Mongoose dep entirely; no connection string → no startup error |
+| config.js hardcoded values | dotenv + .env files | This phase | Supports dev (Docker) and production (Supabase) with same code |
+| JSON files loaded at startup | Postgres queries at request time | This phase | Data is mutable, indexable, queryable for Phase 4 ingestion |
+| Precision reduction at read time (JSON reviver) | Precision at insert/seed time | This phase | Data in DB is always clean; no runtime processing overhead |
 
 **Deprecated/outdated after this phase:**
-- `config.js` and `config.example.js` — replaced by `.env` + `.env.example`
-- `server/database/Models.js` — Mongoose schema definitions removed
-- `server/database/connection.js` — replaced with Knex connection singleton
-- `mongoose` package — removed from package.json entirely
-- `warDataAll` module-level JSON pre-loading in `dataController.js` — replaced with DB queries
+- `server/database/connection.js` (Mongoose version): Replaced
+- `server/database/Models.js`: Deleted entirely
+- `config.js` / `config.example.js`: Replaced by `.env` + `.env.example`
+- All `require('./config.js')` calls in server code
 
 ---
 
 ## Open Questions
 
-1. **IBC_crossingCountByCountry.json — keep as frontend static import or migrate to API?**
-   - What we know: `src/utils/api.js` imports this JSON directly as a module (not via API). `src/data/IBC_crossingCountByCountry.json` has 9 route entries with `total_cross`, `center_lng`, `center_lat`, `zoom` — pre-aggregated/pre-calculated data.
-   - What's unclear: Is this data derived from IBC_all.json (can be recomputed), or is it separately sourced?
-   - Recommendation: Phase 3 — leave as static frontend import (out of the 6-endpoint contract). The CONTEXT.md marks this as Claude's Discretion. It is already working and not touching the database. Migrate in a later phase if needed.
+1. **IBC_all fully normalized vs JSONB for yearly counts**
+   - What we know: The CONTEXT.md locks "no JSONB blobs" for all datasets. A fully normalized `ibc_crossings` table (route, border_location, nationality, year, quarter, count) has ~13,880 rows (347 records × 40 year-quarter combos) but cleanly satisfies the constraint.
+   - What's unclear: Whether sparse nulls (some year-quarters are null in the source) should be omitted rows or stored as null count.
+   - Recommendation: Omit null-count rows at seed time (INSERT only non-null values). Reconstruct with a LEFT JOIN or fill nulls as null in the Node response object.
 
-2. **Supabase connection string format — transaction mode vs session mode**
-   - What we know: Supabase free tier provides two connection strings: direct (port 5432) and connection pooler/Supavisor (port 6543, transaction mode). Supavisor transaction mode does not support prepared statements.
-   - What's unclear: Will Knex use prepared statements by default?
-   - Recommendation: Use Supabase's direct connection string (port 5432) for the Express server since it's a persistent long-running process. Transaction mode pooler is designed for serverless functions. Direct connection avoids prepared statement limitations.
+2. **route_death numeric-string fields**
+   - What we know: `dead`, `missing`, `dead_and_missing` are strings in the source JSON (e.g., `"0"`, `"2"`).
+   - Recommendation: Store as TEXT to preserve response shape identity. Phase 4 casts when computing aggregations.
 
-3. **route_death lat/lng precision — string vs numeric storage**
-   - What we know: Source JSON stores them as strings with 6 decimal places. Current API returns them as strings.
-   - Recommendation: Store as TEXT after applying precision reduction (convert to float, round to 2 decimals, store string). This preserves the API response type contract exactly.
+3. **Supabase project creation timing**
+   - What we know: Phase 3 needs a Supabase project created with the DATABASE_URL before testing against production.
+   - Recommendation: Plan Wave 0 should include creating the Supabase project and documenting the connection string in .env.
 
 ---
 
 ## Validation Architecture
 
+nyquist_validation is `true` in .planning/config.json.
+
 ### Test Framework
 | Property | Value |
 |----------|-------|
-| Framework | Jest (already installed as devDependency) |
-| Config file | none — default Jest config in package.json |
-| Quick run command | `npm test` |
-| Full suite command | `npm test -- --runInBand` |
+| Framework | Jest 30.3.0 (already configured) |
+| Config file | `jest.config.js` (root) |
+| Quick run command | `npx jest tests/server/ --testEnvironment node` |
+| Full suite command | `npx jest` |
 
 ### Phase Requirements → Test Map
 | Req ID | Behavior | Test Type | Automated Command | File Exists? |
 |--------|----------|-----------|-------------------|-------------|
-| DB-01 | MongoDB removed; app starts without Mongo URI | integration/smoke | `npm test -- --testPathPattern=db` | ❌ Wave 0 |
-| DB-02 | All 6 endpoints return same response shapes | integration | `npm test -- --testPathPattern=endpoints` | ❌ Wave 0 |
-| DB-03 | Seeded lat/lng has max 2 decimal places; no duplicate (lat,lng) per year+quarter in war_events | unit | `npm test -- --testPathPattern=seed` | ❌ Wave 0 |
-| DB-04 | docker-compose.yml file exists and is valid YAML | smoke/manual | manual: `docker-compose config` | ❌ Wave 0 |
+| DB-01 | No MongoDB dep — app starts without MONGODB_URI env var | smoke | `npx jest tests/server/db-connection.test.js -x` | ❌ Wave 0 |
+| DB-02 | Each of 6 endpoints returns correct response shape from Postgres | integration | `npx jest tests/server/endpoints.test.js -x` | ❌ Wave 0 |
+| DB-03 | Seeded lat/lng values are precision-reduced to 2dp | unit | `npx jest tests/server/seed.test.js -x` | ❌ Wave 0 |
+| DB-04 | Postgres accessible on localhost:5432 | manual infra | `pg_isready -h localhost -p 5432 -U rfuser` | N/A |
 
 ### Sampling Rate
-- **Per task commit:** `npm test -- --testPathPattern=<relevant-test-file> --runInBand`
-- **Per wave merge:** `npm test -- --runInBand`
+- **Per task commit:** `npx jest tests/server/ --testEnvironment node`
+- **Per wave merge:** `npx jest`
 - **Phase gate:** Full suite green before `/gsd:verify-work`
 
 ### Wave 0 Gaps
-- [ ] `tests/db-connection.test.js` — verifies Knex connects to test DB, covers DB-01
-- [ ] `tests/endpoints.test.js` — uses supertest to call all 6 endpoints, snapshot response shapes, covers DB-02
-- [ ] `tests/seed-validation.test.js` — loads seeded DB, checks precision + dedup invariants, covers DB-03
-- [ ] Test DB setup: needs `DATABASE_URL` pointing to local Docker postgres for CI; add `TEST_DATABASE_URL` env var
+- [ ] `tests/server/db-connection.test.js` — covers DB-01 (knex connects, no Mongoose errors)
+- [ ] `tests/server/endpoints.test.js` — covers DB-02 (supertest integration tests for all 6 routes against a test DB)
+- [ ] `tests/server/seed.test.js` — covers DB-03 (unit tests for precision reduction logic and dedup)
+
+*(DB-04 is infrastructure validation; not automatable in Jest without Docker-in-Docker setup.)*
 
 ---
 
 ## Sources
 
 ### Primary (HIGH confidence)
-- [knexjs.org/guide/migrations.html](https://knexjs.org/guide/migrations.html) — migration file format, `migrate.latest()`, config options
-- [knexjs.org/guide/utility](https://knexjs.org/guide/utility) — `batchInsert` API
-- [docs.docker.com/guides/pre-seeding/](https://docs.docker.com/guides/pre-seeding/) — `/docker-entrypoint-initdb.d/` pattern
-- [supabase.com/docs/guides/database/connecting-to-postgres](https://supabase.com/docs/guides/database/connecting-to-postgres) — direct vs pooler connection strings, free tier limits
-- Codebase analysis of: `dataController.js`, `dataProcessors.js`, `dataRoute.js`, `connection.js`, `Models.js`, all 5 dataset JSON files
+- https://knexjs.org/guide/ — knex current version, installation, pg connection config
+- https://knexjs.org/guide/migrations.html — migrate:latest, migrate:make, seed:run, knexfile.js, lock system
+- Direct codebase inspection (dataProcessors.js, dataController.js, dataRoute.js, all 5 JSON datasets) — exact API response shapes and data volumes
 
 ### Secondary (MEDIUM confidence)
-- [traveling-coderman.net/code/node-architecture/schema-migrations/](https://traveling-coderman.net/code/node-architecture/schema-migrations/) — Knex migration patterns in practice
-- [dev.to/saiful7778/setting-up-postgresql-with-docker-compose...](https://dev.to/saiful7778/setting-up-postgresql-with-docker-compose-for-development-and-production-45j8) — Docker Compose Postgres setup patterns
-- [neon.com/postgresql/postgresql-json-functions/postgresql-jsonb_agg](https://neon.com/postgresql/postgresql-json-functions/postgresql-jsonb_agg) — jsonb_agg for nested JSON reconstruction
+- `npm view knex version` → 3.1.0; `npm view pg version` → 8.20.0; `npm view dotenv version` → 17.3.1
+- https://hub.docker.com/_/postgres — Postgres official Docker image, /docker-entrypoint-initdb.d/ behavior
+- https://docs.docker.com/guides/pre-seeding/ — pre-seeding pattern (init only on empty volume confirmed)
 
 ### Tertiary (LOW confidence)
-- WebSearch results on Drizzle vs Knex tradeoffs — consensus directional but not deeply verified for this project's CJS/non-TypeScript constraints
+- WebSearch results on knex idempotent seeding — TRUNCATE RESTART IDENTITY CASCADE pattern (standard Postgres; not unique to knex)
 
 ---
 
 ## Metadata
 
 **Confidence breakdown:**
-- Standard stack (Knex + pg + dotenv): HIGH — verified against official docs and project constraints (no TypeScript)
-- Architecture (connection singleton, batchInsert seeding): HIGH — official Knex docs pattern
-- Schema design: MEDIUM — derived from data inspection; exact column types may need adjustment after first seed run
-- Response shape contract: HIGH — directly inspected source JSON and current controller code
-- Docker auto-seed pattern: HIGH — verified with official Docker docs
-- Pitfalls: HIGH for items verified in source code; MEDIUM for Supabase-specific operational notes
+- Standard stack: HIGH — all versions confirmed via npm registry
+- Architecture: HIGH — based on direct codebase inspection of all 6 endpoints and all 5 JSON dataset structures, running Node against actual data
+- API response shapes: HIGH — verified by reading existing dataController.js and dataProcessors.js code
+- Pitfalls: HIGH for war/asy/IBC response shapes (verified from code); MEDIUM for Supabase SSL (standard Supabase requirement, not locally tested)
+- Data schemas: HIGH — all field names, types, and record counts extracted by running Node against actual JSON files
 
 **Research date:** 2026-03-15
-**Valid until:** 2026-09-15 (stable ecosystem; 6 months)
+**Valid until:** 2026-04-15 (knex/pg are stable; Supabase free tier terms could change)
