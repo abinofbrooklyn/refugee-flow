@@ -121,6 +121,8 @@ Move all app data from static JSON files and MongoDB to a PostgreSQL database on
 ## Deferred Ideas
 
 - War notes data population from ACLED API — Phase 4 ingestion pipeline will source notes/descriptions for war events
+- ACLED updates weekly. After initial full pull, use incremental sync (filter by date range since last sync) to minimize data load. Phase 4 schema should track last_synced timestamp per source
+- Same incremental pattern should apply to all ingestion sources (ACLED, UNHCR, IOM) — not just war notes
 
 </deferred>
 
