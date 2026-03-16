@@ -64,7 +64,13 @@ Plans:
   2. The app runs end-to-end in local dev using docker-compose with no external database dependency
   3. Every lat/lng coordinate in the database is precision-reduced and deduplicated — no raw API coordinates stored
   4. Removing MongoDB connection string from the environment causes no startup errors
-**Plans**: TBD
+**Plans**: 4 plans
+
+Plans:
+- [ ] 03-01-PLAN.md — Set up Docker Compose, .env/dotenv config, Knex connection, and schema migration for all 6 tables
+- [ ] 03-02-PLAN.md — Create idempotent seed script transforming all 5 JSON datasets with geo precision reduction and dedup
+- [ ] 03-03-PLAN.md — Rewrite all 6 data controller functions for Postgres, update routes, remove Mongoose
+- [ ] 03-04-PLAN.md — Integration tests for endpoint shapes, geo precision, dedup, and end-to-end verification
 
 ### Phase 4: Data Ingestion Pipeline
 **Goal**: War, asylum, and route death data flows into the database automatically each week; admin can supplement with CSV uploads
@@ -96,6 +102,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 |-------|----------------|--------|-----------|
 | 1. Stabilize | 4/4 | Complete | 2026-03-12 |
 | 2. Modernize Stack | 4/4 | Complete | 2026-03-12 |
-| 3. Database Migration | 0/TBD | Not started | - |
+| 3. Database Migration | 0/4 | Planning complete | - |
 | 4. Data Ingestion Pipeline | 0/TBD | Not started | - |
 | 5. Data Coverage | 0/TBD | Not started | - |
