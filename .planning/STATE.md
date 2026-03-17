@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: executing
-stopped_at: Completed 03-02-PLAN.md
-last_updated: "2026-03-17T02:57:32.858Z"
+stopped_at: Completed 03-03-PLAN.md
+last_updated: "2026-03-17T03:01:37.814Z"
 last_activity: 2026-03-17 — Phase 3 Plan 01 complete
 progress:
   total_phases: 5
   completed_phases: 2
   total_plans: 12
-  completed_plans: 10
+  completed_plans: 11
   percent: 42
 ---
 
@@ -58,6 +58,7 @@ Progress: [████░░░░░░] 42%
 | Phase 02-modernize-stack P03 | 7 | 2 tasks | 13 files |
 | Phase 02-modernize-stack P04 | 7 | 2 tasks | 21 files |
 | Phase 03-database-migration P02 | 10 | 2 tasks | 2 files |
+| Phase 03-database-migration P03 | 15 | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -86,6 +87,8 @@ Recent decisions affecting current work:
 - [Phase 03-database-migration]: cot column as text[] (specificType) — pg driver maps JS arrays natively
 - [Phase 03-database-migration]: route_deaths lat/lng require parseFloat() — source JSON stores them as strings not numbers
 - [Phase 03-database-migration]: Empty string lat/lng in route_deaths treated as null — 2 records have empty strings not null
+- [Phase 03-database-migration]: float8 lat/lng returns as JS number from pg driver — no parseFloat() needed in query layer
+- [Phase 03-database-migration]: IBC null-count rows omitted at seed time; Node reconstructs null quarterly values for missing year-quarter combos
 
 ### Pending Todos
 
@@ -97,6 +100,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-17T02:57:23.298Z
-Stopped at: Completed 03-02-PLAN.md
+Last session: 2026-03-17T03:01:37.808Z
+Stopped at: Completed 03-03-PLAN.md
 Resume file: None
