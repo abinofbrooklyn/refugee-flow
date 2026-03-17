@@ -25,7 +25,7 @@
 
 - [x] **DB-01**: All data served from PostgreSQL (Supabase) — no MongoDB dependency
 - [ ] **DB-02**: All 6 existing API endpoints return identical response shapes from PostgreSQL
-- [ ] **DB-03**: Geo coordinates stored precision-reduced and deduplicated in the database
+- [x] **DB-03**: Geo coordinates stored precision-reduced and deduplicated in the database
 - [x] **DB-04**: Local PostgreSQL dev environment available via docker-compose
 
 ### Data Ingestion

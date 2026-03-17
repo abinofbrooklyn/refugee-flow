@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: in-progress
-stopped_at: Completed 03-01-PLAN.md
-last_updated: "2026-03-17T02:51:03Z"
+status: executing
+stopped_at: Completed 03-02-PLAN.md
+last_updated: "2026-03-17T02:57:32.858Z"
 last_activity: 2026-03-17 — Phase 3 Plan 01 complete
 progress:
   total_phases: 5
   completed_phases: 2
-  total_plans: 9
-  completed_plans: 9
+  total_plans: 12
+  completed_plans: 10
   percent: 42
 ---
 
@@ -57,6 +57,7 @@ Progress: [████░░░░░░] 42%
 | Phase 02-modernize-stack P02 | 10 | 2 tasks | 3 files |
 | Phase 02-modernize-stack P03 | 7 | 2 tasks | 13 files |
 | Phase 02-modernize-stack P04 | 7 | 2 tasks | 21 files |
+| Phase 03-database-migration P02 | 10 | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -83,6 +84,8 @@ Recent decisions affecting current work:
 - [Phase 03-database-migration]: dead/missing/dead_and_missing in route_deaths stored as TEXT — source JSON has string values, must preserve API response shape
 - [Phase 03-database-migration]: war_notes table created empty for Phase 3; ACLED API population deferred to Phase 4
 - [Phase 03-database-migration]: cot column as text[] (specificType) — pg driver maps JS arrays natively
+- [Phase 03-database-migration]: route_deaths lat/lng require parseFloat() — source JSON stores them as strings not numbers
+- [Phase 03-database-migration]: Empty string lat/lng in route_deaths treated as null — 2 records have empty strings not null
 
 ### Pending Todos
 
@@ -94,6 +97,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-17T02:51:03Z
-Stopped at: Completed 03-01-PLAN.md
-Resume file: .planning/phases/03-database-migration/03-01-SUMMARY.md
+Last session: 2026-03-17T02:57:23.298Z
+Stopped at: Completed 03-02-PLAN.md
+Resume file: None
