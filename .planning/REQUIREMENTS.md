@@ -30,13 +30,13 @@
 
 ### Data Ingestion
 
-- [ ] **INGEST-01**: War/conflict data ingested automatically from ACLED API on weekly schedule
-- [ ] **INGEST-02**: Asylum application data ingested automatically from UNHCR API on weekly schedule
-- [ ] **INGEST-03**: Route death data ingested automatically from IOM Missing Migrants API on weekly schedule
+- [x] **INGEST-01**: War/conflict data ingested automatically from ACLED API on weekly schedule
+- [x] **INGEST-02**: Asylum application data ingested automatically from UNHCR API on weekly schedule
+- [x] **INGEST-03**: Route death data ingested automatically from IOM Missing Migrants API on weekly schedule
 - [x] **INGEST-04**: All ingested lat/lng data passes through precision reduction and deduplication before storage
 - [x] **INGEST-05**: Ingestion failures are logged to `ingestion_log` table with error details
-- [ ] **INGEST-06**: Admin can upload CSV data for sources without APIs via password-protected `/admin` route
-- [ ] **INGEST-07**: CSV uploads show preview before committing to database
+- [x] **INGEST-06**: Admin can upload CSV data for sources without APIs via password-protected `/admin` route
+- [x] **INGEST-07**: CSV uploads show preview before committing to database
 
 ### Data Coverage
 

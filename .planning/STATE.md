@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: completed
-stopped_at: Completed 04-03-PLAN.md
-last_updated: "2026-03-17T16:16:38.936Z"
+stopped_at: Completed 04-04-PLAN.md
+last_updated: "2026-03-17T16:21:47.711Z"
 last_activity: 2026-03-17 — Phase 3 verified complete; all data served from Supabase Postgres
 progress:
   total_phases: 5
   completed_phases: 3
   total_plans: 17
-  completed_plans: 15
+  completed_plans: 16
   percent: 100
 ---
 
@@ -63,6 +63,7 @@ Progress: [██████████] 100%
 | Phase 04-data-ingestion-pipeline P01 | 3 | 2 tasks | 6 files |
 | Phase 04-data-ingestion-pipeline P02 | 2 | 1 tasks | 2 files |
 | Phase 04-data-ingestion-pipeline P03 | 3 | 2 tasks | 4 files |
+| Phase 04-data-ingestion-pipeline P04 | 2 | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -98,6 +99,9 @@ Recent decisions affecting current work:
 - [Phase 04-data-ingestion-pipeline]: NaN lat/lng filtered at ingestion time before DB insert, consistent with seed.js pattern
 - [Phase 04-data-ingestion-pipeline]: UNHCR quarter always 'q1' — API provides annual totals only, not per-quarter
 - [Phase 04-data-ingestion-pipeline]: IOM always downloads full CSV with onConflict('id').ignore() — no date-filter API exists
+- [Phase 04-data-ingestion-pipeline]: Cron scheduling inside require.main block — prevents cron timers from running during test execution
+- [Phase 04-data-ingestion-pipeline]: Admin routes mounted before express.static — prevents SPA fallback intercepting POST /admin requests
+- [Phase 04-data-ingestion-pipeline]: CSV commit applies reduceGeoPercision(parseFloat(val), 2) to lat/lng columns before insert
 
 ### Pending Todos
 
@@ -109,6 +113,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-17T16:16:38.931Z
-Stopped at: Completed 04-03-PLAN.md
+Last session: 2026-03-17T16:21:47.704Z
+Stopped at: Completed 04-04-PLAN.md
 Resume file: None
