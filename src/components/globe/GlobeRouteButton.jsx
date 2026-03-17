@@ -42,6 +42,8 @@ const Icon_popup = styled.div`
   background-color: #1e1e29e0;
   border-radius: 5px;
   z-index: 1;
+  display: none;
+  opacity: 0;
 `
 const Icon_popup_exit = styled.p`
   color: white;
