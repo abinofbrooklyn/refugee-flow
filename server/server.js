@@ -36,4 +36,7 @@ app.use('/data', dataRoutes);
 app.use(express.static(path.join(__dirname, '../dist')));
 app.use((req, res) => { res.sendFile(path.join(__dirname, '../dist/index.html')); });
 
-app.listen(process.env.PORT);
+if (require.main === module) {
+  app.listen(process.env.PORT);
+}
+module.exports = app;
