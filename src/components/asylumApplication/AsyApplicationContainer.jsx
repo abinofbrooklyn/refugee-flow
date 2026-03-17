@@ -37,10 +37,12 @@ const Title = styled.p`
   color: white;
   margin-top: 15px;
   margin-left: 5%;
+  margin-bottom: 25px;
   display: inherit;
   cursor: pointer;
   z-index: 5;
   transition: all 400ms;
+  position: relative;
   &:hover{
     color: #d7d7ead4;
   }
@@ -66,38 +68,28 @@ const Title = styled.p`
     font-size: 11px;
     letter-spacing: 0.7px;
     position: absolute;
-    top: 43px;
+    bottom: -18px;
+    left: 0;
   }
 `
 const ButtonWrapper = styled.div`
-  display: inherit;
+  display: flex;
   justify-content: flex-start;
   height: 40px;
-
-  @media (max-height: 599px) {
-    margin: -5px 0 0 5%;
-  }
-  @media (max-height:749px) and (min-height: 600px) {
-    margin: 10px 0 0 5%;
-  }
-  @media (min-height: 750px) {
-    margin: 10px 0 0 5%;
-  }
-  @media (max-width: 1210px) {
-    margin: 20px 0 0 5%;
-  }
-
-
+  margin: 5px 5% 0 5%;
+  gap: 5px;
 `;
 const CurrentYearButton = styled.button`
-  display: inherit;
-  width: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
   height: 30px;
   cursor: pointer;
   font-family: 'Ubuntu';
   font-weight: 400;
-  font-size: 12px;
-  padding: 0px 0px 0px 20px;
+  font-size: 11px;
+  padding: 0 8px;
   background: #3f415845;
   border-radius: 3px;
   border: 1px solid;
@@ -105,6 +97,7 @@ const CurrentYearButton = styled.button`
   transition: background 400ms,border-color 1000ms;
   color: white;
   margin-right: 5%;
+  white-space: nowrap;
 
   &:hover{
     background: #2b2c3c;
@@ -123,26 +116,25 @@ const CurrentYearButton = styled.button`
     text-decoration: underline;
     text-decoration-color: #9ca6d6f7;
   }
-
-  @media (max-width: 1210px) {
-    width: 70%;
-  }
 `
 const AllYearButton = styled.button`
-  display: inherit;
-  width: 40%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1;
   height: 30px;
   cursor: pointer;
   font-family: 'Ubuntu';
   font-weight: 400;
-  font-size: 12px;
-  padding: 0px 0px 0px 27px;
+  font-size: 11px;
+  padding: 0 8px;
   background: #3f415845;
   border-radius: 3px;
   border: 1px solid;
   border-color: #3f41581c;
   transition: background 400ms,border-color 1000ms;
   color: white;
+  white-space: nowrap;
   &:hover{
     background: #2b2c3c;
     border-color: #2e9493cc;
