@@ -1,26 +1,10 @@
-const mongoose = require('mongoose');
-const { database } = require('../../config.js');
+require('dotenv').config();
+const knex = require('knex');
 
-let connection;
+const db = knex({
+  client: 'pg',
+  connection: process.env.DATABASE_URL,
+  pool: { min: 2, max: 10 },
+});
 
-if (!database.connection) {
-  console.warn('No database connection string configured — running without DB. Notes feature disabled.');
-  connection = Promise.resolve();
-} else {
-  mongoose.connect(database.connection, { useNewUrlParser: true });
-  const db = mongoose.connection;
-
-  connection = new Promise((resolve, reject) => {
-    db.on('error', (err) => {
-      console.warn('err', err);
-      reject(err);
-    });
-
-    db.once('open', () => {
-      console.info('connected w/ db');
-      resolve();
-    });
-  });
-}
-
-module.exports = connection;
+module.exports = db;
