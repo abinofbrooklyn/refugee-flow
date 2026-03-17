@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: completed
-stopped_at: Completed 04-02-PLAN.md
-last_updated: "2026-03-17T16:15:43.878Z"
+stopped_at: Completed 04-03-PLAN.md
+last_updated: "2026-03-17T16:16:38.936Z"
 last_activity: 2026-03-17 — Phase 3 verified complete; all data served from Supabase Postgres
 progress:
   total_phases: 5
   completed_phases: 3
   total_plans: 17
-  completed_plans: 14
+  completed_plans: 15
   percent: 100
 ---
 
@@ -62,6 +62,7 @@ Progress: [██████████] 100%
 | Phase 03-database-migration P04 | 15 | 2 tasks (checkpoint approved) | 3 files |
 | Phase 04-data-ingestion-pipeline P01 | 3 | 2 tasks | 6 files |
 | Phase 04-data-ingestion-pipeline P02 | 2 | 1 tasks | 2 files |
+| Phase 04-data-ingestion-pipeline P03 | 3 | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -95,6 +96,8 @@ Recent decisions affecting current work:
 - [Phase 04-data-ingestion-pipeline]: Deduplicate asy_applications at migration time — existing seeded data had duplicates preventing unique index creation
 - [Phase 04-data-ingestion-pipeline]: war_notes upsert uses onConflict merge (not ignore) — allows notes to update if ACLED corrects them on re-ingest
 - [Phase 04-data-ingestion-pipeline]: NaN lat/lng filtered at ingestion time before DB insert, consistent with seed.js pattern
+- [Phase 04-data-ingestion-pipeline]: UNHCR quarter always 'q1' — API provides annual totals only, not per-quarter
+- [Phase 04-data-ingestion-pipeline]: IOM always downloads full CSV with onConflict('id').ignore() — no date-filter API exists
 
 ### Pending Todos
 
@@ -106,6 +109,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-17T16:15:43.874Z
-Stopped at: Completed 04-02-PLAN.md
+Last session: 2026-03-17T16:16:38.931Z
+Stopped at: Completed 04-03-PLAN.md
 Resume file: None
