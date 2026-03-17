@@ -28,6 +28,10 @@ const SectionItemWrapper = styled.div`
   height: 100%;
   overflow-y: scroll;
   opacity: 0;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  padding: 10px;
 
   &::-webkit-scrollbar{
     width: 2px;
@@ -42,12 +46,9 @@ const SectionItemWrapper = styled.div`
   `}
 `
 const SectionItem = styled.div`
-  width: ${() => (document.querySelector('.sectionItemWrapper')?.offsetWidth || 0) / 3 - 20 + 'px'};
   height: 350px;
-  margin: 10px;
   background: #3535504d;
   position: relative;
-  float: left;
   transition: all 800ms;
   &:hover{
     background: #353550b3;
@@ -105,7 +106,7 @@ const Fat_num = styled.p`
   }
 `
 const MouseoverButton = styled.div`
-  width: ${() => ((document.querySelector('.sectionItemWrapper')?.offsetWidth || 0) / 3 - 20) / 9 - 8 + 'px'};
+  width: calc((100% - 72px) / 9);
   height: ${props => props.heightMap + 'px'};
   background: white;
   position: relative;
