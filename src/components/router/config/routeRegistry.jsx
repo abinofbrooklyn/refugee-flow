@@ -8,6 +8,7 @@ import MobileLanding from '../../landing/MobileLanding';
 import Conflict from '../../Conflict';
 import RefugeeRoute from '../../RefugeeRoute';
 import About from '../../about/About';
+import AdminPage from '../../Admin/AdminPage';
 
 const routeRegistry = [
   {
@@ -43,6 +44,12 @@ const routeRegistry = [
     component: About,
     path: '/about',
     exact: true,
+  },
+  {
+    isExclusive: true,
+    component: AdminPage,
+    path: '/admin',
+    exact: false,
   },
 
 ];
