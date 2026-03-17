@@ -6,10 +6,10 @@ import AsyApplicationChart from './AsyApplicationChart'
 
 const Chart = styled.div`
     width: 95%;
-    left: 5%;
-    height: 80%;
-    position: absolute;
-    bottom: 7%;
+    margin-left: 5%;
+    flex: 1;
+    min-height: 0;
+    position: relative;
 
     &:after{
       background-image: url(./assets/chartLegend_icon.png);
