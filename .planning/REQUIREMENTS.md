@@ -72,7 +72,7 @@
 |-------------|-------|--------|
 | STAB-01 through STAB-06 | Phase 1 | Complete |
 | MOD-01 through MOD-04 | Phase 2 | Complete |
-| DB-01 through DB-04 | Phase 3 | Pending |
+| DB-01 through DB-04 | Phase 3 | Complete |
 | INGEST-01 through INGEST-07 | Phase 4 | Pending |
 | DATA-01 through DATA-03 | Phase 5 | Pending |
 
