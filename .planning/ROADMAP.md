@@ -110,5 +110,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | 1. Stabilize | 4/4 | Complete | 2026-03-12 |
 | 2. Modernize Stack | 4/4 | Complete | 2026-03-12 |
 | 3. Database Migration | 4/4 | Complete   | 2026-03-17 |
-| 4. Data Ingestion Pipeline | 0/5 | Not started | - |
+| 4. Data Ingestion Pipeline | 1/5 | In Progress|  |
 | 5. Data Coverage | 0/TBD | Not started | - |
