@@ -7,6 +7,7 @@ const cors = require('cors');
 const rateLimit = require('express-rate-limit');
 const ENV_INFO = require('./helpers/envInfo');
 const dataRoutes = require('./routes/dataRoute');
+const adminRoutes = require('./routes/adminRoute');
 
 const app = express();
 
@@ -32,11 +33,22 @@ const apiLimiter = rateLimit({
 // API routing
 app.use('/data', apiLimiter);
 app.use('/data', dataRoutes);
+app.use('/admin', adminRoutes);
 // Serve react app
 app.use(express.static(path.join(__dirname, '../dist')));
 app.use((req, res) => { res.sendFile(path.join(__dirname, '../dist/index.html')); });
 
 if (require.main === module) {
+  const cron = require('node-cron');
+  const { runAcledIngestion } = require('./ingestion/acledIngestion');
+  const { runUnhcrIngestion } = require('./ingestion/unhcrIngestion');
+  const { runIomIngestion } = require('./ingestion/iomIngestion');
+
+  // Staggered weekly schedules at 02:00 server time
+  cron.schedule('0 2 * * 1', () => runAcledIngestion().catch(err => console.error('[ACLED cron]', err.message)));   // Monday
+  cron.schedule('0 2 * * 3', () => runUnhcrIngestion().catch(err => console.error('[UNHCR cron]', err.message)));   // Wednesday
+  cron.schedule('0 2 * * 5', () => runIomIngestion().catch(err => console.error('[IOM cron]', err.message)));       // Friday
+
   app.listen(process.env.PORT);
 }
 module.exports = app;
