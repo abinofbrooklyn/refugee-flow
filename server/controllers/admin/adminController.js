@@ -5,9 +5,10 @@ const { reduceGeoPercision } = require('../api/data/helpers/dataProcessors');
 const { runAcledIngestion } = require('../../ingestion/acledIngestion');
 const { runUnhcrIngestion } = require('../../ingestion/unhcrIngestion');
 const { runIomIngestion } = require('../../ingestion/iomIngestion');
+const { runEurostatIngestion } = require('../../ingestion/eurostatIngestion');
 
 const ALLOWED_TARGETS = ['war_events', 'asy_applications', 'route_deaths'];
-const ALLOWED_SOURCES = { acled: runAcledIngestion, unhcr: runUnhcrIngestion, iom: runIomIngestion };
+const ALLOWED_SOURCES = { acled: runAcledIngestion, unhcr: runUnhcrIngestion, iom: runIomIngestion, eurostat: runEurostatIngestion };
 
 async function csvPreview(req, res) {
   try {
@@ -62,7 +63,7 @@ async function triggerIngestion(req, res) {
   const runner = ALLOWED_SOURCES[source];
 
   if (!runner) {
-    return res.status(400).json({ error: 'Unknown source. Allowed: acled, unhcr, iom' });
+    return res.status(400).json({ error: 'Unknown source. Allowed: acled, unhcr, iom, eurostat' });
   }
 
   try {
