@@ -3,14 +3,14 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: completed
-stopped_at: Completed 04-04-PLAN.md
-last_updated: "2026-03-17T16:21:47.711Z"
+stopped_at: Completed 04-05-PLAN.md
+last_updated: "2026-03-17T16:25:32.953Z"
 last_activity: 2026-03-17 — Phase 3 verified complete; all data served from Supabase Postgres
 progress:
   total_phases: 5
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 17
-  completed_plans: 16
+  completed_plans: 17
   percent: 100
 ---
 
@@ -64,6 +64,7 @@ Progress: [██████████] 100%
 | Phase 04-data-ingestion-pipeline P02 | 2 | 1 tasks | 2 files |
 | Phase 04-data-ingestion-pipeline P03 | 3 | 2 tasks | 4 files |
 | Phase 04-data-ingestion-pipeline P04 | 2 | 2 tasks | 4 files |
+| Phase 04-data-ingestion-pipeline P05 | 2 | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -102,6 +103,8 @@ Recent decisions affecting current work:
 - [Phase 04-data-ingestion-pipeline]: Cron scheduling inside require.main block — prevents cron timers from running during test execution
 - [Phase 04-data-ingestion-pipeline]: Admin routes mounted before express.static — prevents SPA fallback intercepting POST /admin requests
 - [Phase 04-data-ingestion-pipeline]: CSV commit applies reduceGeoPercision(parseFloat(val), 2) to lat/lng columns before insert
+- [Phase 04-data-ingestion-pipeline]: Admin route added to routeRegistry.jsx (not App.jsx) — this project uses a registry-based router pattern with no App.jsx
+- [Phase 04-data-ingestion-pipeline]: Auth probe pattern: POST /admin/csv/preview without file body; 400=auth passed, 401=wrong secret
 
 ### Pending Todos
 
@@ -113,6 +116,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-17T16:21:47.704Z
-Stopped at: Completed 04-04-PLAN.md
+Last session: 2026-03-17T16:25:32.948Z
+Stopped at: Completed 04-05-PLAN.md
 Resume file: None
