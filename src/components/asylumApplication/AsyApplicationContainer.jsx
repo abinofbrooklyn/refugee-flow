@@ -38,7 +38,7 @@ const Title = styled.p`
   margin-top: 15px;
   margin-left: 5%;
   margin-bottom: 25px;
-  display: inherit;
+  display: block;
   cursor: pointer;
   z-index: 5;
   transition: all 400ms;
