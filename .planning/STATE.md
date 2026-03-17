@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: planning
-stopped_at: Phase 3 context gathered
-last_updated: "2026-03-16T03:09:56.168Z"
-last_activity: 2026-03-12 — Phase 2 complete
+status: in-progress
+stopped_at: Completed 03-01-PLAN.md
+last_updated: "2026-03-17T02:51:03Z"
+last_activity: 2026-03-17 — Phase 3 Plan 01 complete
 progress:
   total_phases: 5
   completed_phases: 2
-  total_plans: 8
-  completed_plans: 8
-  percent: 40
+  total_plans: 9
+  completed_plans: 9
+  percent: 42
 ---
 
 # Project State
@@ -26,11 +26,11 @@ See: .planning/PROJECT.md (updated 2026-03-11)
 ## Current Position
 
 Phase: 3 of 5 (Database Migration)
-Plan: 0 of TBD in current phase
-Status: Ready to plan
-Last activity: 2026-03-12 — Phase 2 complete
+Plan: 1 of 4 in current phase
+Status: In progress
+Last activity: 2026-03-17 — Phase 3 Plan 01 complete
 
-Progress: [████░░░░░░] 40%
+Progress: [████░░░░░░] 42%
 
 ## Performance Metrics
 
@@ -50,6 +50,7 @@ Progress: [████░░░░░░] 40%
 - Trend: -
 
 *Updated after each plan completion*
+| Phase 03-database-migration P01 | 8 | 2 tasks | 7 files |
 | Phase 01-stabilize P04 | 15 | 2 tasks | 4 files |
 | Phase 01-stabilize P03 | 25 | 2 tasks | 2 files |
 | Phase 02-modernize-stack P01 | 17 | 2 tasks | 16 files |
@@ -78,6 +79,10 @@ Recent decisions affecting current work:
 - [Phase 02-modernize-stack]: NODE_OPTIONS=--openssl-legacy-provider hack eliminated — Vite uses modern crypto stack
 - [Phase 02-modernize-stack]: Replace mapbox:// style URL with CartoCDN dark-matter public style for maplibre-gl compatibility (no token required)
 - [Phase 02-modernize-stack]: Use npm --legacy-peer-deps for uninstalls in this project due to pre-existing eslint-config-airbnb peer conflict
+- [Phase 03-database-migration]: Use float8 (not NUMERIC/decimal) for lat/lng — avoids pg driver returning strings, which would break THREE.js geometry
+- [Phase 03-database-migration]: dead/missing/dead_and_missing in route_deaths stored as TEXT — source JSON has string values, must preserve API response shape
+- [Phase 03-database-migration]: war_notes table created empty for Phase 3; ACLED API population deferred to Phase 4
+- [Phase 03-database-migration]: cot column as text[] (specificType) — pg driver maps JS arrays natively
 
 ### Pending Todos
 
@@ -89,6 +94,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-16T03:09:56.158Z
-Stopped at: Phase 3 context gathered
-Resume file: .planning/phases/03-database-migration/03-CONTEXT.md
+Last session: 2026-03-17T02:51:03Z
+Stopped at: Completed 03-01-PLAN.md
+Resume file: .planning/phases/03-database-migration/03-01-SUMMARY.md
