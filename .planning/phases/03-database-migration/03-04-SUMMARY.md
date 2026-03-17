@@ -51,7 +51,7 @@ completed: 2026-03-16
 - **Duration:** ~15 min
 - **Started:** 2026-03-16T00:00:00Z
 - **Completed:** 2026-03-16
-- **Tasks:** 1 of 2 (Task 2 is a human-verify checkpoint)
+- **Tasks:** 2 of 2 (Task 2: human-verify checkpoint approved)
 - **Files modified:** 3
 
 ## Accomplishments
@@ -65,8 +65,9 @@ completed: 2026-03-16
 Each task was committed atomically:
 
 1. **Task 1: Create integration tests for all 6 endpoints and DB connection** - `157bbe8` (feat)
+2. **Task 2: End-to-end visual verification** - checkpoint approved by user (globe, routes, and charts all render correctly from Postgres data)
 
-**Plan metadata:** TBD (docs: complete plan — pending Task 2 checkpoint approval)
+**Plan metadata:** TBD (docs: complete plan)
 
 ## Files Created/Modified
 - `tests/server/db-connection.test.js` - DB-01 tests: Postgres connect, no mongoose in pkg, no mongoose in server/ code
@@ -89,9 +90,10 @@ None.
 None - no external service configuration required.
 
 ## Next Phase Readiness
-- Phase 3 integration tests complete — DB migration fully verified programmatically
-- Task 2 (end-to-end visual verification) requires human to confirm globe and route views render correctly from Postgres
-- Phase 4 (ACLED data) can begin once Task 2 checkpoint is approved
+- Phase 3 database migration fully complete — all 6 endpoints verified programmatically and visually
+- Globe renders conflict data points from Postgres; route views display death and IBC crossing data correctly
+- No MongoDB/Mongoose dependency remains; Postgres is the sole data source
+- Phase 4 (ACLED data) can begin
 
 ---
 *Phase: 03-database-migration*
