@@ -56,6 +56,13 @@
     "zoom": 3.5
   },
   {
+    "route": "East & Southern Africa",
+    "total_cross": 135,
+    "center_lng": 45.0,
+    "center_lat": -25.0,
+    "zoom": 3.5
+  },
+  {
     "route": "Middle East & Central Asia",
     "total_cross": 5049,
     "center_lng": 55.0,

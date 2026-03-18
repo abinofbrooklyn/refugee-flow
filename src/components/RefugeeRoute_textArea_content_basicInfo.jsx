@@ -216,12 +216,16 @@ export default class RefugeeRoute_textArea_content_basicInfo extends React.Compo
   componentDidMount(){
     this.setState({ChartControllerWidth: this.ChartController ? this.ChartController.offsetWidth : 0});
     this.drawChart();
+    const el = document.getElementById('CurrentSituation__text');
+    if (el) el.scrollTop = 0;
   }
 
   componentDidUpdate(){
     if (!this._chartDrawn && this.chartContainer && this.stats) {
       this.drawChart();
     }
+    const el = document.getElementById('CurrentSituation__text');
+    if (el) el.scrollTop = 0;
   }
 
   drawChart(){

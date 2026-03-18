@@ -102,9 +102,9 @@ const ROUTE_MAP = {
   'Horn of Africa Route': 'Horn of Africa',
   'Eastern Route to/from EHOA': 'Horn of Africa',
   'Northern Route from EHOA': 'Horn of Africa',
-  'Route to Southern Africa': 'Horn of Africa',
-  'Sea crossings to Mayotte': 'Horn of Africa',
-  'DRC to Uganda': 'Horn of Africa',
+  'Route to Southern Africa': 'East & Southern Africa',
+  'Sea crossings to Mayotte': 'East & Southern Africa',
+  'DRC to Uganda': 'East & Southern Africa',
 
   // === Middle East & Central Asia (Afghanistan/Iran corridor) ===
   'Afghanistan to Iran': 'Middle East & Central Asia',
@@ -123,18 +123,30 @@ const ROUTE_MAP = {
 
 // Geographic fallback for null/unmapped/Others routes
 const geoFallback = (lat, lng) => {
+  // Americas — Western hemisphere
   if (lng < -30) return 'Americas';
+  // Europe
   if (lat > 40 && lng >= -10 && lng <= 5) return 'English Channel';
+  if (lat > 40 && lng > 5 && lng <= 30) return 'Western Balkans';
+  // Mediterranean & North Africa
   if (lat > 30 && lng >= -10 && lng <= 15) return 'Western Mediterranean';
   if (lat > 30 && lng > 15 && lng <= 37) return 'Central Mediterranean';
-  if (lat > 30 && lng > 37 && lng <= 55) return 'Middle East & Central Asia';
-  if (lat > 30 && lng > 55) return 'Middle East & Central Asia';
-  if (lat <= 30 && lng > 80) return 'South & Southeast Asia';
-  if (lat <= 30 && lng > 30 && lng <= 55) return 'Horn of Africa';
-  if (lat <= 30 && lng > 15 && lng <= 30) return 'Horn of Africa';
-  if (lat <= 30 && lat > 10 && lng >= -10 && lng <= 15) return 'Central Mediterranean'; // Sahara transit
-  if (lat <= 10 && lng >= -15 && lng <= 15) return 'Western African'; // West Africa coast
-  return 'Horn of Africa'; // remaining Africa/Middle East
+  // Middle East & Central Asia
+  if (lat > 30 && lng > 37) return 'Middle East & Central Asia';
+  // South & Southeast Asia
+  if (lng > 70) return 'South & Southeast Asia';
+  // Middle East (lat <= 30, lng 55-70)
+  if (lat <= 30 && lng > 55 && lng <= 70) return 'Middle East & Central Asia';
+  // East & Southern Africa (lat < -5, lng 25-55)
+  if (lat <= -5 && lng > 25 && lng <= 55) return 'East & Southern Africa';
+  // Horn of Africa — East Africa only (lng 30-55, lat -5 to 30)
+  if (lat > -5 && lat <= 30 && lng > 30 && lng <= 55) return 'Horn of Africa';
+  // Sahara transit — North Africa between lat 15-30
+  if (lat > 15 && lat <= 30 && lng >= -10 && lng <= 30) return 'Central Mediterranean';
+  // West, Central & Southern Africa (everything else in Africa)
+  if (lng >= -20 && lng <= 30) return 'Western African';
+  // Catch remaining
+  return 'Western African';
 };
 const findRouteDeath = async () => {
   const rows = await db('route_deaths').select('*');
