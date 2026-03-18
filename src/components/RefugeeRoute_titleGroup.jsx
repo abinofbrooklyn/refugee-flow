@@ -42,24 +42,26 @@ const Button_previous = styled.div`
   width: 22px;
   left: 30px;
   top: 30px;
-  cursor: pointer;
-  opacity: .6;
+  cursor: ${props => props.disabled ? 'default' : 'pointer'};
+  opacity: ${props => props.disabled ? 0.15 : 0.6};
   transition: all 300ms;
   margin: 0;
+  pointer-events: ${props => props.disabled ? 'none' : 'auto'};
 
-  &:hover{opacity: 1;}
+  &:hover{opacity: ${props => props.disabled ? 0.15 : 1};}
 `
 const Button_next = styled.div`
   position: relative;
   width: 22px;
   left: 30px;
   top: 11px;
-  cursor: pointer;
-  opacity: .6;
+  cursor: ${props => props.disabled ? 'default' : 'pointer'};
+  opacity: ${props => props.disabled ? 0.15 : 0.6};
   transition: all 300ms;
   margin: 0;
+  pointer-events: ${props => props.disabled ? 'none' : 'auto'};
 
-  &:hover{opacity: 1;}
+  &:hover{opacity: ${props => props.disabled ? 0.15 : 1};}
 `
 const Legend = styled.div`
   left: 30px;
@@ -216,19 +218,30 @@ export default class RefugeeRoute_titleGroup extends React.Component {
         <Title>{this.currentRouteName && this.currentRouteName}</Title>
         <Router>
           <div>
-            <Button_previous
-              onClick={() => this.handleClick('previous')}>
-              <Link to={"/route/" + this.handleRouting('previous')}>
-                <svg fill="white" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M128 320l128-128 128 128z"/></svg>
-              </Link>
-            </Button_previous>
+            {(() => {
+              const index = _.findIndex(dataDict, d => d.route === this.currentRouteName);
+              const isFirst = index <= 0;
+              const isLast = index === -1 || index >= dataDict.length - 1;
+              return (
+                <>
+                  <Button_previous
+                    disabled={isFirst}
+                    onClick={() => !isFirst && this.handleClick('previous')}>
+                    <Link to={"/route/" + this.handleRouting('previous')}>
+                      <svg fill="white" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M128 320l128-128 128 128z"/></svg>
+                    </Link>
+                  </Button_previous>
 
-            <Button_next
-              onClick={() => this.handleClick('next')}>
-              <Link to={"/route/" + this.handleRouting('next')}>
-                <svg fill="white" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M128 192l128 128 128-128z"/></svg>
-              </Link>
-            </Button_next>
+                  <Button_next
+                    disabled={isLast}
+                    onClick={() => !isLast && this.handleClick('next')}>
+                    <Link to={"/route/" + this.handleRouting('next')}>
+                      <svg fill="white" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M128 192l128 128 128-128z"/></svg>
+                    </Link>
+                  </Button_next>
+                </>
+              );
+            })()}
           </div>
         </Router>
         <Legend>{this.legendGenerator()}</Legend>
