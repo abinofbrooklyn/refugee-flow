@@ -3,7 +3,7 @@ import styled, { css } from 'styled-components';
 import * as d3 from 'd3';
 import _ from 'lodash';
 import Fuse from 'fuse.js';
-import { year } from '../data/warDictionary';
+import { year as fallbackYears } from '../data/warDictionary';
 import RefugeeRoute_textArea_content_ibcCountryItem from './RefugeeRoute_textArea_content_ibcCountryItem';
 
 const Wrapper = styled.div`
@@ -324,7 +324,7 @@ export default class RefugeeRoute_textArea_content_ibcCountry extends React.Comp
     d3.select('#CardContainer').style('opacity',1);
 
     this.fuse = new Fuse(
-      this.cardItemAll,
+      this.cardItemAll || [],
       {
         shouldSort: true,
         threshold: 0.6,
@@ -357,13 +357,23 @@ export default class RefugeeRoute_textArea_content_ibcCountry extends React.Comp
   cardGenerator(){
 
     // solution for inconsistancy in between dataSet;
-    let cardItemAll = this.IBC_data[this.currentRouteName === 'Others' ? 'Other' : this.currentRouteName]
+    const ibcKey = this.currentRouteName === 'Others' ? 'Other' : this.currentRouteName;
+    const ibcRouteData = this.IBC_data[ibcKey];
+    if (!ibcRouteData) {
+      this.cardItemAll = [];
+      return new Map();
+    }
+    let cardItemAll = ibcRouteData
       .map(data => {
         data.chartData = [];
-        year.forEach(key => {
+        // Derive years from data keys (exclude non-year keys)
+        const dataYears = Object.keys(data).filter(k => /^\d{4}$/.test(k)).sort();
+        dataYears.forEach(key => {
           let yearlyTotal = data[key];
-          let res = Object.values(yearlyTotal).reduce((a,c) => a+c);
-          data.chartData.push({value: res,key: key})
+          if (yearlyTotal && typeof yearlyTotal === 'object') {
+            let res = Object.values(yearlyTotal).reduce((a,c) => a + (c || 0), 0);
+            data.chartData.push({value: res,key: key})
+          }
         })
         data.totalCross = data.chartData.reduce((a, c) => ({value:a.value + c.value}), {value:0})['value'];
         return (<RefugeeRoute_textArea_content_ibcCountryItem data= {data} key ={data['NationalityLong']}/>)
@@ -378,8 +388,11 @@ export default class RefugeeRoute_textArea_content_ibcCountry extends React.Comp
         let pageCounter = 1;
 
         for (var i = 0; i < this.cardItemAll.length; i+=10) {
-          temp.set(pageCounter,this.cardItemAll.slice(i,i+10));
-          pageCounter++;
+          const page = this.cardItemAll.slice(i,i+10);
+          if (page.length > 0) {
+            temp.set(pageCounter, page);
+            pageCounter++;
+          }
         }
         return temp;
       }
@@ -408,7 +421,9 @@ export default class RefugeeRoute_textArea_content_ibcCountry extends React.Comp
           this.setState({currentPage: ++this.state.currentPage});
           d3.select('#CardContainer').style('opacity',1);
         });
-      };
+      } else {
+        d3.select('#CardContainer').style('opacity',1);
+      }
 
     }else if(param === 'up') {
       d3.select('#CardContainer').transition().delay(200).style('opacity',1);

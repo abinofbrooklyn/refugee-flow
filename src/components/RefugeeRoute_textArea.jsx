@@ -140,6 +140,11 @@ export default class RefugeeRoute_textArea extends React.Component {
     this.clickedPointRemoved = nextProps.clickedPointRemoved;
     if(this.selected_dataPoint != null) this.setState({currentTab: 3});
     if(this.clickedPointRemoved) this.setState({currentTab: 1});
+    // If switching to a route without IBC data while on IBC tab, go back to Basic Info
+    const ibcKey = nextProps.currentRouteName === 'Others' ? 'Other' : nextProps.currentRouteName;
+    if (this.state.currentTab === 2 && !this.IBC_data[ibcKey]) {
+      this.setState({currentTab: 1});
+    }
   }
 
   handleTabClick(index){
@@ -161,7 +166,9 @@ export default class RefugeeRoute_textArea extends React.Component {
         {/* tab nav */}
         <TabWrapper>
           <TabItem onClick={()=> this.handleTabClick(1)} tabIndex={1} currentTab={this.state.currentTab}><TabText>Basic Info</TabText></TabItem>
-          <TabItem onClick={()=> this.handleTabClick(2)} tabIndex={2} currentTab={this.state.currentTab}><TabText>IBC Involved Country</TabText></TabItem>
+          {this.IBC_data[this.currentRouteName === 'Others' ? 'Other' : this.currentRouteName] && (
+            <TabItem onClick={()=> this.handleTabClick(2)} tabIndex={2} currentTab={this.state.currentTab}><TabText>IBC Involved Country</TabText></TabItem>
+          )}
           <TabItem onClick={()=> !this.clickedPointRemoved && this.selected_dataPoint && this.handleTabClick(3)} tabIndex={3} clickedPointRemoved ={this.clickedPointRemoved} currentTab={this.state.currentTab}><TabText>Current Select Point</TabText></TabItem>
         </TabWrapper>
         <RefugeeRoute_textArea_contentManager

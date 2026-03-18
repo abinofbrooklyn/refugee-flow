@@ -2,7 +2,7 @@ import React from 'react';
 import styled, { css } from 'styled-components';
 import * as d3 from 'd3';
 import _ from 'lodash';
-import { year } from '../data/warDictionary'
+import { year as fallbackYears } from '../data/warDictionary'
 import { color_map } from '../data/routeDictionary';
 
 import routeDescDict from '../data/route_desc.json';
@@ -17,7 +17,7 @@ const Wrapper = styled.div`
 `
 const CurrentSituation = styled.div`
 
-  height: 150px;
+  height: 100px;
   overflow-y: scroll;
   top: 50px;
   position: relative;
@@ -52,8 +52,8 @@ const CurrentSituation = styled.div`
     font-size: 25px;
     color: #ffffff;
     font-weight: 100;
-    position: fixed;
-    top: -10px;
+    position: absolute;
+    top: -40px;
   }
 `
 const DataSource = styled.div`
@@ -81,7 +81,7 @@ const DataSource = styled.div`
 `
 const DeathSummary = styled.div`
 
-  top: 90px;
+  top: 60px;
   position: relative;
 
   &>p{
@@ -230,7 +230,7 @@ export default class RefugeeRoute_textArea_content_basicInfo extends React.Compo
 
     d3.select(this.chartContainer).selectAll('svg').remove();
 
-    const margin = {top: 20, right: 15, bottom: 20, left: 35};
+    const margin = {top: 20, right: 15, bottom: 20, left: 40};
     const width = this.chartContainer.offsetWidth - margin.left - margin.right;
     const height = (this.chartContainer.getBoundingClientRect().top - this.stats.getBoundingClientRect().top) - 100
       - margin.top - margin.bottom;
@@ -243,11 +243,39 @@ export default class RefugeeRoute_textArea_content_basicInfo extends React.Compo
       .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
     // transform data into viz data structure
+    // Map new IOM cause_of_death categories to the original display categories
+    const causeMap = {
+      "drowning or exhaustion related death": "drowning or exhaustion related death",
+      "Drowning": "drowning or exhaustion related death",
+      "violent accidental death (transport; blown in minefield...)": "violent accidental death (transport; blown in minefield...)",
+      "Vehicle accident / death linked to hazardous transport": "violent accidental death (transport; blown in minefield...)",
+      "Accidental death": "violent accidental death (transport; blown in minefield...)",
+      "authorities related death": "authorities related death",
+      "Violence": "authorities related death",
+      "unknown - supposedly exhaustion related death": "unknown - supposedly exhaustion related death",
+      "Harsh environmental conditions / lack of adequate shelter, food, water": "unknown - supposedly exhaustion related death",
+      "Sickness / lack of access to adequate healthcare": "unknown - supposedly exhaustion related death",
+      "suicide": "suicide",
+      "malicious intent related death / manslaughter": "malicious intent related death / manslaughter",
+      "other": "other",
+      "Mixed or unknown": "other",
+    };
+    const mapCause = (cause) => {
+      if (causeMap[cause]) return causeMap[cause];
+      // Handle comma-separated compound causes — use the first recognized one
+      const parts = cause.split(',');
+      for (const p of parts) {
+        if (causeMap[p]) return causeMap[p];
+      }
+      return "other";
+    };
+
     const data = Object.values(_.groupBy(this.route_death_data,d => d.year)).map((d,index) =>{
       let value = {
         'total': 0,
         'missing': 0,
         'dead': 0,
+        'year': d[0].year,
 
         "drowning or exhaustion related death": 0,
         "violent accidental death (transport; blown in minefield...)": 0,
@@ -263,26 +291,22 @@ export default class RefugeeRoute_textArea_content_basicInfo extends React.Compo
           value.total += +i.dead_and_missing;
           value.dead += +i.dead;
           value.missing += +i.missing;
-          value.year = '201'+index;
-          if(i.cause_of_death === "drowning or exhaustion related death") value['drowning or exhaustion related death'] += +i.dead_and_missing;
-          if(i.cause_of_death === "violent accidental death (transport; blown in minefield...)") value['violent accidental death (transport; blown in minefield...)'] += +i.dead_and_missing;
-          if(i.cause_of_death === "authorities related death") value['authorities related death'] += +i.dead_and_missing;
-          if(i.cause_of_death === "unknown - supposedly exhaustion related death") value['unknown - supposedly exhaustion related death'] += +i.dead_and_missing;
-          if(i.cause_of_death === "suicide") value['suicide'] += +i.dead_and_missing;
-          if(i.cause_of_death === "malicious intent related death / manslaughter") value['malicious intent related death / manslaughter'] += +i.dead_and_missing;
-          if(i.cause_of_death === "other") value['other'] += +i.dead_and_missing;
+          const mappedCause = mapCause(i.cause_of_death);
+          value[mappedCause] += +i.dead_and_missing;
         }
       }
       return value
     });
+    // Derive years dynamically from route death data
+    const year = [...new Set(this.route_death_data.map(d => d.year))].sort();
     const xScale = d3.scaleLinear().domain([0,d3.max(data, d => d.total)]).range([0,width]).nice();
-    const yScale = d3.scaleBand().domain(year).rangeRound([height,0]).padding([.3]);
+    const yScale = d3.scaleBand().domain(year).rangeRound([height,0]).padding([.4]);
     const xAxis = this.g.append("g").attr("transform",`translate(0,${height -10})`).call(d3.axisBottom(xScale));
     const yAxis = this.g.append("g").call(d3.axisLeft(yScale));
     xAxis.selectAll('text').style('fill','white');
     xAxis.selectAll('line').remove();
     xAxis.selectAll('path').remove();
-    yAxis.selectAll('text').style('fill','white');
+    yAxis.selectAll('text').style('fill','white').style('font-size','10px');
     yAxis.selectAll('line').remove();
     yAxis.selectAll('path').remove();
 
@@ -368,7 +392,7 @@ export default class RefugeeRoute_textArea_content_basicInfo extends React.Compo
         .enter().append("g")
         .attr("class","series")
         .attr('transform',d => yScale(d[1]) )
-        .style("fill",(d,i)=> _.find(color_map, _d => _d.key === d.key)['value'])
+        .style("fill",(d,i)=> { const c = _.find(color_map, _d => _d.key === d.key); return c ? c.value : '#5CFFE2CC'; })
         .selectAll("rect")
         .data(d=>d)
         .enter().append("rect")
@@ -390,7 +414,9 @@ export default class RefugeeRoute_textArea_content_basicInfo extends React.Compo
           const x = d3.mouse(this)[0];
           const y = d3.mouse(this)[1];
           const tooltopW = 370;
-          const tooltopH = 200;
+          // Only show categories with data > 0
+          const activeCategories = color_map.map(d => d.key).filter(key => d.data[key] > 0);
+          const tooltopH = 30 + activeCategories.length * 25;
 
           const text_g = d3.select(this.parentNode.parentNode)
           .append('g').attr('id','chartTooltip__text')
@@ -428,7 +454,7 @@ export default class RefugeeRoute_textArea_content_basicInfo extends React.Compo
             .style('font-weight','700')
             .text(d.data.year+' Incident Type Summary:')
 
-          color_map.map(d => d.key).forEach((ele,index) =>{
+          activeCategories.forEach((ele,index) =>{
 
             text_g
               .append('text')
@@ -455,7 +481,7 @@ export default class RefugeeRoute_textArea_content_basicInfo extends React.Compo
                 .ease(d3.easePolyIn)
                 .duration(300)
                 .style('opacity',.7)
-                .style('text-shadow',() => "3px 3px 0.6rem "+ _.find(color_map, _d => _d.key === ele)['value'])
+                .style('text-shadow',() => { const c = _.find(color_map, _d => _d.key === ele); return "3px 3px 0.6rem "+ (c ? c.value : '#5CFFE2CC'); })
                 .style('fill','#1d1d29f7')
                 .style('font-size','15px')
                 .style('font-family','Roboto')
@@ -651,7 +677,8 @@ export default class RefugeeRoute_textArea_content_basicInfo extends React.Compo
 
   calculateDeathTotal(){
     let total = 0;
-    _.groupBy(this.route_death_data,d => d.route)[this.currentRouteName].forEach(d => total += +d.dead_and_missing);
+    const grouped = _.groupBy(this.route_death_data,d => d.route)[this.currentRouteName];
+    if (grouped) grouped.forEach(d => total += +d.dead_and_missing);
     this.deathTotal = total;
     return d3.format(',')(total);
   }
@@ -666,7 +693,7 @@ export default class RefugeeRoute_textArea_content_basicInfo extends React.Compo
       <Wrapper className='route-map-titleGroup__basic'>
         <CurrentSituation currentRouteName = {this.currentRouteName} id="CurrentSituation__text"
           onClick={()=> { const el = document.getElementById('CurrentSituation__text'); if (el) el.scrollTop = 0; }}>
-          {this.description(_.find(routeDescDict,d => d.route === this.currentRouteName).desc)}
+          {(() => { const rd = _.find(routeDescDict,d => d.route === this.currentRouteName); return rd ? this.description(rd.desc) : null; })()}
         </CurrentSituation>
         <DataSource top='-5px' onClick={() => window.open('https://frontex.europa.eu/along-eu-borders/migratory-routes/central-mediterranean-route/', '_blank')}>
           <svg x="0px" y="0px" width="18.014px" height="19.304px" viewBox="0 0 18.014 19.304">

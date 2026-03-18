@@ -10,7 +10,7 @@ function get_routeDeath() {
   let url = `${baseUrl}/data/route_death`;
   const request = new Request( url,  {
     method: 'GET',
-    cache: 'force-cache'
+    cache: 'default'
   });
   if(cached_routeDeath === null) {
     cached_routeDeath = fetch(request).then(res => res.json()).catch(err => {
@@ -25,7 +25,7 @@ function get_routeCountryList() {
   let url = `${baseUrl}/data/route_IBC_country_list`;
   const request = new Request( url,  {
     method: 'GET',
-    cache: 'force-cache'
+    cache: 'default'
   });
   if(cached_routeCountryList === null) {
     cached_routeCountryList = fetch(request).then(res => res.json()).catch(err => {
@@ -40,7 +40,7 @@ function get_routeIBC() {
   let url = `${baseUrl}/data/route_IBC`;
   const request = new Request( url,  {
     method: 'GET',
-    cache: 'force-cache'
+    cache: 'default'
   });
   if(cached_routeIBC === null) {
     cached_routeIBC = fetch(request).then(res => res.json()).catch(err => {

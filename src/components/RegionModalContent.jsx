@@ -175,27 +175,28 @@ class RegionModalContent extends Component {
       })()
 
       jsxArray[i] = (() =>{
+        const yearKeys = Object.keys(d[i].fat_year);
         return (
           <SectionItem key={i} index={i}>
             {(()=>{
 
               let mouseOverButtonGroup = [];
-              for (let _i = 0; _i < 9; _i++) {
+              yearKeys.forEach((_year, _i) => {
                 mouseOverButtonGroup[_i] = <MouseoverButton
-                  key = {'201' + _i}
-                  tag = {'201' + _i}
-                  heightMap = {heightMap_scaler(d[i].fat_year['201'+_i])}
-                  className = {'section-mouseover-button-y201' + _i}
+                  key = {_year}
+                  tag = {_year}
+                  heightMap = {heightMap_scaler(d[i].fat_year[_year])}
+                  className = {'section-mouseover-button-y' + _year}
                   onMouseOver = {() =>{
                     this.setState({mv: true,mv_year: _i})
-                    d3.selectAll('.section-mouseover-button-y201'+ _i)
+                    d3.selectAll('.section-mouseover-button-y'+ _year)
                       .style('background','rgb(255, 65, 65)')
                       .style('color','rgb(255, 65, 65)')
                       .style('font-weight','900')
                   }}
                   onMouseOut = {() =>{
                     this.setState({mv: false,mv_year: null})
-                    d3.selectAll('.section-mouseover-button-y201'+ _i)
+                    d3.selectAll('.section-mouseover-button-y'+ _year)
                       .style('background','white')
                       .style('color','white')
                       .style('font-weight','300')
@@ -210,13 +211,13 @@ class RegionModalContent extends Component {
                     });
                   }}
                 ></MouseoverButton>;
-              }
+              });
               return mouseOverButtonGroup
             })()}
             <SectionTitle>{ d[i].country.charAt(0).toUpperCase() + d[i].country.toLowerCase().slice(1)}</SectionTitle>
-            <Bubble size ={ this.state.mv ? scaler(d[i].fat_year['201'+this.state.mv_year]) : scaler(d[i].total_fat) }></Bubble>
-            <Fat_num textChange = {this.state.mv ? '201'+this.state.mv_year : false}>{d3.format(",")(
-              this.state.mv ? d[i].fat_year['201'+this.state.mv_year] : d[i].total_fat
+            <Bubble size ={ this.state.mv !== false && this.state.mv_year !== null ? scaler(d[i].fat_year[yearKeys[this.state.mv_year]]) : scaler(d[i].total_fat) }></Bubble>
+            <Fat_num textChange = {this.state.mv !== false && this.state.mv_year !== null ? yearKeys[this.state.mv_year] : false}>{d3.format(",")(
+              this.state.mv !== false && this.state.mv_year !== null ? d[i].fat_year[yearKeys[this.state.mv_year]] : d[i].total_fat
             )}</Fat_num>
           </SectionItem>
         )

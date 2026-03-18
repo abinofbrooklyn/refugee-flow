@@ -10,6 +10,7 @@ const Chart = styled.div`
     flex: 1;
     min-height: 0;
     position: relative;
+    overflow: visible;
 
     &:after{
       background-image: url(./assets/chartLegend_icon.png);
@@ -18,7 +19,7 @@ const Chart = styled.div`
       width: 90px;
       height: 10px;
       content: "";
-      bottom: -5px;
+      bottom: 10px;
       left: 7%;
       position: absolute;
     }
@@ -30,7 +31,7 @@ class AsyApplicationChartContainer extends React.Component {
     super(props);
 
     this.state = {
-      margin: {top: 20, right: 20, bottom: 30, left: 30},
+      margin: {top: 20, right: 30, bottom: 50, left: 30},
       data : this.props.data,
       selectedYear : this.props.selectedYear,
       currentCountry: this.props.currentCountry,
@@ -119,16 +120,12 @@ class AsyApplicationChartContainer extends React.Component {
         })
       }
       else if (mode ===2) {
+        // Aggregate quarters into yearly totals
         const allData = []
         for (var year in _data[0]) {
-          allData.push(
-            _data[0][year][0],
-            _data[0][year][1],
-            _data[0][year][2],
-            _data[0][year][3]
-          )
+          const yearTotal = _data[0][year].reduce((sum, q) => sum + q, 0);
+          allData.push(yearTotal);
         }
-        console.log(allData);
         console.count('process chart data called - all');
         this.setState({
           chartData : allData
@@ -155,7 +152,7 @@ class AsyApplicationChartContainer extends React.Component {
 
         //x axis transition
         this.chartMode === 2
-        ? this.gMount.x.domain(['2010','2018'])
+        ? this.gMount.x.domain(this.gMount.allYears)
         : this.gMount.x.domain(this.gMount.quaterList)
         this.gMount.xAxisGroup
           .transition()

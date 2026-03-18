@@ -11,6 +11,7 @@ const findWarNote = async (query) => {
 const findReducedWar = async () => {
   const rows = await db('war_events')
     .select('*')
+    .where('year', '>=', '2010')
     .orderBy([
       { column: 'year' },
       { column: 'quarter' },
@@ -39,7 +40,7 @@ const findReducedWar = async () => {
 // 3. findAsyApplicationAll — reconstructs [{2010: {q1:[records], ...}, 2011: {...}, ...}]
 // Note: response is array-wrapped single object (not flat array)
 const findAsyApplicationAll = async () => {
-  const rows = await db('asy_applications').select('*');
+  const rows = await db('asy_applications').select('*').where('year', '>=', '2010');
 
   const result = {};
   rows.forEach(row => {
@@ -59,28 +60,127 @@ const findAsyApplicationAll = async () => {
 
 // 4. findRouteDeath — returns flat array with original camelCase field names
 // IMPORTANT: DB column names are snake_case; API response uses original field names
+// Map IOM route names to display categories
+const ROUTE_MAP = {
+  // === Central Mediterranean (Libya/Tunisia → Italy via Sahara) ===
+  'Central Mediterranean': 'Central Mediterranean',
+  'Central Mediterranean,Sahara Desert crossing': 'Central Mediterranean',
+  'Sahara Desert crossing': 'Central Mediterranean',
+
+  // === Eastern Mediterranean (Turkey → Greece/Cyprus) ===
+  'Eastern Mediterranean': 'Eastern Mediterranean',
+  'Iran to Türkiye': 'Eastern Mediterranean',
+  'Syria to Türkiye': 'Eastern Mediterranean',
+
+  // === Western Mediterranean (Morocco → Spain) ===
+  'Western Mediterranean': 'Western Mediterranean',
+
+  // === Western African (West Africa → Canary Islands) ===
+  'Western African': 'Western African',
+  'Western Africa / Atlantic route to the Canary Islands': 'Western African',
+
+  // === Western Balkans (Greece/Turkey → Central Europe overland) ===
+  'Western Balkans': 'Western Balkans',
+  'Türkiye-Europe land route': 'Western Balkans',
+
+  // === Eastern Land Borders (EU eastern frontier) ===
+  'Eastern Land Borders': 'Eastern Land Borders',
+  'Belarus-EU border': 'Eastern Land Borders',
+  'Ukraine to Europe': 'Eastern Land Borders',
+
+  // === Americas (US-Mexico, Caribbean, Central/South America) ===
+  'US-Mexico border crossing': 'Americas',
+  'Caribbean to US': 'Americas',
+  'Caribbean to Central America': 'Americas',
+  'Dominican Republic to Puerto Rico': 'Americas',
+  'Haiti to Dominican Republic': 'Americas',
+  'Venezuela to Caribbean': 'Americas',
+  'Darien': 'Americas',
+  'Central Mediterranean,US-Mexico border crossing': 'Americas',
+
+  // === Horn of Africa (East Africa, Horn, Southern Africa) ===
+  'Horn of Africa Route': 'Horn of Africa',
+  'Eastern Route to/from EHOA': 'Horn of Africa',
+  'Northern Route from EHOA': 'Horn of Africa',
+  'Route to Southern Africa': 'Horn of Africa',
+  'Sea crossings to Mayotte': 'Horn of Africa',
+  'DRC to Uganda': 'Horn of Africa',
+
+  // === Middle East & Central Asia (Afghanistan/Iran corridor) ===
+  'Afghanistan to Iran': 'Middle East & Central Asia',
+
+  // === South & Southeast Asia (Bay of Bengal, Myanmar/Bangladesh) ===
+  'Bay of Bengal/Andaman Sea': 'South & Southeast Asia',
+  'Naf River crossing': 'South & Southeast Asia',
+
+  // === English Channel (UK crossings, intra-EU) ===
+  'Mainland Europe to the UK': 'English Channel',
+  'Italy to France': 'English Channel',
+
+  // Legacy catch-all — will be geo-distributed
+  'Others': 'Others',
+};
+
+// Geographic fallback for null/unmapped/Others routes
+const geoFallback = (lat, lng) => {
+  if (lng < -30) return 'Americas';
+  if (lat > 40 && lng >= -10 && lng <= 5) return 'English Channel';
+  if (lat > 30 && lng >= -10 && lng <= 15) return 'Western Mediterranean';
+  if (lat > 30 && lng > 15 && lng <= 37) return 'Central Mediterranean';
+  if (lat > 30 && lng > 37 && lng <= 55) return 'Middle East & Central Asia';
+  if (lat > 30 && lng > 55) return 'Middle East & Central Asia';
+  if (lat <= 30 && lng > 80) return 'South & Southeast Asia';
+  if (lat <= 30 && lng > 30 && lng <= 55) return 'Horn of Africa';
+  if (lat <= 30 && lng > 15 && lng <= 30) return 'Horn of Africa';
+  if (lat <= 30 && lat > 10 && lng >= -10 && lng <= 15) return 'Central Mediterranean'; // Sahara transit
+  if (lat <= 10 && lng >= -15 && lng <= 15) return 'Western African'; // West Africa coast
+  return 'Horn of Africa'; // remaining Africa/Middle East
+};
 const findRouteDeath = async () => {
   const rows = await db('route_deaths').select('*');
 
-  return rows.map(row => ({
-    id: row.id,
-    date: row.date,
-    quarter: row.quarter,
-    year: row.year,
-    dead: row.dead,
-    missing: row.missing,
-    dead_and_missing: row.dead_and_missing,
-    cause_of_death_displayText: row.cause_of_death_display_text,
-    cause_of_death: row.cause_of_death,
-    location: row.location,
-    description: row.description,
-    source: row.source,
-    lat: row.lat,
-    lng: row.lng,
-    route: row.route,
-    route_displayText: row.route_display_text,
-    source_url: row.source_url,
-  }));
+  // Deduplicate by lat/lng/date/dead_and_missing
+  const seen = new Set();
+  const deduped = [];
+  for (const row of rows) {
+    const key = `${row.lat}|${row.lng}|${row.date}|${row.dead_and_missing}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    let mappedRoute = row.route ? (ROUTE_MAP[row.route] || 'Others') : geoFallback(row.lat, row.lng);
+    // For catch-all "Others" records, always use geographic fallback
+    if (mappedRoute === 'Others') {
+      mappedRoute = geoFallback(row.lat, row.lng);
+    }
+
+    // Geographic corrections for misrouted records
+    // Eastern Land Borders records in Yemen/Horn of Africa (lng > 40) → Horn of Africa
+    if (mappedRoute === 'Eastern Land Borders' && row.lng > 40) {
+      mappedRoute = 'Horn of Africa';
+    }
+    // Sahara Desert records deep in sub-Saharan Africa — keep in Central Med (Sahara transit)
+    // (previously filtered to Others, but these are legitimate Sahara crossing deaths)
+
+    deduped.push({
+      id: row.id,
+      date: row.date,
+      quarter: row.quarter,
+      year: row.year,
+      dead: row.dead,
+      missing: row.missing,
+      dead_and_missing: row.dead_and_missing,
+      cause_of_death_displayText: row.cause_of_death_display_text,
+      cause_of_death: row.cause_of_death,
+      location: row.location,
+      description: row.description,
+      source: row.source,
+      lat: row.lat,
+      lng: row.lng,
+      route: mappedRoute,
+      route_displayText: mappedRoute,
+      source_url: row.source_url,
+    });
+  }
+  return deduped;
 };
 
 // 5. findRouteIbcCountryList — returns [{country, route: [...]}]
@@ -111,8 +211,10 @@ const findRouteIbc = async () => {
       };
     }
     const rec = routeMap[row.route][key];
-    if (!rec[row.year]) rec[row.year] = { q1: null, q2: null, q3: null, q4: null };
+    if (!rec[row.year]) rec[row.year] = { q1: 0, q2: 0, q3: 0, q4: 0 };
     rec[row.year][row.quarter] = row.count;
+    // Clean footnote markers (^ * etc.) from nationality names
+    rec.NationalityLong = rec.NationalityLong.replace(/[\^*~]+$/g, '').trim();
   });
 
   // Convert from {route: {key: record}} to {route: [records]}

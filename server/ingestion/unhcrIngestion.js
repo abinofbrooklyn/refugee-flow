@@ -65,9 +65,17 @@ async function runUnhcrIngestion() {
     const rawItems = await fetchAllUnhcrApplications(yearFrom);
     const rows = transformUnhcrItems(rawItems);
 
+    // Deduplicate rows by conflict key — keep the last occurrence (highest value wins)
+    const deduped = new Map();
+    for (const row of rows) {
+      const key = `${row.year}|${row.quarter}|${row.origin}|${row.destination}`;
+      deduped.set(key, row);
+    }
+    const uniqueRows = Array.from(deduped.values());
+
     let totalInserted = 0;
-    for (let i = 0; i < rows.length; i += BATCH_SIZE) {
-      const batch = rows.slice(i, i + BATCH_SIZE);
+    for (let i = 0; i < uniqueRows.length; i += BATCH_SIZE) {
+      const batch = uniqueRows.slice(i, i + BATCH_SIZE);
       await db('asy_applications')
         .insert(batch)
         .onConflict(['year', 'quarter', 'origin', 'destination'])

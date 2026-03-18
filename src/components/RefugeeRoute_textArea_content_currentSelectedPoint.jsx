@@ -380,12 +380,16 @@ export default class RefugeeRoute_textArea_content_currentSelectedPoint extends 
           <StatsBoardItem index={3} name='Dead and Missing: '><p>{this.selected_dataPoint && this.selected_dataPoint.dead_and_missing}</p></StatsBoardItem>
         </StatsBoardWrapper>
 
-        <Delimiter offset={'15px'}/>
-        <MediaSectionWrapper>
-          <MediaCoverage>Media coverage</MediaCoverage>
-          <MediaCoverageDesc><em>“</em>{this.selected_dataPoint && this.selected_dataPoint.description}<em>”</em></MediaCoverageDesc>
-          <Source onClick={() => window.open(this.selected_dataPoint && this.selected_dataPoint.source_url, '_blank')}>Source: <em>{this.selected_dataPoint && this.selected_dataPoint.source}</em></Source>
-        </MediaSectionWrapper>
+        {this.selected_dataPoint && this.selected_dataPoint.description && (
+          <>
+            <Delimiter offset={'15px'}/>
+            <MediaSectionWrapper>
+              <MediaCoverage>Media coverage</MediaCoverage>
+              <MediaCoverageDesc><em>”</em>{this.selected_dataPoint.description}<em>”</em></MediaCoverageDesc>
+              <Source onClick={() => window.open(this.selected_dataPoint.source_url, '_blank')}>Source: <em>{this.selected_dataPoint.source}</em></Source>
+            </MediaSectionWrapper>
+          </>
+        )}
       </Wrapper>
     )
   }
