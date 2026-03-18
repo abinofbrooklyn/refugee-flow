@@ -113,9 +113,11 @@ const ROUTE_MAP = {
   'Bay of Bengal/Andaman Sea': 'South & Southeast Asia',
   'Naf River crossing': 'South & Southeast Asia',
 
-  // === English Channel (UK crossings, intra-EU) ===
+  // === English Channel (UK crossings) ===
   'Mainland Europe to the UK': 'English Channel',
-  'Italy to France': 'English Channel',
+
+  // === Western Mediterranean (Italy-France Alpine/Riviera border) ===
+  'Italy to France': 'Western Mediterranean',
 
   // Legacy catch-all — will be geo-distributed
   'Others': 'Others',
@@ -124,10 +126,12 @@ const ROUTE_MAP = {
 // Geographic fallback for null/unmapped/Others routes
 const geoFallback = (lat, lng) => {
   // Americas — Western hemisphere
-  if (lng < -30) return 'Americas';
+  if (lng < -20) return 'Americas';
   // Europe
-  if (lat > 40 && lng >= -10 && lng <= 5) return 'English Channel';
-  if (lat > 40 && lng > 5 && lng <= 30) return 'Western Balkans';
+  if (lat > 48 && lng >= -10 && lng <= 5) return 'English Channel';
+  if (lat > 40 && lng >= -10 && lng <= 5) return 'Western Mediterranean';
+  if (lat > 40 && lng > 5 && lng <= 15) return 'Western Balkans';
+  if (lat > 40 && lng > 15 && lng <= 30) return 'Western Balkans';
   // Mediterranean & North Africa
   if (lat > 30 && lng >= -10 && lng <= 15) return 'Western Mediterranean';
   if (lat > 30 && lng > 15 && lng <= 37) return 'Central Mediterranean';
@@ -165,12 +169,22 @@ const findRouteDeath = async () => {
     }
 
     // Geographic corrections for misrouted records
-    // Eastern Land Borders records in Yemen/Horn of Africa (lng > 40) → Horn of Africa
-    if (mappedRoute === 'Eastern Land Borders' && row.lng > 40) {
-      mappedRoute = 'Horn of Africa';
+    // Eastern Land Borders records outside Eastern Europe — reroute by geography
+    if (mappedRoute === 'Eastern Land Borders' && (row.lng > 40 || row.lng < 15)) {
+      mappedRoute = geoFallback(row.lat, row.lng);
     }
-    // Sahara Desert records deep in sub-Saharan Africa — keep in Central Med (Sahara transit)
-    // (previously filtered to Others, but these are legitimate Sahara crossing deaths)
+    // Eastern Mediterranean records in Western Med area — reroute
+    if (mappedRoute === 'Eastern Mediterranean' && row.lng < 15) {
+      mappedRoute = geoFallback(row.lat, row.lng);
+    }
+    // Horn of Africa records with misgeocoded coordinates — reroute by geography
+    if (mappedRoute === 'Horn of Africa' && (row.lng < 30 || row.lat > 30)) {
+      mappedRoute = geoFallback(row.lat, row.lng);
+    }
+    // Western African records in the Americas — reroute
+    if (mappedRoute === 'Western African' && row.lng < -20) {
+      mappedRoute = 'Americas';
+    }
 
     deduped.push({
       id: row.id,
