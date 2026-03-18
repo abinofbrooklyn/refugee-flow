@@ -2,50 +2,78 @@
   {
     "route": "Eastern Mediterranean",
     "total_cross": 1323934,
-    "center_lng": 30.214086785257336,
-    "center_lat": 39.32243129904654,
-    "zoom": 5.85411829881105
+    "center_lng": 30.21,
+    "center_lat": 39.32,
+    "zoom": 3.5
   },
   {
     "route": "Central Mediterranean",
     "total_cross": 687285,
-    "center_lng": 24.668167463336545,
-    "center_lat": 37.764246159887364,
-    "zoom": 5.202993431636225
+    "center_lng": 24.67,
+    "center_lat": 37.76,
+    "zoom": 3.5
   },
   {
     "route": "Western Mediterranean",
     "total_cross": 56863,
-    "center_lng": 2.4564282250012184,
-    "center_lat": 37.02970497988929,
-    "zoom": 5.868912669258752
+    "center_lng": 2.46,
+    "center_lat": 37.03,
+    "zoom": 3.5
   },
   {
     "route": "Western Balkans",
     "total_cross": 259738,
-    "center_lng": 30.007316015778997,
-    "center_lat": 45.16794824150685,
-    "zoom": 5.058263901273292
+    "center_lng": 30.01,
+    "center_lat": 45.17,
+    "zoom": 3.5
   },
   {
     "route": "Eastern Land Borders",
     "total_cross": 5437,
-    "center_lng": 62.0534846986759,
-    "center_lat": 10.523238875562171,
-    "zoom": 4.249227580540101
+    "center_lng": 24.0,
+    "center_lat": 50.0,
+    "zoom": 3.5
   },
   {
     "route": "Western African",
     "total_cross": 2692,
-    "center_lng": 2.7584241363645106,
-    "center_lat": 26.552319029142723,
-    "zoom": 4.249227580540101
+    "center_lng": 2.76,
+    "center_lat": 26.55,
+    "zoom": 3.5
   },
   {
-    "route": "Others",
-    "total_cross": 4276,
-    "center_lng": 81.42052325283487,
-    "center_lat": 47.92297774338499,
-    "zoom": 2.50114411012685
+    "route": "Americas",
+    "total_cross": 8058,
+    "center_lng": -90.0,
+    "center_lat": 22.0,
+    "zoom": 3.5
+  },
+  {
+    "route": "Horn of Africa",
+    "total_cross": 945,
+    "center_lng": 42.0,
+    "center_lat": 8.0,
+    "zoom": 3.5
+  },
+  {
+    "route": "Middle East & Central Asia",
+    "total_cross": 5049,
+    "center_lng": 55.0,
+    "center_lat": 32.0,
+    "zoom": 3.5
+  },
+  {
+    "route": "South & Southeast Asia",
+    "total_cross": 94,
+    "center_lng": 92.0,
+    "center_lat": 18.0,
+    "zoom": 3.5
+  },
+  {
+    "route": "English Channel",
+    "total_cross": 253,
+    "center_lng": 1.5,
+    "center_lat": 49.0,
+    "zoom": 3.5
   }
 ]

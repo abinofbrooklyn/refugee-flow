@@ -19,11 +19,13 @@ export default class RefugeeRoute extends React.Component {
         banned_category: null,
         clicked_datapoint: null,
         clickedPointRemoved: true,
+        mediaCoverageOnly: false,
     }
     this.fetchRefugeeRoutes = this.fetchRefugeeRoutes.bind(this);
     this.checkCurrentRouteName = this.checkCurrentRouteName.bind(this);
     this.changeRouteManager = this.changeRouteManager.bind(this);
     this.passBannedCategoryManager = this.passBannedCategoryManager.bind(this);
+    this.toggleMediaCoverageOnly = this.toggleMediaCoverageOnly.bind(this);
     this.passClickedPointManager = this.passClickedPointManager.bind(this);
     this.passRemoveClickedPointManager = this.passRemoveClickedPointManager.bind(this);
     this.banned_category = [];
@@ -46,9 +48,21 @@ export default class RefugeeRoute extends React.Component {
   }
 
   checkCurrentRouteName(data){
+    // Check IBC routes first
     for (var route in data) {
       if(route.replace(' ','') === this.props.match.params.arg){
         this.setState({currentRouteName: route})
+        return;
+      }
+    }
+    // Also check route_death routes (for Americas and other non-IBC routes)
+    if (this.state.route_death) {
+      const deathRoutes = [...new Set(this.state.route_death.map(d => d.route))];
+      for (const route of deathRoutes) {
+        if (route && route.replace(' ','') === this.props.match.params.arg) {
+          this.setState({currentRouteName: route})
+          return;
+        }
       }
     }
   }
@@ -69,6 +83,10 @@ export default class RefugeeRoute extends React.Component {
     }
 
     this.setState({banned_category : this.banned_category});
+  }
+
+  toggleMediaCoverageOnly(){
+    this.setState(prev => ({mediaCoverageOnly: !prev.mediaCoverageOnly}));
   }
 
   passClickedPointManager(point){

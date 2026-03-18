@@ -169,15 +169,28 @@ async function runEurostatIngestion() {
         await new Promise(r => setTimeout(r, 100));
       }
 
+      // Deduplicate by conflict key within this destination's rows
+      const deduped = new Map();
+      for (const row of allRows) {
+        const key = `${row.year}|${row.quarter}|${row.origin}|${row.destination}`;
+        const existing = deduped.get(key);
+        if (existing) {
+          existing.value += row.value;
+        } else {
+          deduped.set(key, { ...row });
+        }
+      }
+      const uniqueRows = Array.from(deduped.values());
+
       // Upsert this destination's rows in batches
-      for (let i = 0; i < allRows.length; i += BATCH_SIZE) {
-        const batch = allRows.slice(i, i + BATCH_SIZE);
+      for (let i = 0; i < uniqueRows.length; i += BATCH_SIZE) {
+        const batch = uniqueRows.slice(i, i + BATCH_SIZE);
         await db('asy_applications')
           .insert(batch)
           .onConflict(['year', 'quarter', 'origin', 'destination'])
           .merge();
       }
-      totalRows += allRows.length;
+      totalRows += uniqueRows.length;
     }
 
     await logIngestion({

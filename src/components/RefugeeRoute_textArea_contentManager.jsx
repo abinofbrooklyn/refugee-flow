@@ -32,6 +32,13 @@ export default class RefugeeRoute_textArea_contentManager extends React.Componen
       />
     }
     else if(this.currentTab === 2){
+      const ibcKey = this.currentRouteName === 'Others' ? 'Other' : this.currentRouteName;
+      if (!this.IBC_data[ibcKey]) {
+        return <RefugeeRoute_textArea_content_basicInfo
+          route_death_data= {this.route_death_data}
+          currentRouteName = {this.currentRouteName}
+        />
+      }
       return <RefugeeRoute_textArea_content_ibcCountry
         IBC_data= {this.IBC_data}
         currentRouteName = {this.currentRouteName}

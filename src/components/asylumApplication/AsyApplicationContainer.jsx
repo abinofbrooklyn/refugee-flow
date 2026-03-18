@@ -16,7 +16,7 @@ import tooltipIcon from './icon_tooltip.png';
 const Background = styled.div`
   width: 25%;
   background: #0f1015f7;
-  height: 100%;
+  height: calc(100% - 40px);
   position: absolute;
   right: 0;
   top: 40px;
@@ -186,6 +186,8 @@ class AsyApplicationContainer extends React.Component {
   render() {
     const { buttonMode, data, loadingStatus, loadingText } = this.state;
     const { selectedYear, currentCountry, loadingManager } = this.props;
+    const yearList = data.length > 0 ? Object.keys(data[0]) : [];
+    const currentYearLabel = yearList[selectedYear] || '';
     return (
       <Background>
         <Title
@@ -202,7 +204,7 @@ class AsyApplicationContainer extends React.Component {
           <CurrentYearButton
             onClick={() => this.buttonClick(1)}
             selected={buttonMode}
-            selectedYear={'201'.concat(selectedYear)}
+            selectedYear={currentYearLabel}
           >
           SHOW CURRENT YEAR
           </CurrentYearButton>

@@ -10,6 +10,24 @@ import '../stylesheets/RefugeeRoute_map.css';
 
 import dataDict from '../data/IBC_crossingCountByCountry.json';
 
+// Map new IOM cause_of_death categories to original display categories
+const CAUSE_MAP = {
+  "Drowning": "drowning or exhaustion related death",
+  "Vehicle accident / death linked to hazardous transport": "violent accidental death (transport; blown in minefield...)",
+  "Accidental death": "violent accidental death (transport; blown in minefield...)",
+  "Violence": "authorities related death",
+  "Harsh environmental conditions / lack of adequate shelter, food, water": "unknown - supposedly exhaustion related death",
+  "Sickness / lack of access to adequate healthcare": "unknown - supposedly exhaustion related death",
+  "Mixed or unknown": "other",
+};
+const mapCause = (cause) => {
+  if (!cause) return "other";
+  if (CAUSE_MAP[cause]) return CAUSE_MAP[cause];
+  const parts = cause.split(',');
+  for (const p of parts) { if (CAUSE_MAP[p]) return CAUSE_MAP[p]; }
+  return cause; // return as-is if it's already an old category
+};
+
 export default class RefugeeRoute_map extends React.Component {
 
   constructor(props){
@@ -18,20 +36,20 @@ export default class RefugeeRoute_map extends React.Component {
     this.passClickedPointManager = props.passClickedPointManager;
     this.currentRouteName = props.currentRouteName;
     this.data = _.groupBy(props.data,d => d.route);
-    this.currentMapParams = _.find(dataDict,d => d.route === this.currentRouteName);
+    this.currentMapParams = _.find(dataDict,d => d.route === this.currentRouteName) || dataDict[0];
     this.canvas_overlay_render = this.canvas_overlay_render.bind(this);
     this.canvas_overlay_drawCall = this.canvas_overlay_drawCall.bind(this);
     this.handleMousemove = this.handleMousemove.bind(this);
     this.handleClick = this.handleClick.bind(this);
     this.state = {
-      mouseover_toggle: true
+      mouseover_toggle: true,
     }
   }
 
   UNSAFE_componentWillReceiveProps(nextProps){
     this.banned_category = nextProps.banned_category;
     this.data = _.groupBy(nextProps.data,d => d.route);
-    this.currentMapParams = _.find(dataDict,d => d.route === nextProps.currentRouteName);
+    this.currentMapParams = _.find(dataDict,d => d.route === nextProps.currentRouteName) || dataDict[0];
 
     if(this.currentRouteName != nextProps.currentRouteName){
       this.currentRouteName = nextProps.currentRouteName;
@@ -139,15 +157,16 @@ export default class RefugeeRoute_map extends React.Component {
     }
 
     this.currentRouteName && this.data[this.currentRouteName].forEach(d =>{
+      const mappedCause = mapCause(d.cause_of_death);
       if(this.banned_category != undefined && this.banned_category.length >0){
-        let check = _.find(this.banned_category,banned => banned === d.cause_of_death);
+        let check = _.find(this.banned_category,banned => banned === mappedCause);
         if(!check){
           this.data_filtered.push(d);
-          this.canvas_overlay_drawCall(d);
+          this.canvas_overlay_drawCall(d, mappedCause);
         }
       }else{
         this.data_filtered.push(d);
-        this.canvas_overlay_drawCall(d);
+        this.canvas_overlay_drawCall(d, mappedCause);
       }
     })
     // this.ctx.restore();
@@ -162,7 +181,7 @@ export default class RefugeeRoute_map extends React.Component {
 
   }
 
-  canvas_overlay_drawCall(d){
+  canvas_overlay_drawCall(d, mappedCause){
     if(-90 > d.lat || d.lat > 90){
       // data corruption on raw data part
       var ready = this.map.project(new maplibregl.LngLat(d.lng,90));
@@ -172,7 +191,9 @@ export default class RefugeeRoute_map extends React.Component {
     d.map_coord_x = ready.x;
     d.map_coord_y = ready.y;
     let size = this.sizeScaler(+d.dead_and_missing) * this.size_change;
-    var color =  _.find(color_map,_d =>_d.key === d.cause_of_death).value;
+    const causeLookup = mappedCause || mapCause(d.cause_of_death);
+    var colorEntry = _.find(color_map,_d =>_d.key === causeLookup);
+    var color = colorEntry ? colorEntry.value : '#5CFFE2CC';
 
     if(this.intersected_id && d.id === this.intersected_id) var color =  '#FFFFFFDE';
 
@@ -185,13 +206,22 @@ export default class RefugeeRoute_map extends React.Component {
       this.ctx.lineWidth=10;
       this.ctx.stroke();
     }
+    // Bright outline + glow for incidents with media coverage
+    if(d.description){
+      this.ctx.shadowColor = '#FFFFFF';
+      this.ctx.shadowBlur = 8;
+      this.ctx.strokeStyle="#FFFFFFDD";
+      this.ctx.lineWidth=2;
+      this.ctx.stroke();
+      this.ctx.shadowBlur = 0;
+    }
     this.ctx.fillStyle = color;
     this.ctx.fill();
     // this.ctx.restore();
   }
 
   componentWillUnmount() {
-    this.map.remove();
+    if (this.map) this.map.remove();
   }
 
   render(){

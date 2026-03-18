@@ -321,7 +321,8 @@ class GlobeContainer extends React.Component {
         );
         return c;
       },
-      currentYear : '2010',
+      currentYear : null, // set dynamically after data loads
+      availableYears: [],
       //globevisual's props
       rotatePause : false,
       //loading state
@@ -364,10 +365,13 @@ class GlobeContainer extends React.Component {
 
     }).then((loadingState) =>{
       return new Promise((resolve) => {
+        const availableYears = loadingState.warData.map(d => d.year);
         this.setState({
           loadingStatus: loadingState.loadingStatus,
           loadingText: loadingState.loadingText,
-          warData: loadingState.warData
+          warData: loadingState.warData,
+          availableYears: availableYears,
+          currentYear: availableYears[0],
         }, resolve);
       });
 
@@ -376,7 +380,7 @@ class GlobeContainer extends React.Component {
       if (!this.state.warData || !this.state.warData[0] || !this.gv) {
         throw new Error('Globe data or renderer not ready after load.');
       }
-      this.drawData(this.state.warData[0].value); // Default view : 2010
+      this.drawData(this.state.warData[0].value); // Default view : first available year
       this.gv.scaler = this.state.warData[0].scaler; // Default scaler : 2010's
       this.gv.lastIndex = 0; // For animation purpose;
       this.gv.transition(this.gv.lastIndex); // Animate interface;
@@ -402,7 +406,7 @@ class GlobeContainer extends React.Component {
   fetchData(url){
     const request = new Request( url,  {
       method: 'GET',
-      cache: 'force-cache'
+      cache: 'default'
     });
     return (
       fetch(request).then(res => res.json()).then(
@@ -595,6 +599,7 @@ class GlobeContainer extends React.Component {
           onClickYear = {this.timlineYearClicked}
           onClickQuater = {this.timlineQuaterClicked}
           currentYear = {this.state.currentYear}
+          years = {this.state.availableYears}
       />
     )
   }
@@ -605,8 +610,9 @@ class GlobeContainer extends React.Component {
       this.gv.transition(0);// Animate to all records within the currentYear;
     } else {
       //switch data
+      const yearIndex = this.state.availableYears.indexOf(year);
       this.setState({loadingStatus : true, loadingText : 'Switching data to '+ year,currentControllerSelection:1})
-      this.timeLineScroll.toElement(document.querySelectorAll('.individualWrapper')[year.charAt(3)]).then(()=>console.log('aaaaa'));
+      this.timeLineScroll.toElement(document.querySelectorAll('.individualWrapper')[yearIndex]).then(()=>console.log('aaaaa'));
 
       this.gv.transition(5,() => {
         //update visualization
@@ -638,7 +644,7 @@ class GlobeContainer extends React.Component {
           });
 
         }else{
-          this.props.setSelectedYear(+year.charAt(3));
+          this.props.setSelectedYear(yearIndex);
           this.drawData(_.find(this.state.countryData,d => d.year === year)['value']);
           this.gv.scaler = _.find(this.state.warData,d => d.year === year)['scaler'];
           this.gv.octree.update(() =>{
@@ -767,9 +773,10 @@ class GlobeContainer extends React.Component {
   changeCountryData(country,year){
     this.props.setCurrentCountry(country);
 
-    if(year === null){year = '2010'}else{year = '201'+ year}
+    if(year === null){year = this.state.availableYears[0]}else{year = this.state.availableYears[year]}
+    const yearIndex = this.state.availableYears.indexOf(year);
 
-    this.timeLineScroll.toElement(document.querySelectorAll('.individualWrapper')[year.charAt(3)]);
+    this.timeLineScroll.toElement(document.querySelectorAll('.individualWrapper')[yearIndex]);
 
     const data = JSON.parse(JSON.stringify(this.state.warData));
     const country_totalFatality = []
@@ -830,7 +837,7 @@ class GlobeContainer extends React.Component {
 
       this.gv.octree.remove(this.gv.points); //takes ~ 10ms
       this.gv.scene.remove(this.gv.points); //takes ~ 10ms
-      this.props.setSelectedYear(+year.charAt(3));
+      this.props.setSelectedYear(yearIndex);
       this.drawData(_.find(data,d => d.year === this.state.currentYear)['value']);
       this.gv.scaler = _.find(this.state.warData,d => d.year === this.state.currentYear)['scaler'];
 
@@ -878,7 +885,7 @@ class GlobeContainer extends React.Component {
             this.gv.scaler = d.scaler;
             //after init octree, present animation
             this.gv.octree.update(() =>{
-              this.timeLineScroll.toElement(document.querySelectorAll('.individualWrapper')[this.state.currentYear.charAt(3)]).then(()=>console.log('aaaaa'));
+              this.timeLineScroll.toElement(document.querySelectorAll('.individualWrapper')[this.state.availableYears.indexOf(this.state.currentYear)]).then(()=>console.log('aaaaa'));
               this.gv.transition(0);
               this.gv.setTarget([-11.874010, 44.605859],945) // set initial position
               // inform parent component loading status
@@ -903,7 +910,7 @@ class GlobeContainer extends React.Component {
       <Wrapper className = 'globe'>
         <TitleContainer>
           <TitleText onClick={() => d3.select('.annotation-wrapper').style('display','block').transition().delay(10).style('opacity','1') }>
-            {'Armed Conflict | Region : ' + this.props.currentCountry.charAt(0).toUpperCase() + this.props.currentCountry.toLowerCase().slice(1) + " | Year : " + this.state.currentYear + '  '}
+            {'Armed Conflict | Region : ' + this.props.currentCountry.charAt(0).toUpperCase() + this.props.currentCountry.toLowerCase().slice(1) + " | Year : " + (this.state.currentYear || '...') + '  '}
           </TitleText>
           <DataSource onClick={() => window.open('https://www.acleddata.com/data/', '_blank')}>
             <svg x="0px" y="0px" width="18.014px" height="19.304px" viewBox="0 0 18.014 19.304">
@@ -969,13 +976,13 @@ class GlobeContainer extends React.Component {
             {this.state.rotatePause ? '\u25B6' : '\u23F8'}
           </GlobeControllerButton>
         </GlobeNavPanel>
-        <LegendWrapper minMax = {this.state.warData && this.state.warData[+this.state.currentYear.charAt(3)]['scaler'].domain()}>
+        <LegendWrapper minMax = {this.state.warData && this.state.currentYear && _.find(this.state.warData, d => d.year === this.state.currentYear)['scaler'].domain()}>
           <LegendTitle mode={this.state.currentControllerSelection}>Fatality Count</LegendTitle>
           <Legend src={this.state.currentControllerSelection === 1 ? './assets/globe_lagend-all.png' : './assets/globe_lagend-civilian.png'}></Legend>
         </LegendWrapper>
 
         <GlobeStatsBoard data = {
-          this.state.warData && {
+          this.state.warData && this.state.currentYear && {
             'Total Fatality': (()=>{
               if(this.props.currentCountry === 'GLOBAL'){
                 return _.find(this.state.warData,d => d.year === this.state.currentYear)['totalFatality']

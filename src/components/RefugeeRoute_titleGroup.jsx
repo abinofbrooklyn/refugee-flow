@@ -19,7 +19,7 @@ const Title = styled.p`
   font-size: 26px;
   font-weight: 200;
   margin: 0;
-  top: 70px;
+  top: 30px;
   left: 60px;
   position: relative;
   width: 400px;
@@ -30,7 +30,7 @@ const Title = styled.p`
     left: -30px;
     color: white;
     position: absolute;
-    top: 50px;
+    top: 40px;
     width: 450px;
     font-family: 'Roboto';
     font-weight: 400;
@@ -41,7 +41,7 @@ const Button_previous = styled.div`
   position: absolute;
   width: 22px;
   left: 30px;
-  top: 70px;
+  top: 30px;
   cursor: pointer;
   opacity: .6;
   transition: all 300ms;
@@ -53,7 +53,7 @@ const Button_next = styled.div`
   position: relative;
   width: 22px;
   left: 30px;
-  top: 51px;
+  top: 11px;
   cursor: pointer;
   opacity: .6;
   transition: all 300ms;
@@ -63,7 +63,7 @@ const Button_next = styled.div`
 `
 const Legend = styled.div`
   left: 30px;
-  top: 100px;
+  top: 60px;
   position: relative;
   width: 45%;
 `
@@ -155,16 +155,17 @@ export default class RefugeeRoute_titleGroup extends React.Component {
 
   handleRouting(type){
     const index = _.findIndex(dataDict,d => d.route === this.currentRouteName);
+    if (index === -1) return this.currentRouteName ? this.currentRouteName.replace(/ /g,'') : '';
 
     if(type === 'previous'){
-      if(index != -1 && index > 0){
+      if(index > 0){
         return dataDict[index-1].route.replace(' ','')
       }else{
         return dataDict[index].route.replace(' ','')
       }
     }
     else if(type === 'next'){
-      if(index != -1 && index < dataDict.length - 1){
+      if(index < dataDict.length - 1){
         return dataDict[index+1].route.replace(' ','')
       }else{
         return dataDict[index].route.replace(' ','')

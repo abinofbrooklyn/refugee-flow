@@ -22,16 +22,16 @@ Users can explore the human cost of conflict — where wars happen, where people
 
 ### Active
 
-- [ ] Security vulnerabilities patched (npm audit)
-- [ ] Memory leaks fixed (GlobeVisual, landing components)
-- [ ] Error handling and loading states on all data fetches
-- [ ] Globe rotation toggle UI
-- [ ] Deprecated lifecycle methods suppressed
-- [ ] React 18 upgrade
-- [ ] Vite replacing Webpack 4
-- [ ] THREE.js r150+ upgrade
-- [ ] Dependency cleanup (remove jquery, underscore, legacy mapbox-gl)
-- [ ] PostgreSQL/Supabase replacing MongoDB
+- [x] Security vulnerabilities patched (npm audit) — Phase 1
+- [x] Memory leaks fixed (GlobeVisual, landing components) — Phase 1
+- [x] Error handling and loading states on all data fetches — Phase 1
+- [x] Globe rotation toggle UI — Phase 1
+- [x] Deprecated lifecycle methods suppressed — Phase 2
+- [x] React 18 upgrade — Phase 2
+- [x] Vite replacing Webpack 4 — Phase 2
+- [x] THREE.js r150+ upgrade — Phase 2
+- [x] Dependency cleanup (remove jquery, underscore, legacy mapbox-gl) — Phase 2
+- [x] PostgreSQL/Supabase replacing MongoDB — Phase 3
 - [ ] Automated data ingestion from ACLED, UNHCR, IOM APIs
 - [ ] Admin CSV upload interface for manual data sources
 - [ ] Geo precision pipeline applied at ingestion time
@@ -60,12 +60,12 @@ Brownfield project. Codebase mapped 2026-03-10. Key issues: React 16 with deprec
 
 | Decision | Rationale | Outcome |
 |----------|-----------|---------|
-| PostgreSQL/Supabase over MongoDB | Relational data, time-series queries, owner-controlled free tier | — Pending |
-| Vite over Webpack 5 | Faster builds, simpler config, drops legacy OpenSSL hack | — Pending |
-| No historical backfill | Avoid months of data archaeology; ingest forward only | — Pending |
-| Geo precision at ingestion time | Prevent GPU overload; store clean data, not raw API coords | — Pending |
-| Shared secret admin (no full auth) | Low-traffic app, simple enough, full auth is overkill | — Pending |
-| Supabase Edge Functions for ingestion | Co-located with DB, built-in cron, no separate service | — Pending |
+| PostgreSQL/Supabase over MongoDB | Relational data, time-series queries, owner-controlled free tier | Done (Phase 3) |
+| Vite over Webpack 5 | Faster builds, simpler config, drops legacy OpenSSL hack | Done (Phase 2) |
+| No historical backfill | Avoid months of data archaeology; ingest forward only | Active |
+| Geo precision at ingestion time | Prevent GPU overload; store clean data, not raw API coords | Done (Phase 3) |
+| Shared secret admin (no full auth) | Low-traffic app, simple enough, full auth is overkill | Pending (Phase 4) |
+| Supabase Edge Functions for ingestion | Co-located with DB, built-in cron, no separate service | Pending (Phase 4) |
 
 ---
-*Last updated: 2026-03-11 after initialization*
+*Last updated: 2026-03-17 — Phases 1-3 complete*

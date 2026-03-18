@@ -2,7 +2,7 @@ import React from 'react';
 import * as d3 from 'd3';
 import styled, { css } from 'styled-components';
 
-import * as warDict from '../../data/warDictionary';
+import { year as fallbackYears } from '../../data/warDictionary';
 
 const TimelineWrapper = styled.div`
   position:absolute;
@@ -221,7 +221,8 @@ class Timeline extends React.Component {
 
   render(){
     const TimelineItems = [];
-    warDict.year.forEach( (d,i) => TimelineItems[i] = this.renderYearItem(d) );
+    const years = this.props.years && this.props.years.length > 0 ? this.props.years : fallbackYears;
+    years.forEach( (d,i) => TimelineItems[i] = this.renderYearItem(d) );
 
     return(
         <TimelineWrapper className = 'TimelineWrapper'>

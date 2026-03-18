@@ -917,7 +917,7 @@ class GlobeVisual extends React.Component{
       let url = `${window.location.protocol}//${window.location.host}/data/note/${this.WarID}`;
       fetch(new Request( url, {
           method: 'GET',
-          cache: 'force-cache'
+          cache: 'default'
         })).then(res => res.json()).then(d => {
 
         // d may be empty array (no DB) or error object — handle gracefully

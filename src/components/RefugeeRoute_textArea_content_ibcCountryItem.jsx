@@ -1,7 +1,7 @@
 import React from 'react';
 import styled, { css } from 'styled-components';
 import * as d3 from 'd3';
-import { countryList, year } from '../data/warDictionary';
+import { countryList } from '../data/warDictionary';
 import _ from 'lodash';
 
 const Wrapper = styled.div`
@@ -12,6 +12,7 @@ const Wrapper = styled.div`
   border-radius: 5px;
   margin-top: 10px;
   transition: opacity 200ms;
+  position: relative;
 `
 
 const CountryName = styled.p`
@@ -23,7 +24,10 @@ const CountryName = styled.p`
   left: 30px;
   margin: 0;
   position: relative;
-  width: 100%;
+  width: 35%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   transition: all 400ms;
 `
 const Region = styled.p`
@@ -43,11 +47,10 @@ const Stats = styled.div`
   height: 20px;
   background: #54547ab3;
   border-radius: 4px;
-  position: relative;
-  float: left;
+  position: absolute;
   transition: all 300ms;
   text-align: center;
-  top: 45px;
+  top: 120px;
   &>p{
     font-family: 'Roboto';
     color: white;
@@ -94,15 +97,14 @@ const Stats = styled.div`
 `
 const BorderLocation = styled.div`
   cursor: pointer;
-  left: -32px;
+  left: 30px;
   height: 20px;
   background: #54547ab3;
   border-radius: 4px;
-  position: relative;
-  float: left;
+  position: absolute;
   transition: all 300ms;
   text-align: center;
-  top: 18px;
+  top: 95px;
   &>p{
     font-family: 'Roboto';
     color: white;
@@ -136,17 +138,21 @@ const BorderLocation = styled.div`
 `
 const ChartContainer = styled.div`
   width: 60%;
-  position: relative;
-  left: 39%;
-  height: 150px;
-  margin-top: -73px;
+  position: absolute;
+  right: 0;
+  top: 0;
+  height: 100%;
   &>p{
-    position: relative;
-    top: 22px;
-    color: white;
+    position: absolute;
+    top: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    color: #ffffff88;
     font-weight: 200;
     font-family: 'Roboto';
-    font-size:  16px;
+    font-size: 10px;
+    margin: 0;
+    white-space: nowrap;
   }
 
   &>svg{
@@ -169,16 +175,21 @@ export default class RefugeeRoute_textArea_content_ibcCountryItem extends React.
     this.height = this.svg.getBoundingClientRect().height - this.margin.top - this.margin.bottom;
 
 
+    // Derive years from chartData — ensure sensible domain
+    const chartYears = this.data.chartData.map(d => d.key);
+    let [minDate, maxDate] = d3.extent(chartYears, d => new Date(d));
+    // Pad if fewer than 3 data points to avoid cramped/degenerate scales
+    if (chartYears.length < 3) {
+      minDate = new Date(Math.min(minDate.getFullYear(), maxDate.getFullYear()) - 1, 0, 1);
+      maxDate = new Date(Math.max(minDate.getFullYear(), maxDate.getFullYear()) + 2, 0, 1);
+    }
     this.xScale = d3.scaleTime()
-      .domain(d3.extent((() =>{
-        let temp = year.slice();
-        temp.shift();
-        return temp;
-      })(), d => new Date(d) ))
-      .range([0,this.width]).nice();
+      .domain([minDate, maxDate])
+      .range([0,this.width]);
 
+    const [minVal, maxVal] = d3.extent(this.data.chartData, d => d.value);
     this.yScale = d3.scaleLinear()
-      .domain(d3.extent(this.data.chartData,d => d.value))
+      .domain([0, maxVal || 1])
       .range([this.height,0]).nice();
 
     // line
@@ -228,6 +239,7 @@ export default class RefugeeRoute_textArea_content_ibcCountryItem extends React.
           .each(function(d,i){
 
             let datum = d3.selectAll( currentYear ).filter((d,_i) => _i === i).datum()
+            if (!datum) return;
 
             d3.select(this)
               .append('text')
@@ -266,7 +278,7 @@ export default class RefugeeRoute_textArea_content_ibcCountryItem extends React.
     // x axis
     d3.select(this.svg).append("g").attr('class','cardChart__xAxis')
       .attr("transform", "translate(30,"+ (+this.height + +this.margin.top) +")")
-      .call(d3.axisBottom(this.xScale));
+      .call(d3.axisBottom(this.xScale).ticks(6).tickFormat(d3.timeFormat('%Y')));
 
 
     // .remove();
@@ -275,7 +287,7 @@ export default class RefugeeRoute_textArea_content_ibcCountryItem extends React.
       .attr('fill','#ffffff')
       .style('font-family','Roboto')
       .style('font-weight',200)
-      .style('font-size','12px')
+      .style('font-size','10px')
     d3.selectAll(".cardChart__xAxis path").remove()
     d3.selectAll(".cardChart__xAxis line").attr('y2',3);
     d3.selectAll(".cardChart__xAxis line")
@@ -318,7 +330,7 @@ export default class RefugeeRoute_textArea_content_ibcCountryItem extends React.
       <div>
         <Wrapper>
           <CountryName>{this.data['NationalityLong']}</CountryName>
-          <Region>{_.find(countryList, d => d[0] === this.data['NationalityLong'].toUpperCase())[1]} Region</Region>
+          <Region>{(() => { const c = _.find(countryList, d => d[0] === this.data['NationalityLong'].toUpperCase()); return c ? c[1] + ' Region' : ''; })()}</Region>
 
           <Stats><p>{d3.format(",")(this.data['totalCross'])}</p></Stats>
           <BorderLocation><p>{this.data['BorderLocation']}</p></BorderLocation>

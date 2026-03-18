@@ -1,6 +1,6 @@
 import React from 'react';
 import * as d3 from 'd3';
-import * as warDict from '../../data/warDictionary';
+import { year as fallbackYears } from '../../data/warDictionary';
 
 class AsyApplicationChart extends React.Component {
   constructor(props){
@@ -48,6 +48,8 @@ class AsyApplicationChart extends React.Component {
 
       //draw X axis
       this.customXaxis = (g) =>{
+          const domain = this.x.domain();
+          const isAllYears = domain.length > 4;
           g.call(d3.axisBottom(this.x)
             .tickFormat(function(d) {
               return d.toUpperCase();
@@ -59,6 +61,9 @@ class AsyApplicationChart extends React.Component {
             .attr('fill','#7f7f7f')
             .style('font-family','Roboto')
             .style('font-weight',700)
+            .style('font-size', isAllYears ? '9px' : null)
+            .attr('transform', isAllYears ? 'rotate(-45)' : null)
+            .style('text-anchor', isAllYears ? 'end' : null)
 
           g.selectAll('.tick line')
             .attr('stroke','#7f7f7f')
@@ -150,21 +155,16 @@ class AsyApplicationChart extends React.Component {
     const svg_width = this.width;
     const svg_height = this.height;
     let currentDomain = this.quaterList;
-    //hard coded year list for x axis
-    let allDomain = ['2010Q1','2010Q2','2010Q3','2010Q4',
-             '2011Q1','2011Q2','2011Q3','2011Q4',
-             '2012Q1','2012Q2','2012Q3','2012Q4',
-             '2013Q1','2013Q2','2013Q3','2013Q4',
-             '2014Q1','2014Q2','2014Q3','2014Q4',
-             '2015Q1','2015Q2','2015Q3','2015Q4',
-             '2016Q1','2016Q2','2016Q3','2016Q4',
-             '2017Q1','2017Q2','2017Q3','2017Q4',
-             '2018Q1','2018Q2','2018Q3','2018Q4'];
-    this.allYearQuater = allDomain;
-    // setup x,y scaler base on chartD(passed from parent component)
+    // Build year domain dynamically from data
+    const dataYears = this.props.data && this.props.data.length > 0
+      ? Object.keys(this.props.data[0])
+      : fallbackYears;
+    this.allYears = dataYears;
+    // In "all years" mode, data has one point per year (aggregated)
+    // In "current year" mode, data has 4 points (one per quarter)
     chartD.length > 4
     ? this.x = d3.scalePoint()
-      .domain( allDomain ).range([0,this.width])
+      .domain( dataYears ).range([0,this.width])
     : this.x = d3.scalePoint()
       .domain(this.quaterList).range([0,this.width]);
 
@@ -179,7 +179,7 @@ class AsyApplicationChart extends React.Component {
     d3.selectAll('.dataLine')._groups[0].length >0
     ? d3.selectAll('.dataLine')
         .attr("d", d3.line()
-          .x((d,i) => chartD.length > 4 ? this.x(allDomain[i]) : this.x(this.quaterList[i]) )
+          .x((d,i) => chartD.length > 4 ? this.x(this.allYears[i]) : this.x(this.quaterList[i]) )
           .y( d => this.y(d) )
           .curve(d3.curveMonotoneX)(chartD)
         )
@@ -224,7 +224,7 @@ class AsyApplicationChart extends React.Component {
       .attr("stroke-linecap", "round")
       .attr("stroke-width", 3)
       .attr('r',5)
-      .attr('cx',(d,i) => chartD.length > 4 ? this.x(allDomain[i]) : this.x(this.quaterList[i]) )
+      .attr('cx',(d,i) => chartD.length > 4 ? this.x(this.allYears[i]) : this.x(this.quaterList[i]) )
       .attr('cy', d => this.y(d) )
       .on('mouseover', function(){
         const w = 170;
@@ -317,11 +317,9 @@ class AsyApplicationChart extends React.Component {
                 }
               })
               .text( () =>{
-                return "Year/Quarter: " +(
-                    // chartD.indexOf(d3.select(this).datum()) > 4
-                     allDomain[chartD.indexOf(d3.select(this).datum())].toUpperCase()
-                    // : currentDomain[chartD.indexOf(d3.select(this).datum())]
-                  )
+                const idx = chartD.indexOf(d3.select(this).datum());
+                const domain = chartD.length > 4 ? dataYears : currentDomain;
+                return (chartD.length > 4 ? "Year: " : "Quarter: ") + (domain[idx] || '').toUpperCase();
               }
               )
 
@@ -367,15 +365,15 @@ class AsyApplicationChart extends React.Component {
       g.select('line')
       .transition()
       .duration(1000)
-      .attr("y1",this.y(chartD.reduce((a,c) => a+c ) / 4))
-      .attr("y2",this.y(chartD.reduce((a,c) => a+c ) / 4));
+      .attr("y1",this.y(chartD.reduce((a,c) => a+c ) / chartD.length))
+      .attr("y2",this.y(chartD.reduce((a,c) => a+c ) / chartD.length));
 
-      g.selectAll('text:last-of-type').text( d3.format(".2s")( chartD.reduce((a,c) => a+c ) / 4 ) )
+      g.selectAll('text:last-of-type').text( d3.format(".2s")( chartD.reduce((a,c) => a+c ) / chartD.length ) )
 
       g.selectAll('text')
       .transition()
       .duration(1000)
-      .attr("y",this.y(chartD.reduce((a,c) => a+c ) / 4))
+      .attr("y",this.y(chartD.reduce((a,c) => a+c ) / chartD.length))
 
 
     })
@@ -392,12 +390,12 @@ class AsyApplicationChart extends React.Component {
           .attr("stroke-width", 1)
           .attr("x1", 0)
           .attr("x2",this.width)
-          .attr("y1",this.y(chartD.reduce((a,c) => a+c ) / 4))
-          .attr("y2",this.y(chartD.reduce((a,c) => a+c ) / 4));
+          .attr("y1",this.y(chartD.reduce((a,c) => a+c ) / chartD.length))
+          .attr("y2",this.y(chartD.reduce((a,c) => a+c ) / chartD.length));
 
         g.append("text")
           .attr('x',-10)
-          .attr("y",this.y(chartD.reduce((a,c) => a+c ) / 4))
+          .attr("y",this.y(chartD.reduce((a,c) => a+c ) / chartD.length))
           .attr('dy',4)
           .text('Avg')
           .attr("fill",'#41edb8')
@@ -408,9 +406,9 @@ class AsyApplicationChart extends React.Component {
 
         g.append("text")
           .attr('x',-10)
-          .attr("y",this.y(chartD.reduce((a,c) => a+c ) / 4))
+          .attr("y",this.y(chartD.reduce((a,c) => a+c ) / chartD.length))
           .attr('dy',15)
-          .text( d3.format(".2s")( chartD.reduce((a,c) => a+c ) / 4 ) )
+          .text( d3.format(".2s")( chartD.reduce((a,c) => a+c ) / chartD.length ) )
           .attr("fill",'#41edb8')
           .style('font-family','Roboto')
           .style('font-weight',400)

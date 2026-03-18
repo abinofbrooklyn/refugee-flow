@@ -90,6 +90,9 @@ class RegionModalNav extends Component {
   }
 
   aggregate(d){
+    // Extract available years dynamically from war data
+    const availableYears = d.map(item => item.year);
+    this.availableYears = availableYears;
     this.country = (() =>{
       let arr = [];
       countryList.forEach((d,i) =>{
@@ -97,17 +100,8 @@ class RegionModalNav extends Component {
         temp['country'] = d[0];
         temp['total_fat'] = [];
         temp['region'] = d[1];
-        temp['fat_year'] = {
-          '2010':[],
-          '2011':[],
-          '2012':[],
-          '2013':[],
-          '2014':[],
-          '2015':[],
-          '2016':[],
-          '2017':[],
-          '2018':[],
-        };
+        temp['fat_year'] = {};
+        availableYears.forEach(y => { temp['fat_year'][y] = []; });
         arr.push(temp)
       })
       return arr;
