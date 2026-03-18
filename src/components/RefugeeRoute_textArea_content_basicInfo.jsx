@@ -10,16 +10,16 @@ import routeDescDict from '../data/route_desc.json';
 const Wrapper = styled.div`
   width: 83%;
   position: relative;
-  height: ${() => window.innerHeight-60-90 + 'px'};
-  top: 90px;
+  height: ${() => window.innerHeight-60-50 + 'px'};
+  top: 50px;
   left: 50%;
   transform: translateX(-50%);
 `
 const CurrentSituation = styled.div`
 
-  height: 100px;
+  height: 120px;
   overflow-y: scroll;
-  top: 50px;
+  top: 40px;
   position: relative;
 
   &::-webkit-scrollbar{
@@ -81,7 +81,7 @@ const DataSource = styled.div`
 `
 const DeathSummary = styled.div`
 
-  top: 60px;
+  top: 40px;
   position: relative;
 
   &>p{
@@ -297,9 +297,11 @@ export default class RefugeeRoute_textArea_content_basicInfo extends React.Compo
       }
       return value
     });
-    // Derive years dynamically from route death data
-    const year = [...new Set(this.route_death_data.map(d => d.year))].sort();
-    const xScale = d3.scaleLinear().domain([0,d3.max(data, d => d.total)]).range([0,width]).nice();
+    // Derive years from current route's data only — skip years with no data for this route
+    const routeData = this.route_death_data.filter(d => d.route === this.currentRouteName);
+    const year = [...new Set(routeData.map(d => d.year))].sort();
+    const filteredData = data.filter(d => year.includes(d.year));
+    const xScale = d3.scaleLinear().domain([0,d3.max(filteredData, d => d.total)]).range([0,width]).nice();
     const yScale = d3.scaleBand().domain(year).rangeRound([height,0]).padding([.4]);
     const xAxis = this.g.append("g").attr("transform",`translate(0,${height -10})`).call(d3.axisBottom(xScale));
     const yAxis = this.g.append("g").call(d3.axisLeft(yScale));
@@ -312,8 +314,8 @@ export default class RefugeeRoute_textArea_content_basicInfo extends React.Compo
 
 
     const stack = d3.stack().keys( color_map.map(d => d.key) );
-    const stackedSeries = stack(data);
-    const ratio = d3.stack().keys(['dead','missing'])(data);
+    const stackedSeries = stack(filteredData);
+    const ratio = d3.stack().keys(['dead','missing'])(filteredData);
     // total fatality
 
     if(this.state.mode == 1){
@@ -321,7 +323,7 @@ export default class RefugeeRoute_textArea_content_basicInfo extends React.Compo
       this.totalFat = this.g
         .append('g')
         .selectAll("rect")
-        .data(data)
+        .data(filteredData)
         .enter().append("rect")
         .attr('rx',3)
         .attr("x",d=> 0 )

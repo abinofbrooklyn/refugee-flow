@@ -89,8 +89,8 @@ const LegendItem = styled.p`
 
 const Instructions = styled.div`
   left: 30px;
-  top: ${() => window.innerHeight - 100 + 'px'};
-  position: absolute;
+  bottom: 20px;
+  position: fixed;
   background: #f5f5ff21;
   border-radius: 2px;
   transition: all 400ms;
