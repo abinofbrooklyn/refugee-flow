@@ -154,21 +154,22 @@ export default class RefugeeRoute_titleGroup extends React.Component {
   }
 
   handleRouting(type){
+    const toSlug = (s) => s.replace(/[^a-zA-Z0-9]/g, '');
     const index = _.findIndex(dataDict,d => d.route === this.currentRouteName);
-    if (index === -1) return this.currentRouteName ? this.currentRouteName.replace(/ /g,'') : '';
+    if (index === -1) return this.currentRouteName ? toSlug(this.currentRouteName) : '';
 
     if(type === 'previous'){
       if(index > 0){
-        return dataDict[index-1].route.replace(' ','')
+        return toSlug(dataDict[index-1].route)
       }else{
-        return dataDict[index].route.replace(' ','')
+        return toSlug(dataDict[index].route)
       }
     }
     else if(type === 'next'){
       if(index < dataDict.length - 1){
-        return dataDict[index+1].route.replace(' ','')
+        return toSlug(dataDict[index+1].route)
       }else{
-        return dataDict[index].route.replace(' ','')
+        return toSlug(dataDict[index].route)
       }
     }
   }

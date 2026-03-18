@@ -40,26 +40,28 @@ export default class RefugeeRoute extends React.Component {
     Promise.all([get_routeDeath(), get_routeIBC()])
       .then(([d, _d]) => {
         this.setState({ route_death: d, route_IBC: _d, loading: false });
-        this.checkCurrentRouteName(_.clone(_d));
+        this.checkCurrentRouteName(_.clone(_d), d);
       })
       .catch(() => {
         this.setState({ loading: false, error: 'Failed to load route data. Please refresh.' });
       });
   }
 
-  checkCurrentRouteName(data){
+  checkCurrentRouteName(ibcData, deathData){
+    const urlArg = this.props.match.params.arg;
+    const toSlug = (s) => s.replace(/[^a-zA-Z0-9]/g, '');
     // Check IBC routes first
-    for (var route in data) {
-      if(route.replace(' ','') === this.props.match.params.arg){
+    for (var route in ibcData) {
+      if(toSlug(route) === urlArg){
         this.setState({currentRouteName: route})
         return;
       }
     }
     // Also check route_death routes (for Americas and other non-IBC routes)
-    if (this.state.route_death) {
-      const deathRoutes = [...new Set(this.state.route_death.map(d => d.route))];
+    if (deathData) {
+      const deathRoutes = [...new Set(deathData.map(d => d.route))];
       for (const route of deathRoutes) {
-        if (route && route.replace(' ','') === this.props.match.params.arg) {
+        if (route && toSlug(route) === urlArg) {
           this.setState({currentRouteName: route})
           return;
         }
