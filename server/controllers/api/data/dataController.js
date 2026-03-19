@@ -125,8 +125,10 @@ const ROUTE_MAP = {
 
 // Geographic fallback for null/unmapped/Others routes
 const geoFallback = (lat, lng) => {
+  // Western African — Atlantic crossings near Africa (Canary Islands, Cabo Verde)
+  if (lng >= -35 && lng < -15 && lat > 5 && lat < 36) return 'Western African';
   // Americas — Western hemisphere
-  if (lng < -20) return 'Americas';
+  if (lng < -15) return 'Americas';
   // Europe
   if (lat > 48 && lng >= -10 && lng <= 5) return 'English Channel';
   if (lat > 40 && lng >= -10 && lng <= 5) return 'Western Mediterranean';
@@ -138,9 +140,9 @@ const geoFallback = (lat, lng) => {
   // Middle East & Central Asia
   if (lat > 30 && lng > 37) return 'Middle East & Central Asia';
   // South & Southeast Asia
-  if (lng > 70) return 'South & Southeast Asia';
-  // Middle East (lat <= 30, lng 55-70)
-  if (lat <= 30 && lng > 55 && lng <= 70) return 'Middle East & Central Asia';
+  if (lng > 65) return 'South & Southeast Asia';
+  // Middle East (lat <= 30, lng 55-65)
+  if (lat <= 30 && lng > 55 && lng <= 65) return 'Middle East & Central Asia';
   // East & Southern Africa (lat < -5, lng 25-55)
   if (lat <= -5 && lng > 25 && lng <= 55) return 'East & Southern Africa';
   // Horn of Africa — East Africa only (lng 30-55, lat -5 to 30)
@@ -177,6 +179,10 @@ const findRouteDeath = async () => {
     if (mappedRoute === 'Central Mediterranean' && (row.lng > 55 || row.lng < -15)) {
       mappedRoute = geoFallback(row.lat, row.lng);
     }
+    // Any route with coordinates in South/East Asia (lng > 65) — force to South & Southeast Asia
+    if (row.lng > 65 && mappedRoute !== 'South & Southeast Asia') {
+      mappedRoute = 'South & Southeast Asia';
+    }
     // Eastern Mediterranean records in Western Med area — reroute
     if (mappedRoute === 'Eastern Mediterranean' && row.lng < 15) {
       mappedRoute = geoFallback(row.lat, row.lng);
@@ -185,9 +191,17 @@ const findRouteDeath = async () => {
     if (mappedRoute === 'Horn of Africa' && (row.lng < 30 || row.lat > 30)) {
       mappedRoute = geoFallback(row.lat, row.lng);
     }
-    // Western African records in the Americas — reroute
-    if (mappedRoute === 'Western African' && row.lng < -20) {
+    // Western African records deep in the Americas — reroute
+    if (mappedRoute === 'Western African' && row.lng < -35) {
       mappedRoute = 'Americas';
+    }
+    // Americas records near West Africa/Atlantic — reroute to Western African
+    if (mappedRoute === 'Americas' && row.lng > -35 && row.lng < -15 && row.lat > 5 && row.lat < 36) {
+      mappedRoute = 'Western African';
+    }
+    // Americas records with positive longitude (misgeocoded) — reroute by geography
+    if (mappedRoute === 'Americas' && row.lng > 0) {
+      mappedRoute = geoFallback(row.lat, row.lng);
     }
 
     deduped.push({
