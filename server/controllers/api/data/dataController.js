@@ -145,9 +145,11 @@ const geoFallback = (lat, lng) => {
   if (lat <= 30 && lng > 55 && lng <= 65) return 'Middle East & Central Asia';
   // East & Southern Africa (lat < -5, lng 25-55)
   if (lat <= -5 && lng > 25 && lng <= 55) return 'East & Southern Africa';
-  // Horn of Africa — East Africa only (lng 30-50, lat -5 to 30)
-  if (lat > -5 && lat <= 30 && lng > 30 && lng <= 50) return 'Horn of Africa';
-  // Persian Gulf / Iran area (lng 50-65, lat < 30)
+  // Horn of Africa — East Africa + Yemen (lng 30-55, lat -5 to 20)
+  if (lat > -5 && lat <= 20 && lng > 30 && lng <= 55) return 'Horn of Africa';
+  // Arabian Peninsula / Persian Gulf (lng 45-65, lat 20-30)
+  if (lat > 20 && lat <= 30 && lng > 45 && lng <= 65) return 'Middle East & Central Asia';
+  // Persian Gulf / Iran area (lng 50-65, lat < 30 remaining)
   if (lat <= 30 && lng > 50 && lng <= 65) return 'Middle East & Central Asia';
   // Sahara transit — North Africa between lat 15-30
   if (lat > 15 && lat <= 30 && lng >= -10 && lng <= 30) return 'Central Mediterranean';
@@ -195,7 +197,7 @@ const findRouteDeath = async () => {
     if (mappedRoute === 'Eastern Mediterranean' && lng < 15) {
       mappedRoute = geoFallback(lat, lng);
     }
-    if (mappedRoute === 'Horn of Africa' && (lng < 30 || lat > 30 || lng > 50)) {
+    if (mappedRoute === 'Horn of Africa' && (lng < 30 || lat > 25 || lng > 55)) {
       mappedRoute = geoFallback(lat, lng);
     }
     // Records at lat > 55 in non-arctic routes — reroute to English Channel (Northern Europe transit)
