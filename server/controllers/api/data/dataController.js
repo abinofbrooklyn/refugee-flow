@@ -161,47 +161,49 @@ const findRouteDeath = async () => {
   const seen = new Set();
   const deduped = [];
   for (const row of rows) {
-    const key = `${row.lat}|${row.lng}|${row.date}|${row.dead_and_missing}`;
+    // Fix swapped lat/lng (lat should be -90 to 90, lng -180 to 180)
+    let lat = row.lat;
+    let lng = row.lng;
+    if (lat < -90 || lat > 90) {
+      const tmp = lat; lat = lng; lng = tmp;
+    }
+
+    const key = `${lat}|${lng}|${row.date}|${row.dead_and_missing}`;
     if (seen.has(key)) continue;
     seen.add(key);
-    let mappedRoute = row.route ? (ROUTE_MAP[row.route] || 'Others') : geoFallback(row.lat, row.lng);
+    let mappedRoute = row.route ? (ROUTE_MAP[row.route] || 'Others') : geoFallback(lat, lng);
     // For catch-all "Others" records, always use geographic fallback
     if (mappedRoute === 'Others') {
-      mappedRoute = geoFallback(row.lat, row.lng);
+      mappedRoute = geoFallback(lat, lng);
     }
 
     // Geographic corrections for misrouted records
-    // Eastern Land Borders records outside Eastern Europe — reroute by geography
-    if (mappedRoute === 'Eastern Land Borders' && (row.lng > 40 || row.lng < 15)) {
-      mappedRoute = geoFallback(row.lat, row.lng);
+    if (mappedRoute === 'Eastern Land Borders' && (lng > 40 || lng < 15)) {
+      mappedRoute = geoFallback(lat, lng);
     }
-    // Central Mediterranean records far from Med — reroute by geography
-    if (mappedRoute === 'Central Mediterranean' && (row.lng > 55 || row.lng < -15)) {
-      mappedRoute = geoFallback(row.lat, row.lng);
+    if (mappedRoute === 'Central Mediterranean' && (lng > 55 || lng < -15)) {
+      mappedRoute = geoFallback(lat, lng);
     }
-    // Any route with coordinates in South/East Asia (lng > 65) — force to South & Southeast Asia
-    if (row.lng > 65 && mappedRoute !== 'South & Southeast Asia') {
+    if (lng > 65 && mappedRoute !== 'South & Southeast Asia') {
       mappedRoute = 'South & Southeast Asia';
     }
-    // Eastern Mediterranean records in Western Med area — reroute
-    if (mappedRoute === 'Eastern Mediterranean' && row.lng < 15) {
-      mappedRoute = geoFallback(row.lat, row.lng);
-    }
-    // Horn of Africa records with misgeocoded coordinates — reroute by geography
-    if (mappedRoute === 'Horn of Africa' && (row.lng < 30 || row.lat > 30)) {
-      mappedRoute = geoFallback(row.lat, row.lng);
-    }
-    // Western African records deep in the Americas — reroute
-    if (mappedRoute === 'Western African' && row.lng < -35) {
+    if (lng < -35 && mappedRoute !== 'Americas') {
       mappedRoute = 'Americas';
     }
-    // Americas records near West Africa/Atlantic — reroute to Western African
-    if (mappedRoute === 'Americas' && row.lng > -35 && row.lng < -15 && row.lat > 5 && row.lat < 36) {
+    if (mappedRoute === 'Eastern Mediterranean' && lng < 15) {
+      mappedRoute = geoFallback(lat, lng);
+    }
+    if (mappedRoute === 'Horn of Africa' && (lng < 30 || lat > 30)) {
+      mappedRoute = geoFallback(lat, lng);
+    }
+    if (mappedRoute === 'Western African' && lng < -35) {
+      mappedRoute = 'Americas';
+    }
+    if (mappedRoute === 'Americas' && lng > -35 && lng < -15 && lat > 5 && lat < 36) {
       mappedRoute = 'Western African';
     }
-    // Americas records with positive longitude (misgeocoded) — reroute by geography
-    if (mappedRoute === 'Americas' && row.lng > 0) {
-      mappedRoute = geoFallback(row.lat, row.lng);
+    if (mappedRoute === 'Americas' && lng > 0) {
+      mappedRoute = geoFallback(lat, lng);
     }
 
     deduped.push({
@@ -217,8 +219,8 @@ const findRouteDeath = async () => {
       location: row.location,
       description: row.description,
       source: row.source,
-      lat: row.lat,
-      lng: row.lng,
+      lat: lat,
+      lng: lng,
       route: mappedRoute,
       route_displayText: mappedRoute,
       source_url: row.source_url,
