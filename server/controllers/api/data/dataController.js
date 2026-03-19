@@ -201,8 +201,9 @@ const findRouteDeath = async () => {
     if (mappedRoute === 'Horn of Africa' && (lng < 30 || lat > 25 || lng > 55)) {
       mappedRoute = geoFallback(lat, lng);
     }
-    // Records at lat > 55 in non-arctic routes — reroute to English Channel (Northern Europe transit)
-    if (lat > 55 && !['English Channel'].includes(mappedRoute)) {
+    // Records at lat > 55 in Western Europe (lng < 15) — reroute to English Channel
+    // But NOT Eastern Europe (lng > 15) which should be Eastern Land Borders
+    if (lat > 55 && lng < 15 && !['English Channel', 'Eastern Land Borders'].includes(mappedRoute)) {
       mappedRoute = 'English Channel';
     }
     // Libya-labelled records at Indian coords (lng 65-85) — source data error, keep in Central Med
