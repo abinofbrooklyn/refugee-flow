@@ -1110,6 +1110,276 @@ ADMIN_SECRET=your_random_secret_here
 
 ---
 
+## ACLED Normalization Gap (Plan 07 — blocked on API access)
+
+> Added 2026-03-19. Blocked: waiting on ACLED organization access approval.
+
+### Problem
+
+`acledIngestion.js` stores `int: null, evt: null, cot: null` for all ingested events (lines 98-100). The ACLED fetch also doesn't request the fields needed to populate them (line 59 only fetches `event_id_cnty|event_date|fatalities|latitude|longitude|notes|year`).
+
+Without these three fields, ACLED-ingested events render on the globe with:
+- No event type coloring (evt drives color via `warDictionary.eventDict`)
+- No country/region in tooltips (cot provides `[country, region]`)
+- No country filtering (cot[0] is matched against selected country)
+
+### Field Mapping (needs API verification)
+
+| DB Column | Type | Seed Data Example | ACLED API Field (probable) | Normalization Needed |
+|-----------|------|-------------------|---------------------------|---------------------|
+| `evt` | integer (0-8) | `0` = violence against civilians | `event_type` | ACLED taxonomy differs from seed data's 0-8 index. Need mapping table: ACLED event_type string/code → seed-compatible 0-8 integer |
+| `int` | integer (0-78) | `17`, `78` | `interaction` | Likely straight passthrough. Verify value ranges match seed data |
+| `cot` | text[] (2 elements) | `["Egypt", "Northern Africa"]` | `country` + derived region | Build `[country, region]` array. Region groupings exist in `src/data/warDictionary.js` countryList — need lookup or derivation |
+
+### Required ACLED Fetch Fields (updated)
+
+```
+fields=event_id_cnty|event_date|event_type|interaction|fatalities|latitude|longitude|country|notes|year
+```
+
+### Frontend Dependencies
+
+- `src/data/warDictionary.js` — `eventDict` array (9 event types indexed 0-8), `countryList` for cot region lookup
+- `src/components/globe/GlobeTooltips.jsx` — displays `evt` via eventDict, displays `cot[0]` (country) and `cot[1]` (region)
+- `src/components/globe/GlobeContainer.jsx` — uses `evt === 0` for special coloring, `cot[0].toUpperCase()` for country filtering
+
+### Scope for Plan 07
+
+1. Update ACLED fetch to request `event_type`, `interaction`, `country`
+2. Create `acledNormalizer.js` (same pure-function pattern as `iomNormalizer.js`):
+   - Map ACLED `event_type` to seed-compatible 0-8 evt code
+   - Pass through `interaction` as int
+   - Build `[country, region]` cot array from ACLED `country` field + warDictionary region lookup
+3. Update `transformAcledEvents()` to call normalizer
+4. Backfill script for any ACLED rows already in DB with null int/evt/cot
+5. Verify globe renders ACLED events with correct coloring and tooltips
+
+### Blocker
+
+API access requires ACLED organization membership. Waiting on approval. Once access is granted, make a test API call to confirm actual field names and value formats before planning.
+
+---
+
+## Asylum Data Normalization Gap (Plan 08 — UNHCR/Eurostat country names + double-counting)
+
+> Added 2026-03-19. Actionable now — no external blockers.
+
+### Problem 1: Country Name Chaos
+
+Three sources write to `asy_applications` with different names for the same countries. The frontend does exact string matching (`c.Origin.toUpperCase() === this.state.currentCountry` in `AsyApplicationChartContainer.jsx:97`), so mismatches cause data to silently disappear from charts.
+
+**Destination name conflicts (seed data vs expected):**
+
+| Seed Data | Expected | Impact |
+|-----------|----------|--------|
+| `USA (EOIR)` | `USA` or `United States` | Two USA variants, neither matches UNHCR |
+| `USA (INS/DHS)` | `USA` or `United States` | Same country, third variant |
+| `United Kingdom of Great Britain and Northern Ireland` | `United Kingdom` | 50-char formal name won't match |
+| `Serbia and Kosovo: S/RES/1244 (1999)` | `Serbia` / `Kosovo` (separate) | UN resolution reference in name |
+| `The former Yugoslav Rep. of Macedonia` | `North Macedonia` | Pre-2019 name |
+| `Rep. of Korea` | `South Korea` or `Republic of Korea` | Abbreviated |
+
+**Origin name conflicts (Eurostat vs UNHCR probable):**
+
+| Eurostat (`CITIZEN_CODES`) | UNHCR (probable) | Country |
+|---------------------------|------------------|---------|
+| `Iran (Islamic Rep. of)` | `Iran` | Iran |
+| `Cote d'Ivoire` (no accent) | `Côte d'Ivoire` (accent) | Ivory Coast |
+| `Dem. Rep. of the Congo` | `Democratic Republic of the Congo` | DRC |
+| `Rep. of the Congo` | `Republic of the Congo` | Congo |
+| `Central African Rep.` | `Central African Republic` | CAR |
+| `Swaziland` | `Eswatini` (renamed 2018) | Eswatini |
+| `Czech Rep.` | `Czechia` | Czech Republic |
+
+**Bug:** `eurostatIngestion.js` defines `SY` twice (lines 35 and 39). First as `'Syrian Arab Rep.'`, then overwritten by `'Syria'`. Second wins by accident — correct result, latent bug.
+
+### Problem 2: UNHCR/Eurostat Double-Counting (CRITICAL)
+
+UNHCR stores **annual totals** in `quarter: 'q1'`. Eurostat stores **real quarterly data** across q1-q4. Both use `.onConflict(['year', 'quarter', 'origin', 'destination']).merge()`.
+
+**Scenario for the same country pair (e.g., Syria → Germany, 2023):**
+- UNHCR runs first: inserts `(2023, q1, Syria, Germany, 25000)` — this is the ANNUAL total
+- Eurostat runs second: upserts `(2023, q1, Syria, Germany, 8000)` — this is Q1 only
+- Eurostat also inserts `(2023, q2, ..., 6000)`, `(2023, q3, ..., 5500)`, `(2023, q4, ..., 5500)`
+- Result: q1=8000 (Eurostat wins the merge), q2=6000, q3=5500, q4=5500, **total=25000** — accidentally correct
+
+**But if Eurostat runs first, then UNHCR runs second:**
+- Eurostat inserts q1=8000, q2=6000, q3=5500, q4=5500
+- UNHCR upserts q1=25000 (annual total overwrites Eurostat's Q1)
+- Result: q1=25000, q2=6000, q3=5500, q4=5500, **total=42000** — DOUBLE COUNTED
+
+**And for non-EU destinations** where only UNHCR has data:
+- UNHCR inserts `(2023, q1, Syria, Turkey, 50000)` — annual total parked in q1
+- No Eurostat data for Turkey → q2, q3, q4 are empty
+- Frontend shows entire year's data concentrated in Q1 bar — misleading chart
+
+**Root cause:** No `source` column on `asy_applications`. Cannot distinguish UNHCR annual rows from Eurostat quarterly rows. The merge strategy is order-dependent.
+
+### Problem 3: No Source Tracking
+
+`asy_applications` has no `source` column. Cannot:
+- Distinguish UNHCR rows from Eurostat rows from seed data rows
+- Prioritize one source over another during merge
+- Debug data quality issues
+- Avoid the double-counting problem
+
+### Solution Architecture
+
+**1. Country Name Normalizer** — `server/ingestion/countryNormalizer.js`
+
+A canonical name map that all sources pass through before writing:
+```javascript
+const CANONICAL_NAMES = {
+  // Destination normalization
+  'USA (EOIR)': 'United States',
+  'USA (INS/DHS)': 'United States',
+  'United Kingdom of Great Britain and Northern Ireland': 'United Kingdom',
+  'Serbia and Kosovo: S/RES/1244 (1999)': 'Serbia',
+  'The former Yugoslav Rep. of Macedonia': 'North Macedonia',
+  'Rep. of Korea': 'South Korea',
+  'Czech Rep.': 'Czechia',
+  // Origin normalization
+  'Iran (Islamic Rep. of)': 'Iran',
+  "Cote d'Ivoire": "Côte d'Ivoire",
+  'Dem. Rep. of the Congo': 'DR Congo',
+  'Rep. of the Congo': 'Republic of the Congo',
+  'Central African Rep.': 'Central African Republic',
+  'Swaziland': 'Eswatini',
+  'Syrian Arab Rep.': 'Syria',
+  // ... extend as mismatches are discovered
+};
+
+function normalizeCountryName(name) {
+  return CANONICAL_NAMES[name] || name;
+}
+```
+
+Applied in: `transformUnhcrItems()`, Eurostat's `sumToQuarters()`, and a backfill script for seed data.
+
+**2. Data Combination Strategy: Eurostat + UNHCR Quarterly Estimation**
+
+**Decision: Combine both sources to produce accurate quarterly data for all destinations.**
+
+Eurostat provides real monthly→quarterly breakdowns but only for 31 EU/EEA destinations. UNHCR covers the entire world but only provides annual totals. Currently UNHCR data is dumped into Q1, creating a misleading spike in the chart followed by three empty quarters.
+
+**Tiered approach:**
+
+**Tier 1 — EU/EEA destinations (Eurostat owns):**
+Use Eurostat's real quarterly data. UNHCR is not written for these country pairs — Eurostat is the authority. Cross-check: Eurostat quarterly sum ≈ UNHCR annual total for same pair. Log a warning if they diverge by more than 10%.
+
+**Tier 2 — Non-EU destinations (UNHCR + estimated quarterly split):**
+UNHCR provides the annual total. Distribute it across quarters using Eurostat's seasonal ratios for the same origin country.
+
+Algorithm:
+```javascript
+// 1. Compute seasonal ratios from Eurostat data per origin country
+//    e.g., Afghanistan: { q1: 0.30, q2: 0.25, q3: 0.22, q4: 0.23 }
+function computeSeasonalRatios(eurostatRows) {
+  // Group by origin, sum values per quarter across all EU destinations
+  // Normalize to ratios that sum to 1.0
+  // Fallback: { q1: 0.25, q2: 0.25, q3: 0.25, q4: 0.25 } if no Eurostat data for origin
+}
+
+// 2. Apply ratios to UNHCR annual total
+function distributeByQuarter(annualTotal, ratios) {
+  const q1 = Math.round(annualTotal * ratios.q1);
+  const q2 = Math.round(annualTotal * ratios.q2);
+  const q3 = Math.round(annualTotal * ratios.q3);
+  const q4 = annualTotal - q1 - q2 - q3; // remainder to q4 to ensure exact sum
+  return { q1, q2, q3, q4 };
+}
+```
+
+**Why this works:** Asylum application seasonality is driven by origin-country factors (weather, fighting seasons, harvest cycles) more than destination-country factors. An Afghan leaving in summer leaves regardless of whether they're headed to Turkey or Germany. The seasonal pattern from EU data is a reasonable proxy for non-EU destinations.
+
+**Edge cases:**
+- Origin country with no Eurostat data at all → equal split (25% per quarter). Honest fallback.
+- Very small annual totals (< 20) → quarterly bars will be small but not misleading. This is how real data looks for small numbers.
+- Origin country with unusual EU vs non-EU seasonality (e.g., Venezuelans to US vs Spain) → the estimation is approximate, not exact. Acceptable for visualization.
+
+**Execution order matters:** Eurostat must run BEFORE UNHCR so that seasonal ratios are available when UNHCR data is distributed. Update cron schedule: Eurostat on Wednesday, UNHCR on Friday (currently reversed).
+
+**Frontend transparency:** Add a footnote/info icon to the asylum chart:
+> *"Quarterly breakdown for non-EU destinations estimated from Eurostat seasonal patterns. Annual totals from UNHCR."*
+
+This goes in `AsyApplicationChartContainer.jsx` or its parent container. Small text, not intrusive, keeps it transparent.
+
+**3. Backfill Script** — `scripts/normalizeAsyApplications.js`
+
+Two-phase backfill:
+1. Normalize all existing country names in-place using `countryNormalizer.js`
+2. Re-distribute UNHCR-origin annual rows (identified by: only q1 has data, q2-q4 empty for that year/origin/destination) using the seasonal ratio algorithm
+
+### Scope for Plan 08
+
+1. Create `server/ingestion/countryNormalizer.js` — canonical name map + `normalizeCountryName()` pure function
+2. Fix Eurostat duplicate `SY` key bug in `eurostatIngestion.js`
+3. Add `computeSeasonalRatios()` and `distributeByQuarter()` to a `server/ingestion/quarterlyEstimator.js` module — pure functions, unit-testable
+4. Update `transformUnhcrItems()`:
+   - Call `normalizeCountryName()` on origin/destination
+   - Skip EU/EEA destinations (Eurostat owns those)
+   - Call `distributeByQuarter()` to split annual totals into q1-q4 rows
+5. Update Eurostat's `sumToQuarters()` to call `normalizeCountryName()` on origin/destination
+6. Update cron schedule: Eurostat Wednesday → UNHCR Friday (Eurostat must run first for seasonal ratios)
+7. Create `scripts/normalizeAsyApplications.js` backfill for existing seed data (name normalization + quarterly re-distribution)
+8. Add estimation footnote to frontend asylum chart component
+9. Unit tests for `countryNormalizer.js` and `quarterlyEstimator.js`
+
+### Dependencies
+
+- Plan 08 is independent of Plan 06 (IOM) and Plan 07 (ACLED)
+- The backfill script should run before any live UNHCR/Eurostat ingestion
+- Eurostat cron must run before UNHCR cron (seasonal ratios needed first)
+- The country normalizer should be in place before the cron jobs run for real
+
+---
+
+## IBC Footnote Cleanup (Minor — fold into Plan 06 or standalone)
+
+> Added 2026-03-19.
+
+`dataController.js` line 299 strips footnote markers from IBC nationality names at read time:
+```javascript
+rec.NationalityLong = rec.NationalityLong.replace(/[\^*~]+$/g, '').trim();
+```
+
+This should be done once in the seed script or a backfill, not on every API read. Low priority — the regex is cheap and IBC data is static (no ingestion module updates it). But it's the same anti-pattern as the IOM normalization.
+
+---
+
+## Cross-Source Route Name Consistency
+
+> Added 2026-03-19.
+
+The frontend's `RefugeeRoute.jsx` (line 50-70) matches route names between IBC data (`ibc_crossings.route`) and death data (`route_deaths.route`) using `toSlug()`. If IOM normalization (Plan 06) changes route display names in `route_deaths`, they must still match the route names in `ibc_crossings` for the UI to link them correctly.
+
+**Current IBC route names** (from seed data in `ibc_crossings` table): need to verify they match the 12 display categories that `iomNormalizer.js` will produce. If Plan 06 introduces a new display name that doesn't exist in IBC data, that route's death data won't link to IBC crossing data on the frontend.
+
+**Action:** When executing Plan 06, verify that all route names produced by `iomNormalizer.js` either match an existing IBC route or are new routes that intentionally have no IBC data (e.g., Americas, Iran-Afghanistan Corridor).
+
+---
+
+## Data Delivery Efficiency Concerns
+
+> Added 2026-03-19. Not blocking Phase 4 — these are Phase 5+ optimizations.
+
+All six API endpoints load entire tables into memory on every request:
+
+| Endpoint | Table | Approx Rows | Read-Time Processing |
+|----------|-------|-------------|---------------------|
+| findReducedWar | war_events | ~56K | Group by year/quarter, sort by fat DESC |
+| findAsyApplicationAll | asy_applications | ~82K | Group by year/quarter, wrap in array |
+| findRouteDeath | route_deaths | ~4.7K (growing) | After Plan 06: plain SELECT + field map |
+| findRouteIbc | ibc_crossings | ~13.8K | Group by route, pivot years, strip footnotes |
+| findRouteIbcCountryList | country_routes | ~200 | Field rename only |
+| findWarNote | war_notes | ~0 (empty) | Simple WHERE |
+
+**No endpoints support:** filtering by year range, pagination, or server-side caching. As ingestion adds data weekly, row counts will grow. The war_events table will grow fastest (ACLED has millions of events historically).
+
+**Not a Phase 4 concern** — the app works fine at current scale. But worth noting for Phase 5+ planning: consider adding year-range query params and/or response caching (Redis or in-memory with TTL).
+
+---
+
 ## Metadata
 
 **Confidence breakdown:**
@@ -1119,5 +1389,5 @@ ADMIN_SECRET=your_random_secret_here
 - Normalization pipeline: HIGH — derived directly from code review of dataController.js (2026-03-19); logic is moved verbatim, not redesigned
 - Pitfalls: HIGH — IOM coordinates format confirmed from live CSV, event_id type mismatch confirmed from code review, cron-in-test pitfall is well-known pattern
 
-**Research date:** 2026-03-17 (original), 2026-03-19 (normalization update)
+**Research date:** 2026-03-17 (original), 2026-03-19 (normalization + ACLED + asylum + cross-source audit)
 **Valid until:** 2026-06-17 (APIs are stable; ACLED OAuth format unlikely to change; IOM CSV URL may shift — verify before implementation)
