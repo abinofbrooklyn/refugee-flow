@@ -173,6 +173,10 @@ const findRouteDeath = async () => {
     if (mappedRoute === 'Eastern Land Borders' && (row.lng > 40 || row.lng < 15)) {
       mappedRoute = geoFallback(row.lat, row.lng);
     }
+    // Central Mediterranean records far from Med — reroute by geography
+    if (mappedRoute === 'Central Mediterranean' && (row.lng > 55 || row.lng < -15)) {
+      mappedRoute = geoFallback(row.lat, row.lng);
+    }
     // Eastern Mediterranean records in Western Med area — reroute
     if (mappedRoute === 'Eastern Mediterranean' && row.lng < 15) {
       mappedRoute = geoFallback(row.lat, row.lng);
