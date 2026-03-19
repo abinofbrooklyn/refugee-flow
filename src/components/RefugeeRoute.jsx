@@ -20,6 +20,7 @@ export default class RefugeeRoute extends React.Component {
         clicked_datapoint: null,
         clickedPointRemoved: true,
         mediaCoverageOnly: false,
+        slideoutCollapsed: false,
     }
     this.fetchRefugeeRoutes = this.fetchRefugeeRoutes.bind(this);
     this.checkCurrentRouteName = this.checkCurrentRouteName.bind(this);
@@ -123,6 +124,7 @@ export default class RefugeeRoute extends React.Component {
       data = {this.state.route_death}
       currentRouteName = {this.state.currentRouteName}
       banned_category = {this.state.banned_category}
+      slideoutCollapsed = {this.state.slideoutCollapsed}
       passClickedPointManager = {this.passClickedPointManager}
       passRemoveClickedPointManager = {this.passRemoveClickedPointManager}
     />
@@ -141,6 +143,8 @@ export default class RefugeeRoute extends React.Component {
       route_IBC = {this.state.route_IBC}
       selected_data = {this.state.clicked_datapoint}
       clickedPointRemoved = {this.state.clickedPointRemoved}
+      onCollapseToggle = {() => this.setState(prev => ({ slideoutCollapsed: !prev.slideoutCollapsed }))}
+      slideoutCollapsed = {this.state.slideoutCollapsed}
     />
     return(
       <div style={{ position: 'relative' }}>
