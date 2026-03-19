@@ -109,9 +109,9 @@ const ROUTE_MAP = {
   // === Iran-Afghanistan Corridor (Afghanistan/Iran corridor) ===
   'Afghanistan to Iran': 'Iran-Afghanistan Corridor',
 
-  // === Asia Pacific (Bay of Bengal, Myanmar/Bangladesh) ===
-  'Bay of Bengal/Andaman Sea': 'Asia Pacific',
-  'Naf River crossing': 'Asia Pacific',
+  // === South & East Asia (Bay of Bengal, Myanmar/Bangladesh) ===
+  'Bay of Bengal/Andaman Sea': 'South & East Asia',
+  'Naf River crossing': 'South & East Asia',
 
   // === English Channel (UK crossings) ===
   'Mainland Europe to the UK': 'English Channel',
@@ -139,9 +139,9 @@ const geoFallback = (lat, lng) => {
   if (lat > 30 && lng > 15 && lng <= 37) return 'Central Mediterranean';
   // Iran-Afghanistan Corridor
   if (lat > 30 && lng > 37) return 'Iran-Afghanistan Corridor';
-  // Asia Pacific (South, Southeast, East Asia) — lng > 70
+  // South & East Asia (South, Southeast, East Asia) — lng > 70
   // Afghanistan heartland (lng 65-70) stays with Iran-Afghanistan Corridor
-  if (lng > 70) return 'Asia Pacific';
+  if (lng > 70) return 'South & East Asia';
   // Iran-Afghanistan Corridor (lng 55-70)
   if (lat <= 30 && lng > 55 && lng <= 70) return 'Iran-Afghanistan Corridor';
   // East & Southern Africa (lat < -5, lng 25-55)
@@ -189,8 +189,8 @@ const findRouteDeath = async () => {
     if (mappedRoute === 'Central Mediterranean' && (lng > 55 || lng < -15)) {
       mappedRoute = geoFallback(lat, lng);
     }
-    if (lng > 70 && mappedRoute !== 'Asia Pacific' && mappedRoute !== 'Americas') {
-      mappedRoute = 'Asia Pacific';
+    if (lng > 70 && mappedRoute !== 'South & East Asia' && mappedRoute !== 'Americas') {
+      mappedRoute = 'South & East Asia';
     }
     if (lng < -35 && mappedRoute !== 'Americas') {
       mappedRoute = 'Americas';
