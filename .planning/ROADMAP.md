@@ -15,7 +15,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 1: Stabilize** - Fix memory leaks, error handling, security vulnerabilities, and UX gaps in the existing app
 - [x] **Phase 2: Modernize Stack** - Replace Webpack 4 with Vite, upgrade React 18 and THREE.js r150+, remove dead dependencies
 - [x] **Phase 3: Database Migration** - Move all data from MongoDB to PostgreSQL/Supabase with geo precision baked in (completed 2026-03-17)
-- [x] **Phase 4: Data Ingestion Pipeline** - Automate ACLED, UNHCR, and IOM data ingestion plus admin CSV upload (completed 2026-03-17)
+- [ ] **Phase 4: Data Ingestion Pipeline** - Automate ACLED, UNHCR, and IOM data ingestion plus admin CSV upload; normalize IOM route data at ingestion time
 - [ ] **Phase 5: Data Coverage** - Audit, validate, and close gaps in data coverage across years and corridors
 
 ## Phase Details
@@ -81,14 +81,15 @@ Plans:
   2. Every lat/lng value from any ingestion source is precision-reduced and deduplicated before reaching the database
   3. Admin can navigate to /admin with a shared-secret password, upload a CSV, preview the parsed rows, and commit or cancel
   4. When an ingestion job fails, an error row with details appears in the ingestion_log table
-**Plans**: 5 plans
+**Plans**: 6 plans
 
 Plans:
-- [ ] 04-01-PLAN.md — Database migration (ingestion_log table, event_id type fix), shared utilities, install dependencies
-- [ ] 04-02-PLAN.md — ACLED ingestion module with OAuth auth, war_events upsert, and war_notes population
-- [ ] 04-03-PLAN.md — UNHCR and IOM ingestion modules with paginated fetch and CSV download
-- [ ] 04-04-PLAN.md — Cron scheduling, admin routes (CSV preview/commit, manual trigger), integration tests
-- [ ] 04-05-PLAN.md — Admin React UI at /admin with login, CSV upload, preview table, and commit flow
+- [x] 04-01-PLAN.md — Database migration (ingestion_log table, event_id type fix), shared utilities, install dependencies
+- [x] 04-02-PLAN.md — ACLED ingestion module with OAuth auth, war_events upsert, and war_notes population
+- [x] 04-03-PLAN.md — UNHCR and IOM ingestion modules with paginated fetch and CSV download
+- [x] 04-04-PLAN.md — Cron scheduling, admin routes (CSV preview/commit, manual trigger), integration tests
+- [x] 04-05-PLAN.md — Admin React UI at /admin with login, CSV upload, preview table, and commit flow
+- [ ] 04-06-PLAN.md — IOM normalization pipeline: extract route normalization from dataController to ingestion time
 
 ### Phase 5: Data Coverage
 **Goal**: The app accurately reflects what data exists — year range and route display match actual database contents with no silent gaps
@@ -110,5 +111,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | 1. Stabilize | 4/4 | Complete | 2026-03-12 |
 | 2. Modernize Stack | 4/4 | Complete | 2026-03-12 |
 | 3. Database Migration | 4/4 | Complete   | 2026-03-17 |
-| 4. Data Ingestion Pipeline | 5/5 | Complete   | 2026-03-17 |
+| 4. Data Ingestion Pipeline | 5/6 | In Progress | - |
 | 5. Data Coverage | 0/TBD | Not started | - |
