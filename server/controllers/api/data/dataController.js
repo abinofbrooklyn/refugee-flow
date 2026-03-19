@@ -130,10 +130,10 @@ const geoFallback = (lat, lng) => {
   // Americas — Western hemisphere
   if (lng < -15) return 'Americas';
   // Europe
-  if (lat > 48 && lng >= -10 && lng <= 5) return 'English Channel';
+  if (lat > 48 && lng >= -10 && lng <= 10) return 'English Channel';
   if (lat > 40 && lng >= -10 && lng <= 5) return 'Western Mediterranean';
-  if (lat > 40 && lng > 5 && lng <= 15) return 'Western Balkans';
-  if (lat > 40 && lng > 15 && lng <= 30) return 'Western Balkans';
+  if (lat > 40 && lng > 5 && lng <= 10) return 'Western Mediterranean'; // Italy/France/Switzerland
+  if (lat > 40 && lng > 10 && lng <= 30) return 'Western Balkans';
   // Mediterranean & North Africa
   if (lat > 30 && lng >= -10 && lng <= 15) return 'Western Mediterranean';
   if (lat > 30 && lng > 15 && lng <= 37) return 'Central Mediterranean';
@@ -196,6 +196,13 @@ const findRouteDeath = async () => {
       mappedRoute = geoFallback(lat, lng);
     }
     if (mappedRoute === 'Horn of Africa' && (lng < 30 || lat > 30 || lng > 50)) {
+      mappedRoute = geoFallback(lat, lng);
+    }
+    // Western Balkans records far from Balkans — reroute by geography
+    if (mappedRoute === 'Western Balkans' && lng < 10) {
+      mappedRoute = geoFallback(lat, lng);
+    }
+    if (mappedRoute === 'Western Balkans' && lng > 35) {
       mappedRoute = geoFallback(lat, lng);
     }
     if (mappedRoute === 'Western African' && lng < -35) {
