@@ -1,7 +1,7 @@
 # Phase 4: Data Ingestion Pipeline - Research
 
-**Researched:** 2026-03-17
-**Domain:** Node.js scheduled ingestion, external REST APIs (ACLED, UNHCR, IOM), CSV parsing, Express admin routes
+**Researched:** 2026-03-17 (updated 2026-03-19 — normalization pipeline added)
+**Domain:** Node.js scheduled ingestion, external REST APIs (ACLED, UNHCR, IOM), CSV parsing, Express admin routes, data normalization pipeline
 **Confidence:** MEDIUM-HIGH
 
 ---
@@ -87,9 +87,9 @@ Phase 4 builds a data pipeline on top of the existing Express/Knex/Supabase stac
 
 The admin route adds a second ingestion path: authenticated CSV upload for supplemental data. A shared-secret middleware (one `ADMIN_SECRET` env var checked against `Authorization: Bearer <secret>`) gates all admin endpoints. The CSV flow is two-step: POST to `/admin/csv/preview` returns parsed rows as JSON, then POST to `/admin/csv/commit` writes them to the database. The `ingestion_log` table records every run's outcome for observability without external alerting infrastructure.
 
-The project already has all the scaffolding needed: Express, Knex, dotenv, the `reduceGeoPercision()` helper, and the `batchInsert` pattern from the seed script. The primary new dependencies are `node-cron` (scheduling), `multer` (file upload), and `csv-parse` (CSV parsing).
+**Phase 4 is complete (all 5 plans done).** The normalization sub-phase described in the sections below is additional work discovered after Phase 4 completion: the IOM ingestion module currently stores raw IOM route labels verbatim. All normalization — route name mapping, geographic fallback, swapped lat/lng correction, geographic bounds overrides, and deduplication — still runs at API read time in `dataController.js`. This needs to move to ingestion time so the database contains clean, normalized data and the read path is a plain SELECT.
 
-**Primary recommendation:** Follow the seed script's fetch → transform → geo precision → batchInsert pattern for all three ingestion modules. Use Knex `onConflict().ignore()` (or `.merge()`) for upsert idempotency instead of TRUNCATE+INSERT, which would destroy existing data.
+**Primary recommendation:** Extract the normalization logic from `dataController.js` into a `server/ingestion/iomNormalizer.js` module. Call it inside `transformIomRows()` in `iomIngestion.js`. Update `dataController.findRouteDeath()` to a plain `SELECT *` once the DB contains pre-normalized data.
 
 ---
 
@@ -239,7 +239,7 @@ The ingestion module fetches this URL with `fetch()`, streams the response body 
 | `Total Number of Dead and Missing` | `route_deaths.dead_and_missing` | Store as text |
 | `Cause of Death` | `route_deaths.cause_of_death` | Text |
 | `Country of Incident` | `route_deaths.location` | Text (maps to location) |
-| `Migration Route` | `route_deaths.route` | Text |
+| `Migration Route` | `route_deaths.route` | Text — normalize at ingestion time |
 | `Coordinates` | `route_deaths.lat` + `.lng` | Single "lat,lng" string — must split and parse |
 | `Information Source` | `route_deaths.source` | Text |
 | `URL` | `route_deaths.source_url` | Text |
@@ -261,12 +261,13 @@ server/
 │   ├── acledIngestion.js       # ACLED conflict events + war notes
 │   ├── unhcrIngestion.js       # Asylum applications
 │   ├── iomIngestion.js         # Route deaths (CSV download)
+│   ├── iomNormalizer.js        # NEW: IOM route normalization (extracted from dataController)
 │   └── ingestionLogger.js      # Shared logging to ingestion_log table
 ├── routes/
 │   ├── dataRoute.js            # Existing (unchanged)
 │   └── adminRoute.js           # NEW: admin endpoints
 ├── controllers/
-│   ├── api/data/               # Existing (unchanged)
+│   ├── api/data/               # Existing (simplified after normalization moves)
 │   └── admin/
 │       └── adminController.js  # NEW: CSV upload + manual trigger handlers
 ├── middleware/
@@ -426,6 +427,328 @@ For `war_events` (no natural primary key unique constraint at the event_id level
 
 ---
 
+## IOM Data Normalization Pipeline
+
+> This section was added 2026-03-19. It covers the sub-phase of moving all normalization logic out of `dataController.js` and into the ingestion pipeline. The original Phase 4 plans (01-05) are complete; this normalization work is an additional plan (06) in the same phase.
+
+### The Problem: Runtime Normalization Debt
+
+`server/controllers/api/data/dataController.js` currently contains ~200 lines of normalization logic in `findRouteDeath()` that runs on every API call:
+
+1. **`ROUTE_MAP`** — maps ~30 IOM route name variants to ~12 display categories (e.g., `"Central Mediterranean,Sahara Desert crossing"` → `"Central Mediterranean"`)
+2. **`geoFallback(lat, lng)`** — geographic inference when route is null/unmapped/Others — ~30 if-else branches covering all lat/lng bands worldwide
+3. **Swapped lat/lng detection** — `if (lat < -90 || lat > 90)` swap correction
+4. **Geographic bounds overrides** — 15 route-specific rules that override a source-assigned route when coordinates are clearly in the wrong region (e.g., a record labeled "Horn of Africa" with coordinates in Iran gets rerouted to "Iran-Afghanistan Corridor")
+5. **Deduplication** — Set-based dedup by `lat|lng|date|dead_and_missing` composite key
+
+**The "whack-a-mole" problem:** Each time IOM updates their CSV, new route names or mislabeled records appear. The git log shows repeated manual fixes:
+- `fix: delete US-Mexico records with positive longitude from DB`
+- `fix: stop routing Belarus/Russia/Finland records to English Channel`
+- `fix: improve Asia Pacific route data quality`
+- `fix: move Yemen records from Middle East to Horn of Africa`
+- etc.
+
+Without normalization at ingestion time, these problems recur with every weekly ingestion run.
+
+### Normalization Pipeline Architecture
+
+The correct architecture is a linear pipeline applied inside `transformIomRows()` in `iomIngestion.js`:
+
+```
+CSV row
+  → parseCoordinates()          [already exists in iomIngestion.js]
+  → fixSwappedLatLng()           [NEW — move from dataController]
+  → resolveRoute()               [NEW — ROUTE_MAP + geoFallback]
+  → applyGeoBoundsCorrections()  [NEW — 15 override rules]
+  → deduplicateRows()            [NEW — moved from dataController read path]
+  → store in route_deaths with normalized route column
+```
+
+After this, `dataController.findRouteDeath()` becomes a plain `SELECT *` with no post-processing.
+
+### Module Structure: `server/ingestion/iomNormalizer.js`
+
+Extract all normalization from `dataController.js` into a single pure-function module. This module has no database dependencies — it operates only on JavaScript objects, making it fully unit-testable.
+
+```javascript
+// server/ingestion/iomNormalizer.js
+
+const ROUTE_MAP = {
+  // === Central Mediterranean ===
+  'Central Mediterranean': 'Central Mediterranean',
+  'Central Mediterranean,Sahara Desert crossing': 'Central Mediterranean',
+  'Sahara Desert crossing': 'Central Mediterranean',
+  // ... (copy full map from dataController.js verbatim)
+  'Others': 'Others',
+};
+
+function fixSwappedLatLng(lat, lng) {
+  // lat must be in [-90, 90]; if out of range, the values are swapped
+  if (lat !== null && lng !== null && (lat < -90 || lat > 90)) {
+    return { lat: lng, lng: lat };
+  }
+  return { lat, lng };
+}
+
+function geoFallback(lat, lng) {
+  // Copy verbatim from dataController.js
+  // Returns a display route name string
+}
+
+function resolveRoute(rawRoute, lat, lng) {
+  if (!rawRoute || rawRoute.trim() === '') return geoFallback(lat, lng);
+  const mapped = ROUTE_MAP[rawRoute];
+  if (!mapped || mapped === 'Others') return geoFallback(lat, lng);
+  return mapped;
+}
+
+function applyGeoBoundsCorrections(route, lat, lng) {
+  // Copy the 15 route-specific bounds checks verbatim from dataController.js
+  // Returns the corrected route string
+  // Hard geographic limits
+  if (lng > 70 && route !== 'South & East Asia' && route !== 'Americas') {
+    return 'South & East Asia';
+  }
+  if (lng < -35 && route !== 'Americas') return 'Americas';
+  if (lat > 55 && !['English Channel', 'Eastern Land Borders'].includes(route)) {
+    return geoFallback(lat, lng);
+  }
+  // Route-specific bounds
+  if (route === 'Western African' && (lng > 15 || lat < -17)) return geoFallback(lat, lng);
+  if (route === 'Central Mediterranean' && (lng > 55 || lng < -15)) return geoFallback(lat, lng);
+  if (route === 'Eastern Mediterranean' && (lng < 15 || lng > 45)) return geoFallback(lat, lng);
+  if (route === 'Western Mediterranean' && (lng > 15 || lng < -25)) return geoFallback(lat, lng);
+  if (route === 'Western Balkans' && (lng < 10 || lng > 50 || lat > 55 || lat < 35)) return geoFallback(lat, lng);
+  if (route === 'Eastern Land Borders' && (lng > 40 || lng < 10)) return geoFallback(lat, lng);
+  if (route === 'Horn of Africa' && (lng < 15 || lat > 30 || lng > 55)) return geoFallback(lat, lng);
+  if (route === 'Iran-Afghanistan Corridor' && (lng < 42 || lng > 70 || lat > 40)) return geoFallback(lat, lng);
+  if (route === 'Americas' && lng > -15) return geoFallback(lat, lng);
+  if (route === 'Americas' && lng > -35 && lng < -15 && lat > 5 && lat < 36) return 'Western African';
+  return route;
+}
+
+function normalizeRow(row) {
+  // row has: lat, lng, route (raw IOM string), and all other fields
+  // 1. Fix swapped coordinates first
+  const { lat, lng } = fixSwappedLatLng(row.lat, row.lng);
+  // 2. Skip rows with null coordinates — can't normalize without geo
+  if (lat === null || lng === null) {
+    return { ...row, lat, lng, route: row.route || null };
+  }
+  // 3. Resolve route label
+  const resolved = resolveRoute(row.route, lat, lng);
+  // 4. Apply geographic bounds corrections
+  const corrected = applyGeoBoundsCorrections(resolved, lat, lng);
+  return { ...row, lat, lng, route: corrected, route_display_text: corrected };
+}
+
+function deduplicateRows(rows) {
+  const seen = new Set();
+  return rows.filter(row => {
+    const key = `${row.lat}|${row.lng}|${row.date}|${row.dead_and_missing}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
+module.exports = { normalizeRow, deduplicateRows, ROUTE_MAP, geoFallback, fixSwappedLatLng, resolveRoute, applyGeoBoundsCorrections };
+```
+
+### Integration into iomIngestion.js
+
+The normalizer integrates into the existing `transformIomRows()` function:
+
+```javascript
+// server/ingestion/iomIngestion.js (updated section)
+const { normalizeRow, deduplicateRows } = require('./iomNormalizer');
+
+function transformIomRows(csvRows) {
+  const rawRows = csvRows.map((row) => {
+    const coords = parseCoordinates(row['Coordinates']);
+    // ... existing field mapping ...
+    return {
+      id: String(row['Main ID']),
+      // ... all other fields ...
+      lat: coords.lat,
+      lng: coords.lng,
+      route: row['Migration Route'] || null,
+      route_display_text: row['Migration Route'] || null,
+    };
+  });
+
+  // Apply normalization pipeline: fix coords, resolve route, apply geo bounds
+  const normalized = rawRows.map(normalizeRow);
+
+  // Deduplicate by lat/lng/date/dead_and_missing composite key
+  return deduplicateRows(normalized);
+}
+```
+
+### Handling the Whack-a-Mole Problem
+
+The normalization pipeline handles new unknown route names automatically via `geoFallback()`. When IOM introduces a new route label not in `ROUTE_MAP`, the pipeline falls through to geographic inference rather than storing `null` or `Others`.
+
+**The key insight:** `geoFallback()` is a deterministic geographic lookup based solely on lat/lng. It never returns `null` or `Others` — it always assigns a display route. This means:
+- Unknown route names fall through to geo inference automatically
+- `Others` is never stored in the database
+- Future IOM label changes that are already geographically correct require no code change
+
+**When `ROUTE_MAP` does need updating:** Only when IOM introduces a new route label that covers a genuinely new geographic area not handled by the existing `geoFallback()` boundaries. This is rare (IOM has stable major corridors).
+
+### Config-Driven vs. Code-Driven: Use Code
+
+**Decision: keep normalization rules as code (not JSON/YAML config).**
+
+Rationale:
+- `geoFallback()` is a complex decision tree with ~30 branches and ordering dependencies — not expressible as a simple key-value config without a mini-language
+- `ROUTE_MAP` is already a plain JS object — effectively a config file without the parsing overhead
+- The geographic bounds rules require conditional logic (`&&`, `||`) that JSON can't express
+- The project has no other config-file infrastructure; adding a JSON config reader adds complexity without benefit
+
+If the route map grows to 100+ entries, extract `ROUTE_MAP` to a separate `server/ingestion/routeMap.js` file. That's a readability improvement only — no architectural change.
+
+### Audit Logging for Normalization Changes
+
+**Decision: log summary counts, not per-row diffs.** Full row-level diffs would be too verbose (thousands of rows per ingestion run). The audit trail is:
+
+1. **`ingestion_log` rows_affected column** — count of rows actually written (after dedup)
+2. **Normalization summary logged to console** — during each ingestion run, log counts:
+   ```
+   [IOM] 4820 rows in CSV → 4736 after dedup → 387 route corrections applied → 4736 upserted
+   ```
+3. **No per-row normalization log** — the database is the authoritative record; the route column contains the result
+
+If a specific record's normalization needs auditing, the raw `Migration Route` value from IOM can be compared against the stored `route` value directly in the DB.
+
+**The `route` column stores normalized display names only.** Raw IOM labels are not preserved in the database. This is the correct design because:
+- The raw IOM label has no value to the application — only the display category matters
+- Storing raw labels would require the normalization logic to stay in the read path anyway
+- The IOM CSV is the source of truth for raw labels and can be re-downloaded at any time
+
+### Unknown Route Name Alerting Strategy
+
+When a new IOM route name is not found in `ROUTE_MAP`, it falls back to `geoFallback()`. To surface these "misses" without requiring a full audit trail:
+
+```javascript
+function resolveRoute(rawRoute, lat, lng) {
+  if (!rawRoute || rawRoute.trim() === '') return geoFallback(lat, lng);
+  const mapped = ROUTE_MAP[rawRoute];
+  if (!mapped || mapped === 'Others') {
+    // Count unmapped routes for the ingestion summary log
+    return { route: geoFallback(lat, lng), wasFallback: true, rawRoute };
+  }
+  return { route: mapped, wasFallback: false, rawRoute };
+}
+```
+
+Return the `wasFallback: true` flag from `normalizeRow()` and aggregate in `runIomIngestion()`:
+
+```javascript
+const normalized = rawRows.map(normalizeRow);
+const fallbackCount = normalized.filter(r => r._wasFallback).length;
+const uniqueFallbackRoutes = [...new Set(normalized.filter(r => r._wasFallback).map(r => r._rawRoute))];
+if (fallbackCount > 0) {
+  console.warn(`[IOM] ${fallbackCount} rows used geo fallback for unmapped routes: ${uniqueFallbackRoutes.join(', ')}`);
+}
+// Strip internal flags before DB insert
+const dbRows = normalized.map(({ _wasFallback, _rawRoute, ...rest }) => rest);
+```
+
+This surfaces new IOM labels in the server logs without requiring a separate alerting system.
+
+### Post-Normalization: Simplifying dataController.js
+
+After the normalization pipeline is in place and the database contains pre-normalized data, `findRouteDeath()` in `dataController.js` simplifies to:
+
+```javascript
+// BEFORE (200 lines with ROUTE_MAP, geoFallback, dedup, corrections)
+const findRouteDeath = async () => {
+  const rows = await db('route_deaths').select('*');
+  // ... 180 lines of normalization logic ...
+  return deduped;
+};
+
+// AFTER (plain SELECT — normalization is done at ingestion time)
+const findRouteDeath = async () => {
+  const rows = await db('route_deaths').select('*');
+  return rows.map(row => ({
+    id: row.id,
+    date: row.date,
+    quarter: row.quarter,
+    year: row.year,
+    dead: row.dead,
+    missing: row.missing,
+    dead_and_missing: row.dead_and_missing,
+    cause_of_death_displayText: row.cause_of_death_display_text,
+    cause_of_death: row.cause_of_death,
+    location: row.location,
+    description: row.description,
+    source: row.source,
+    lat: row.lat,
+    lng: row.lng,
+    route: row.route,
+    route_displayText: row.route,
+    source_url: row.source_url,
+  }));
+};
+```
+
+**IMPORTANT:** The response shape must remain identical — `route_displayText` must still be included (it now just mirrors `route`). The frontend depends on this field name.
+
+### Migration Strategy: Normalizing Existing Data
+
+The database currently contains ~4736 `route_deaths` rows with raw IOM route labels. Before removing normalization from `dataController.js`, the existing data must be normalized in-place.
+
+**Strategy: one-time normalization migration script (not a Knex migration).**
+
+Rationale: Knex migrations are for schema changes. Data normalization is a data transformation — use a standalone script:
+
+```javascript
+// scripts/normalizeRouteDeaths.js
+const db = require('../server/database/connection');
+const { normalizeRow } = require('../server/ingestion/iomNormalizer');
+
+async function run() {
+  const rows = await db('route_deaths').select('*');
+  let updated = 0;
+  for (const row of rows) {
+    const norm = normalizeRow(row);
+    if (norm.route !== row.route || norm.lat !== row.lat || norm.lng !== row.lng) {
+      await db('route_deaths').where({ id: row.id }).update({
+        route: norm.route,
+        route_display_text: norm.route,
+        lat: norm.lat,
+        lng: norm.lng,
+      });
+      updated++;
+    }
+  }
+  console.log(`Normalized ${updated} of ${rows.length} route_deaths rows`);
+  process.exit(0);
+}
+
+run().catch(err => { console.error(err); process.exit(1); });
+```
+
+Run once: `node scripts/normalizeRouteDeaths.js`
+
+After this script runs, the DB is clean. Going forward, `iomIngestion.js` stores normalized data, and `dataController.js` can be simplified.
+
+### Execution Order for Plan 06
+
+The correct task sequence is:
+
+1. **Create `server/ingestion/iomNormalizer.js`** — extract and unit-test the normalization logic
+2. **Update `iomIngestion.js`** to call `normalizeRow()` and `deduplicateRows()` inside `transformIomRows()`
+3. **Run `scripts/normalizeRouteDeaths.js`** — one-time backfill of existing DB rows
+4. **Simplify `dataController.findRouteDeath()`** — remove the ~180 lines of normalization
+5. **Verify** the API response is unchanged by comparing before/after output
+
+This order ensures the normalizer is tested in isolation before it touches production data, and the DB is clean before the controller is simplified.
+
+---
+
 ## Don't Hand-Roll
 
 | Problem | Don't Build | Use Instead | Why |
@@ -435,6 +758,8 @@ For `war_events` (no natural primary key unique constraint at the event_id level
 | Cron scheduling | setInterval with manual time math | node-cron | Cron expressions are well-understood; setInterval drifts and doesn't handle server restart |
 | OAuth token management | Custom token cache/refresh | Re-authenticate per run | Weekly runs are within 24h token lifetime — no need for refresh token logic in v1 |
 | Dedup logic | Custom Set-based dedup | Knex `onConflict().ignore()` + existing `uniqBy` | DB-level dedup is authoritative; memory dedup only catches duplicates within a single batch |
+| Geographic routing rules | ML classifier or external geocoding API | `geoFallback()` pure function | The routing boundaries are stable and well-defined; external APIs add latency, cost, and a failure point |
+| Route normalization config | YAML/JSON rule file with custom parser | Plain JS object (ROUTE_MAP) | JS is already a config format; adding a file format adds parsing overhead without expressiveness |
 
 ---
 
@@ -474,6 +799,24 @@ For `war_events` (no natural primary key unique constraint at the event_id level
 **What goes wrong:** `started_at` and `completed_at` are stored as local time, making log entries hard to compare across environments.
 **Why it happens:** `new Date()` returns local time in Node.
 **How to avoid:** Always store as UTC: `new Date().toISOString()` or use Postgres `NOW()` via `db.fn.now()`.
+
+### Pitfall 7: Normalizing Before Swapping Coordinates
+**What goes wrong:** `geoFallback()` and `applyGeoBoundsCorrections()` are called with swapped lat/lng values, so records near the equator with coords like `(14.52, 35.12)` vs `(35.12, 14.52)` get routed to the wrong region.
+**Why it happens:** The swap detection (`if (lat < -90 || lat > 90)`) must happen first. If geographic inference runs on the original (potentially swapped) coordinates, the wrong region is assigned and subsequent correction passes can't fix it.
+**How to avoid:** `fixSwappedLatLng()` is always the first step in `normalizeRow()`, before any route resolution. The order is: swap fix → route map lookup → geo fallback → bounds corrections.
+**Warning signs:** Records known to be in East Africa appearing in the South & East Asia category.
+
+### Pitfall 8: Simplifying dataController Before Backfilling Existing Data
+**What goes wrong:** `dataController.findRouteDeath()` is simplified to a plain SELECT before the existing ~4736 DB rows are normalized. The API returns raw IOM route labels instead of display categories. The frontend renders `"Central Mediterranean,Sahara Desert crossing"` instead of `"Central Mediterranean"`.
+**Why it happens:** The migration script and the controller simplification are applied in the wrong order.
+**How to avoid:** Run `scripts/normalizeRouteDeaths.js` and verify the DB contains clean data BEFORE removing normalization from `dataController.js`. The plan must enforce this sequence.
+**Warning signs:** After controller simplification, some route names in the UI contain commas or IOM-internal labels.
+
+### Pitfall 9: Deduplication at Ingestion Removes Records Visible in dataController
+**What goes wrong:** `dataController.js` currently deduplicates at read time. If we move dedup to ingestion time, records that were previously deduped at read time (and thus invisible to the API) are now actually absent from the DB. If the backfill script also deduplicates, records in the DB that the current API was already excluding will be deleted — which is the correct behavior, but it changes row count.
+**Why it happens:** The current DB has duplicates that the read-time dedup was hiding. Moving dedup to ingestion means the DB row count will decrease on first normalization run.
+**How to avoid:** This is acceptable — the DB should not contain duplicate records. Document the expected row count change. The API response before and after should be identical because the read-time dedup was already filtering them out.
+**Warning signs:** DB row count decreases after `normalizeRouteDeaths.js` runs — this is expected and correct.
 
 ---
 
@@ -602,6 +945,48 @@ cron.schedule('0 2 * * 1', () => {
 });
 ```
 
+### iomNormalizer.js — Full normalizeRow Function
+
+```javascript
+// server/ingestion/iomNormalizer.js
+// Source: extracted verbatim from server/controllers/api/data/dataController.js
+
+function normalizeRow(row) {
+  let { lat, lng } = row;
+
+  // Step 1: Fix swapped lat/lng — lat must be in [-90, 90]
+  if (lat !== null && lng !== null && (lat < -90 || lat > 90)) {
+    const tmp = lat; lat = lng; lng = tmp;
+  }
+
+  // Step 2: Skip geographic inference for null coords
+  if (lat === null || lng === null) {
+    return { ...row, lat, lng };
+  }
+
+  // Step 3: Resolve route from ROUTE_MAP, falling back to geoFallback
+  let route = row.route ? (ROUTE_MAP[row.route] || geoFallback(lat, lng)) : geoFallback(lat, lng);
+  if (route === 'Others') route = geoFallback(lat, lng);
+
+  // Step 4: Apply geographic bounds corrections
+  if (lng > 70 && route !== 'South & East Asia' && route !== 'Americas') route = 'South & East Asia';
+  if (lng < -35 && route !== 'Americas') route = 'Americas';
+  if (lat > 55 && !['English Channel', 'Eastern Land Borders'].includes(route)) route = geoFallback(lat, lng);
+  if (route === 'Western African' && (lng > 15 || lat < -17)) route = geoFallback(lat, lng);
+  if (route === 'Central Mediterranean' && (lng > 55 || lng < -15)) route = geoFallback(lat, lng);
+  if (route === 'Eastern Mediterranean' && (lng < 15 || lng > 45)) route = geoFallback(lat, lng);
+  if (route === 'Western Mediterranean' && (lng > 15 || lng < -25)) route = geoFallback(lat, lng);
+  if (route === 'Western Balkans' && (lng < 10 || lng > 50 || lat > 55 || lat < 35)) route = geoFallback(lat, lng);
+  if (route === 'Eastern Land Borders' && (lng > 40 || lng < 10)) route = geoFallback(lat, lng);
+  if (route === 'Horn of Africa' && (lng < 15 || lat > 30 || lng > 55)) route = geoFallback(lat, lng);
+  if (route === 'Iran-Afghanistan Corridor' && (lng < 42 || lng > 70 || lat > 40)) route = geoFallback(lat, lng);
+  if (route === 'Americas' && lng > -15) route = geoFallback(lat, lng);
+  if (route === 'Americas' && lng > -35 && lng < -15 && lat > 5 && lat < 36) route = 'Western African';
+
+  return { ...row, lat, lng, route, route_display_text: route };
+}
+```
+
 ### .env.example additions
 
 ```bash
@@ -622,6 +1007,7 @@ ADMIN_SECRET=your_random_secret_here
 | ACLED API key in query params | OAuth 2.0 bearer token | ~2023 (ACLED migrated) | Must POST to token endpoint first; no simple `?key=X` parameter |
 | IOM REST API | CSV download only | IOM never had a public REST API | Ingestion module must fetch full CSV each time; use `onConflict().ignore()` for idempotency |
 | node-cron v2/v3 | v4.2.1 | 2024-2025 | Same `cron.schedule()` API; ES module support added; no breaking changes for CJS usage |
+| Normalization at read time (dataController) | Normalization at write time (iomIngestion) | Phase 4 Plan 06 | DB contains clean data; read path is a plain SELECT; no runtime overhead per API call |
 
 **Deprecated/outdated:**
 - ACLED query-param authentication (`?email=X&key=Y`): The old API used this; the current API uses OAuth. Any existing examples using `?key=` are from the pre-2023 API and will not work.
@@ -650,6 +1036,11 @@ ADMIN_SECRET=your_random_secret_here
    - What's unclear: Maximum `limit` per page, and whether there's a requests-per-day cap
    - Recommendation: Use `limit=5000` (common ACLED default) with pagination loop. Add 500ms delay between pages if rate errors are encountered.
 
+5. **Deduplication in iomIngestion: DB-level vs. memory-level**
+   - What we know: Current `dataController.js` deduplicates at read time using a Set; `iomIngestion.js` uses `onConflict('id').ignore()` which only deduplicates by `id` (not by lat/lng/date/dead_and_missing)
+   - What's unclear: Are there records in the IOM CSV that share the same `id` but have different coordinates? Or records with different `id` values but identical lat/lng/date/dead_and_missing?
+   - Recommendation: Move the composite-key dedup (`lat|lng|date|dead_and_missing`) into `iomNormalizer.deduplicateRows()` so it runs before DB insert. This is more conservative than relying solely on `id` uniqueness.
+
 ---
 
 ## Validation Architecture
@@ -673,14 +1064,27 @@ ADMIN_SECRET=your_random_secret_here
 | INGEST-06 | POST /admin/csv/preview returns 401 without secret, 200 with | integration | `npx jest tests/server/admin.test.js -t "auth"` | Wave 0 |
 | INGEST-07 | POST /admin/csv/preview returns parsed rows as JSON | integration | `npx jest tests/server/admin.test.js -t "preview"` | Wave 0 |
 
+### Normalization-Specific Tests (Plan 06)
+| Behavior | Test Type | Automated Command |
+|----------|-----------|-------------------|
+| `fixSwappedLatLng()` swaps values when lat out of range | unit | `npx jest tests/server/iomNormalizer.test.js -t "fixSwappedLatLng"` |
+| `resolveRoute()` maps known IOM labels to display names | unit | `npx jest tests/server/iomNormalizer.test.js -t "resolveRoute"` |
+| `resolveRoute()` falls back to geoFallback for unknown labels | unit | `npx jest tests/server/iomNormalizer.test.js -t "geoFallback"` |
+| `applyGeoBoundsCorrections()` overrides out-of-bounds route | unit | `npx jest tests/server/iomNormalizer.test.js -t "bounds"` |
+| `deduplicateRows()` removes rows with identical composite key | unit | `npx jest tests/server/iomNormalizer.test.js -t "dedup"` |
+| `normalizeRow()` produces stable output for known fixtures | unit | `npx jest tests/server/iomNormalizer.test.js -t "normalizeRow"` |
+| After normalization, `findRouteDeath()` response shape unchanged | integration | `npx jest tests/server/dataController.test.js -t "routeDeath"` |
+
 ### Sampling Rate
 - **Per task commit:** `npx jest tests/server/ingestion.test.js tests/server/admin.test.js --passWithNoTests`
+- **Per normalization task commit:** `npx jest tests/server/iomNormalizer.test.js --passWithNoTests`
 - **Per wave merge:** `npx jest --testPathPattern=tests/server`
 - **Phase gate:** Full suite green before `/gsd:verify-work`
 
 ### Wave 0 Gaps
 - [ ] `tests/server/ingestion.test.js` — unit tests for all 3 ingestion modules (mocked fetch, mocked db)
 - [ ] `tests/server/admin.test.js` — integration tests for `/admin` routes using supertest
+- [ ] `tests/server/iomNormalizer.test.js` — unit tests for all normalization functions (Plan 06)
 - [ ] `db/migrations/002_create_ingestion_log.js` — must exist before any ingestion tests run (or mock db)
 
 ---
@@ -693,6 +1097,7 @@ ADMIN_SECRET=your_random_secret_here
 - [ACLED getting started](https://acleddata.com/api-documentation/getting-started) — OAuth authentication flow confirmed
 - [UNHCR asylum-applications API](https://api.unhcr.org/population/v1/asylum-applications/?limit=5) — live API response verified: fields `year`, `coo_name`, `coa_name`, `applied`, `maxPages`
 - [IOM Missing Migrants allData CSV](https://missingmigrants.iom.int/sites/g/files/tmzbdl601/files/report-migrant-incident/Missing_Migrants_Global_Figures_allData.csv) — CSV headers confirmed: `Main ID`, `Incident Date`, `Coordinates`, `Number of Dead`, `Migration Route`, etc.
+- `server/controllers/api/data/dataController.js` — source of truth for normalization logic: `ROUTE_MAP`, `geoFallback()`, swap detection, bounds corrections (code reviewed 2026-03-19)
 - `npm view` commands — confirmed versions: node-cron@4.2.1, multer@2.1.1, csv-parse@6.1.0, papaparse@5.5.3
 
 ### Secondary (MEDIUM confidence)
@@ -711,7 +1116,8 @@ ADMIN_SECRET=your_random_secret_here
 - Standard stack: HIGH — all library versions confirmed via npm registry
 - Architecture: HIGH — all patterns derived from existing codebase (seed.js, server.js, dataRoute.js)
 - API specifics: MEDIUM — ACLED OAuth flow and UNHCR response structure confirmed via live/official sources; ACLED field names confirmed from docs
+- Normalization pipeline: HIGH — derived directly from code review of dataController.js (2026-03-19); logic is moved verbatim, not redesigned
 - Pitfalls: HIGH — IOM coordinates format confirmed from live CSV, event_id type mismatch confirmed from code review, cron-in-test pitfall is well-known pattern
 
-**Research date:** 2026-03-17
+**Research date:** 2026-03-17 (original), 2026-03-19 (normalization update)
 **Valid until:** 2026-06-17 (APIs are stable; ACLED OAuth format unlikely to change; IOM CSV URL may shift — verify before implementation)
