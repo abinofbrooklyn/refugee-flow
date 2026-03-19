@@ -198,6 +198,10 @@ const findRouteDeath = async () => {
     if (mappedRoute === 'Horn of Africa' && (lng < 30 || lat > 30 || lng > 50)) {
       mappedRoute = geoFallback(lat, lng);
     }
+    // Western African records in Sudan/East Africa (lng > 25) — reroute to Horn of Africa
+    if (mappedRoute === 'Western African' && lng > 25 && lat < 15) {
+      mappedRoute = 'Horn of Africa';
+    }
     // Western Balkans records far from Balkans — reroute by geography
     if (mappedRoute === 'Western Balkans' && lng < 10) {
       mappedRoute = geoFallback(lat, lng);
