@@ -2,6 +2,7 @@ const { parse } = require('csv-parse/sync');
 const db = require('../database/connection');
 const { logIngestion } = require('./ingestionLogger');
 const { reduceGeoPercision } = require('../controllers/api/data/helpers/dataProcessors');
+const { normalizeRow, deduplicateRows } = require('./iomNormalizer');
 
 const IOM_CSV_URL =
   'https://missingmigrants.iom.int/sites/g/files/tmzbdl601/files/report-migrant-incident/Missing_Migrants_Global_Figures_allData.csv';
@@ -41,7 +42,7 @@ function monthToQuarter(month) {
  * @returns {Array<Object>}
  */
 function transformIomRows(csvRows) {
-  return csvRows.map((row) => {
+  const rawRows = csvRows.map((row) => {
     const coords = parseCoordinates(row['Coordinates']);
     const incidentDate = row['Incident Date'] || null;
     let quarter = null;
@@ -71,6 +72,15 @@ function transformIomRows(csvRows) {
       source_url: row['URL'] || null,
     };
   });
+
+  // Apply normalization pipeline: fix swapped coords, resolve route, apply geo bounds
+  const normalized = rawRows.map(normalizeRow);
+
+  // Strip internal tracking flags before returning DB-ready rows
+  const cleaned = normalized.map(({ _wasFallback, _rawRoute, ...rest }) => rest);
+
+  // Deduplicate by lat|lng|date|dead_and_missing composite key
+  return deduplicateRows(cleaned);
 }
 
 /**
@@ -96,6 +106,9 @@ async function runIomIngestion() {
   try {
     const csvRows = await fetchAndParseIomCsv();
     const rows = transformIomRows(csvRows).filter((r) => r.id && r.id !== 'null' && r.id !== 'undefined');
+
+    // Log normalization summary
+    console.log(`[IOM] ${csvRows.length} CSV rows -> ${rows.length} after normalization+dedup`);
 
     let totalInserted = 0;
     for (let i = 0; i < rows.length; i += BATCH_SIZE) {
