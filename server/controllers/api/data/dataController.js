@@ -139,10 +139,11 @@ const geoFallback = (lat, lng) => {
   if (lat > 30 && lng > 15 && lng <= 37) return 'Central Mediterranean';
   // Iran-Afghanistan Corridor
   if (lat > 30 && lng > 37) return 'Iran-Afghanistan Corridor';
-  // Asia Pacific
-  if (lng > 65) return 'Asia Pacific';
-  // Middle East (lat <= 30, lng 55-65)
-  if (lat <= 30 && lng > 55 && lng <= 65) return 'Iran-Afghanistan Corridor';
+  // Asia Pacific (South, Southeast, East Asia) — lng > 70
+  // Afghanistan heartland (lng 65-70) stays with Iran-Afghanistan Corridor
+  if (lng > 70) return 'Asia Pacific';
+  // Iran-Afghanistan Corridor (lng 55-70)
+  if (lat <= 30 && lng > 55 && lng <= 70) return 'Iran-Afghanistan Corridor';
   // East & Southern Africa (lat < -5, lng 25-55)
   if (lat <= -5 && lng > 25 && lng <= 55) return 'East & Southern Africa';
   // Horn of Africa — East Africa + Yemen (lng 30-55, lat -5 to 20)
@@ -188,7 +189,7 @@ const findRouteDeath = async () => {
     if (mappedRoute === 'Central Mediterranean' && (lng > 55 || lng < -15)) {
       mappedRoute = geoFallback(lat, lng);
     }
-    if (lng > 65 && mappedRoute !== 'Asia Pacific') {
+    if (lng > 70 && mappedRoute !== 'Asia Pacific' && mappedRoute !== 'Americas') {
       mappedRoute = 'Asia Pacific';
     }
     if (lng < -35 && mappedRoute !== 'Americas') {
@@ -229,8 +230,10 @@ const findRouteDeath = async () => {
     if (mappedRoute === 'Americas' && lng > -35 && lng < -15 && lat > 5 && lat < 36) {
       mappedRoute = 'Western African';
     }
+    // Americas records with positive longitude — source data error (lng should be negative)
+    // Keep in Americas rather than geo-routing to Asia
     if (mappedRoute === 'Americas' && lng > 0) {
-      mappedRoute = geoFallback(lat, lng);
+      // These are US-Mexico records with wrong sign — keep in Americas
     }
 
     deduped.push({
