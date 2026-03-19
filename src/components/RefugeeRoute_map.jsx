@@ -51,6 +51,12 @@ export default class RefugeeRoute_map extends React.Component {
     this.data = _.groupBy(nextProps.data,d => d.route);
     this.currentMapParams = _.find(dataDict,d => d.route === nextProps.currentRouteName) || dataDict[0];
 
+    // Update map padding when slideout is toggled
+    if (nextProps.slideoutCollapsed !== this.props.slideoutCollapsed) {
+      const rightPad = nextProps.slideoutCollapsed ? 0 : Math.round(this.mapContainer.offsetWidth * 0.55);
+      this.map.setPadding({ top: 0, bottom: 0, left: 0, right: rightPad });
+    }
+
     if(this.currentRouteName != nextProps.currentRouteName){
       this.currentRouteName = nextProps.currentRouteName;
       this.canvas_overlay_render(() => this.map.flyTo({center: [this.currentMapParams.center_lng,this.currentMapParams.center_lat],zoom:this.currentMapParams.zoom}));
@@ -69,6 +75,10 @@ export default class RefugeeRoute_map extends React.Component {
       // bearing: -14.57,
       // pitch: 39.50,
     }).addControl(new maplibregl.NavigationControl(),'top-right');
+
+    // Push the map's effective viewport left so content isn't hidden behind the slideout (55% width)
+    const slideoutWidth = Math.round(this.mapContainer.offsetWidth * 0.55);
+    this.map.setPadding({ top: 0, bottom: 0, left: 0, right: slideoutWidth });
 
     this.mapContainer_width = this.mapContainer.offsetWidth;
     this.mapContainer_height = this.mapContainer.offsetHeight;
@@ -120,8 +130,8 @@ export default class RefugeeRoute_map extends React.Component {
           : this.map.on('mousemove',this.handleMousemove);
         // fly
         !this.state.mouseover_toggle
-          ? this.canvas_overlay_render(() => this.map.flyTo({center: [p.lng,p.lat],zoom:10, offset:[-500,0]}))
-          : this.canvas_overlay_render(() => this.map.flyTo({center: [p.lng,p.lat],zoom:9, offset:[-500,0]}));
+          ? this.canvas_overlay_render(() => this.map.flyTo({center: [p.lng,p.lat],zoom:10}))
+          : this.canvas_overlay_render(() => this.map.flyTo({center: [p.lng,p.lat],zoom:9}));
         // inform cancel selected points
         this.state.mouseover_toggle && this.passRemoveClickedPointManager();
       }

@@ -122,7 +122,6 @@ export default class RefugeeRoute_textArea extends React.Component {
   constructor(props){
     super(props);
     this.state = {
-      collapseToggle : false,
       currentTab: 1,
     }
     this.handleTabClick = this.handleTabClick.bind(this);
@@ -157,12 +156,12 @@ export default class RefugeeRoute_textArea extends React.Component {
 
     // mapbox nav position will change if the tab collapsed
     const navCtrl = document.querySelector('.mapboxgl-ctrl-top-right');
-    if (navCtrl) navCtrl.style.right = this.state.collapseToggle ? '3.3%' : '57%';
+    if (navCtrl) navCtrl.style.right = this.props.slideoutCollapsed ? '3.3%' : '57%';
 
     return(
-      <Wrapper toggle={this.state.collapseToggle}>
+      <Wrapper toggle={this.props.slideoutCollapsed}>
         <Icon src='/assets/route_icon.svg'></Icon>
-        <CollapseButton onClick={() =>this.setState({collapseToggle: !this.state.collapseToggle}) }><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M190.4 354.1L91.9 256l98.4-98.1-30-29.9L32 256l128.4 128 30-29.9zm131.2 0L420 256l-98.4-98.1 30-29.9L480 256 351.6 384l-30-29.9z"/></svg></CollapseButton>
+        <CollapseButton onClick={this.props.onCollapseToggle}><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M190.4 354.1L91.9 256l98.4-98.1-30-29.9L32 256l128.4 128 30-29.9zm131.2 0L420 256l-98.4-98.1 30-29.9L480 256 351.6 384l-30-29.9z"/></svg></CollapseButton>
         {/* tab nav */}
         <TabWrapper>
           <TabItem onClick={()=> this.handleTabClick(1)} tabIndex={1} currentTab={this.state.currentTab}><TabText>Basic Info</TabText></TabItem>
