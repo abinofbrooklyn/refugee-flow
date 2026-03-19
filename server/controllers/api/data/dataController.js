@@ -106,8 +106,8 @@ const ROUTE_MAP = {
   'Sea crossings to Mayotte': 'East & Southern Africa',
   'DRC to Uganda': 'East & Southern Africa',
 
-  // === Middle East & Central Asia (Afghanistan/Iran corridor) ===
-  'Afghanistan to Iran': 'Middle East & Central Asia',
+  // === Iran-Afghanistan Corridor (Afghanistan/Iran corridor) ===
+  'Afghanistan to Iran': 'Iran-Afghanistan Corridor',
 
   // === Asia Pacific (Bay of Bengal, Myanmar/Bangladesh) ===
   'Bay of Bengal/Andaman Sea': 'Asia Pacific',
@@ -137,20 +137,20 @@ const geoFallback = (lat, lng) => {
   // Mediterranean & North Africa
   if (lat > 30 && lng >= -10 && lng <= 15) return 'Western Mediterranean';
   if (lat > 30 && lng > 15 && lng <= 37) return 'Central Mediterranean';
-  // Middle East & Central Asia
-  if (lat > 30 && lng > 37) return 'Middle East & Central Asia';
+  // Iran-Afghanistan Corridor
+  if (lat > 30 && lng > 37) return 'Iran-Afghanistan Corridor';
   // Asia Pacific
   if (lng > 65) return 'Asia Pacific';
   // Middle East (lat <= 30, lng 55-65)
-  if (lat <= 30 && lng > 55 && lng <= 65) return 'Middle East & Central Asia';
+  if (lat <= 30 && lng > 55 && lng <= 65) return 'Iran-Afghanistan Corridor';
   // East & Southern Africa (lat < -5, lng 25-55)
   if (lat <= -5 && lng > 25 && lng <= 55) return 'East & Southern Africa';
   // Horn of Africa — East Africa + Yemen (lng 30-55, lat -5 to 20)
   if (lat > -5 && lat <= 20 && lng > 30 && lng <= 55) return 'Horn of Africa';
   // Arabian Peninsula / Persian Gulf (lng 45-65, lat 20-30)
-  if (lat > 20 && lat <= 30 && lng > 45 && lng <= 65) return 'Middle East & Central Asia';
+  if (lat > 20 && lat <= 30 && lng > 45 && lng <= 65) return 'Iran-Afghanistan Corridor';
   // Persian Gulf / Iran area (lng 50-65, lat < 30 remaining)
-  if (lat <= 30 && lng > 50 && lng <= 65) return 'Middle East & Central Asia';
+  if (lat <= 30 && lng > 50 && lng <= 65) return 'Iran-Afghanistan Corridor';
   // Sahara transit — North Africa between lat 15-30
   if (lat > 15 && lat <= 30 && lng >= -10 && lng <= 30) return 'Central Mediterranean';
   // West, Central & Southern Africa (everything else in Africa)
