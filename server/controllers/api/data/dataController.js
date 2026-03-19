@@ -198,11 +198,23 @@ const findRouteDeath = async () => {
     if (mappedRoute === 'Horn of Africa' && (lng < 30 || lat > 30 || lng > 50)) {
       mappedRoute = geoFallback(lat, lng);
     }
+    // Records at lat > 55 in non-arctic routes — reroute to English Channel (Northern Europe transit)
+    if (lat > 55 && !['English Channel'].includes(mappedRoute)) {
+      mappedRoute = 'English Channel';
+    }
+    // Libya-labelled records at Indian coords (lng 65-85) — source data error, keep in Central Med
+    // Tanzania-labelled records at Tunisia coords — source data error, keep in East & Southern Africa
+    // These are unfixable without manual coordinate correction
+
     // Western African records in Sudan/East Africa (lng > 25) — reroute to Horn of Africa
     if (mappedRoute === 'Western African' && lng > 25 && lat < 15) {
       mappedRoute = 'Horn of Africa';
     }
     // Western Balkans records far from Balkans — reroute by geography
+    // Western Mediterranean records far from West Med — reroute
+    if (mappedRoute === 'Western Mediterranean' && (lng > 15 || lng < -25)) {
+      mappedRoute = geoFallback(lat, lng);
+    }
     if (mappedRoute === 'Western Balkans' && lng < 10) {
       mappedRoute = geoFallback(lat, lng);
     }
