@@ -2,16 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: completed
-stopped_at: Completed 04-05-PLAN.md
-last_updated: "2026-03-17T16:29:25.718Z"
-last_activity: 2026-03-17 — Phase 3 verified complete; all data served from Supabase Postgres
+status: unknown
+stopped_at: Completed 04-06-PLAN.md
+last_updated: "2026-03-19T22:59:39.211Z"
 progress:
   total_phases: 5
   completed_phases: 4
-  total_plans: 17
-  completed_plans: 17
-  percent: 100
+  total_plans: 18
+  completed_plans: 18
 ---
 
 # Project State
@@ -21,20 +19,17 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-11)
 
 **Core value:** Users can explore the human cost of conflict through an interactive, data-accurate visualization.
-**Current focus:** Phase 4 — Data Ingestion Pipeline (next up)
+**Current focus:** Phase 04 — data-ingestion-pipeline
 
 ## Current Position
 
-Phase: 3 of 5 complete — next is Phase 4 (Data Ingestion Pipeline)
-Plan: All Phase 3 plans complete (4/4)
-Status: Phases 1-3 complete — Phase 4 (Data Ingestion Pipeline) not yet started
-Last activity: 2026-03-17 — Phase 3 verified complete; all data served from Supabase Postgres
-
-Progress: [██████████] 100%
+Phase: 04 (data-ingestion-pipeline) — EXECUTING
+Plan: 1 of 6
 
 ## Performance Metrics
 
 **Velocity:**
+
 - Total plans completed: 0
 - Average duration: -
 - Total execution time: 0 hours
@@ -46,6 +41,7 @@ Progress: [██████████] 100%
 | - | - | - | - |
 
 **Recent Trend:**
+
 - Last 5 plans: -
 - Trend: -
 
@@ -65,6 +61,7 @@ Progress: [██████████] 100%
 | Phase 04-data-ingestion-pipeline P03 | 3 | 2 tasks | 4 files |
 | Phase 04-data-ingestion-pipeline P04 | 2 | 2 tasks | 4 files |
 | Phase 04-data-ingestion-pipeline P05 | 2 | 2 tasks | 4 files |
+| Phase 04 P06 | 24 | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -105,6 +102,8 @@ Recent decisions affecting current work:
 - [Phase 04-data-ingestion-pipeline]: CSV commit applies reduceGeoPercision(parseFloat(val), 2) to lat/lng columns before insert
 - [Phase 04-data-ingestion-pipeline]: Admin route added to routeRegistry.jsx (not App.jsx) — this project uses a registry-based router pattern with no App.jsx
 - [Phase 04-data-ingestion-pipeline]: Auth probe pattern: POST /admin/csv/preview without file body; 400=auth passed, 401=wrong secret
+- [Phase 04]: Remove 'Others' from ROUTE_MAP -- dead code since resolveRoute handles unmapped routes via geoFallback
+- [Phase 04]: Ingestion-time normalization: all route mapping, geo-fallback, bounds correction, dedup happens at write time not read time
 
 ### Pending Todos
 
@@ -116,6 +115,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-17T16:25:32.948Z
-Stopped at: Completed 04-05-PLAN.md
+Last session: 2026-03-19T22:59:39.207Z
+Stopped at: Completed 04-06-PLAN.md
 Resume file: None
