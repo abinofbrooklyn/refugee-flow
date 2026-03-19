@@ -231,11 +231,7 @@ const findRouteDeath = async () => {
     if (mappedRoute === 'Americas' && lng > -35 && lng < -15 && lat > 5 && lat < 36) {
       mappedRoute = 'Western African';
     }
-    // Americas records with positive longitude — source data error (lng should be negative)
-    // Keep in Americas rather than geo-routing to Asia
-    if (mappedRoute === 'Americas' && lng > 0) {
-      // These are US-Mexico records with wrong sign — keep in Americas
-    }
+    // Americas records with positive longitude — deleted from DB (source data errors)
 
     deduped.push({
       id: row.id,
