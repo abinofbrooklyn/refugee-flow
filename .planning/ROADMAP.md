@@ -109,10 +109,21 @@ Plans:
   3. All major IOM-tracked migration corridors appear on the route map
 **Plans**: TBD
 
+### Phase 6: React Router v6 Migration
+**Goal**: Eliminate legacy context API warnings by upgrading react-router-dom from v5 to v6, removing all deprecated patterns
+**Depends on**: Phase 1 (stabilize)
+**Requirements**: MOD-05
+**Success Criteria** (what must be TRUE):
+  1. Zero `childContextTypes` or `legacy context` warnings in the browser console
+  2. All routes navigate correctly — conflict, route, about, admin pages all work
+  3. Route parameters (e.g., `/route/:arg`) resolve correctly for all 12 routes
+  4. Browser back/forward navigation works without errors
+**Plans**: TBD
+
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
+Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -121,3 +132,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | 3. Database Migration | 4/4 | Complete   | 2026-03-17 |
 | 4. Data Ingestion Pipeline | 14/15 | In Progress (Plan 07 blocked on ACLED API access) | - |
 | 5. Data Coverage | 0/TBD | Not started | - |
+| 6. React Router v6 Migration | 0/TBD | Not started | - |

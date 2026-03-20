@@ -38,6 +38,10 @@
 - [x] **INGEST-06**: Admin can upload CSV data for sources without APIs via password-protected `/admin` route
 - [x] **INGEST-07**: CSV uploads show preview before committing to database
 
+### Router Migration
+
+- [ ] **MOD-05**: React Router upgraded to v6 with zero legacy context API warnings
+
 ### Data Coverage
 
 - [ ] **DATA-01**: Data gap audit identifies missing years and countries in current dataset
@@ -75,6 +79,7 @@
 | DB-01 through DB-04 | Phase 3 | Complete |
 | INGEST-01 through INGEST-07 | Phase 4 | Pending |
 | DATA-01 through DATA-03 | Phase 5 | Pending |
+| MOD-05 | Phase 6 | Pending |
 
 **Coverage:**
 - v1 requirements: 22 total
