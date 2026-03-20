@@ -9,6 +9,7 @@ const {
   findRouteIbcCountryList,
   findRouteIbc,
 } = require('../controllers/api/data/dataController');
+const { getIngestionHealth } = require('../controllers/api/data/ingestionHealthController');
 
 router.get('/note/:id', async (req, res) => {
   try {
@@ -63,5 +64,7 @@ router.get('/route_IBC', async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
+router.get('/ingestion-health', getIngestionHealth);
 
 module.exports = router;
