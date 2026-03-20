@@ -15,7 +15,7 @@ export default class RefugeeRoute extends React.Component {
     this.state = {
         loading: true,
         error: null,
-        currentRouteName: _.find(["Eastern Mediterranean","Central Mediterranean","Western Mediterranean","English Channel","Western Balkans","Eastern Land Borders","Western African","Americas","Horn of Africa","East & Southern Africa","Iran-Afghanistan Corridor","South & East Asia"],d => d.replace(/[^a-zA-Z0-9]/g, '') === props.match.params.arg),
+        currentRouteName: _.find(["Eastern Mediterranean","Central Mediterranean","Western Mediterranean","English Channel","Western Balkans","Eastern Land Borders","Americas","Western African","Horn of Africa","East & Southern Africa","Iran-Afghanistan Corridor","South & East Asia"],d => d.replace(/[^a-zA-Z0-9]/g, '') === props.match.params.arg),
         banned_category: null,
         clicked_datapoint: null,
         clickedPointRemoved: true,

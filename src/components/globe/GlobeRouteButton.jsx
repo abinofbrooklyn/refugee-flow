@@ -178,7 +178,7 @@ class GlobeRouteButton extends React.Component {
   componentDidMount(){
     // get Data
     get_routeCountryList().then( d => {
-      d.push({'country':'GLOBAL',route:[ 'Eastern Mediterranean','Central Mediterranean','Western Mediterranean','English Channel','Western Balkans','Eastern Land Borders','Western African','Americas','Horn of Africa','East & Southern Africa','Iran-Afghanistan Corridor','South & East Asia']})
+      d.push({'country':'GLOBAL',route:[ 'Eastern Mediterranean','Central Mediterranean','Western Mediterranean','English Channel','Western Balkans','Eastern Land Borders','Americas','Western African','Horn of Africa','East & Southern Africa','Iran-Afghanistan Corridor','South & East Asia']})
       this.setState({data: d});
     }).catch(() => {
       this.setState({ error: 'Failed to load route data.' });
