@@ -73,8 +73,8 @@ async function run() {
   console.log('After USBP/Title 8 filter:', filtered.length, 'rows');
 
   // Aggregate: monthly → quarterly by nationality + calendar year + quarter
-  // Merge all border regions (Southwest + Northern) into single "Land" entry
-  const quarterly = new Map();
+  // Track per-border-region breakdown (Southwest vs Northern) alongside total
+  const quarterly = new Map(); // key -> { total, southwest, northern }
   let skipped = 0;
 
   for (const r of filtered) {
@@ -82,6 +82,7 @@ async function run() {
     const fiscalYear = (r['Fiscal Year'] || '').replace('FYTD', '').trim();
     const count = parseInt(r['Encounter Count']) || 0;
     const nationality = r['Citizenship'];
+    const borderRegion = r['Land Border Region'] || '';
 
     if (!monthAbbr || !fiscalYear || !QUARTER_MAP[monthAbbr]) {
       skipped++;
@@ -92,9 +93,12 @@ async function run() {
     const quarter = QUARTER_MAP[monthAbbr];
     const normNationality = normalizeCbpNationality(nationality);
 
-    // One entry per nationality+year+quarter (merged across border regions)
-    const key = `Land|${normNationality}|${calYear}|${quarter}`;
-    quarterly.set(key, (quarterly.get(key) || 0) + count);
+    const key = `${normNationality}|${calYear}|${quarter}`;
+    if (!quarterly.has(key)) quarterly.set(key, { total: 0, southwest: 0, northern: 0 });
+    const entry = quarterly.get(key);
+    entry.total += count;
+    if (borderRegion === 'Southwest Land Border') entry.southwest += count;
+    else if (borderRegion === 'Northern Land Border') entry.northern += count;
   }
 
   console.log('Quarterly aggregates:', quarterly.size);
@@ -102,17 +106,19 @@ async function run() {
 
   // Build new dataset as a map keyed by unique composite key
   const newData = new Map();
-  for (const [key, count] of quarterly) {
-    if (count === 0) continue;
-    const [borderLocation, nationality, year, quarter] = key.split('|');
-    const upsertKey = `${borderLocation}|${nationality}|${year}|${quarter}`;
+  for (const [key, counts] of quarterly) {
+    if (counts.total === 0) continue;
+    const [nationality, year, quarter] = key.split('|');
+    const upsertKey = `Land|${nationality}|${year}|${quarter}`;
     newData.set(upsertKey, {
       route: ROUTE_NAME,
-      border_location: borderLocation,
+      border_location: 'Land',
       nationality_long: nationality,
       year,
       quarter,
-      count,
+      count: counts.total,
+      count_southwest: counts.southwest || null,
+      count_northern: counts.northern || null,
     });
   }
 
@@ -134,8 +140,8 @@ async function run() {
     const existing = existingMap.get(key);
     if (!existing) {
       toInsert.push(newRow);
-    } else if (existing.count !== newRow.count) {
-      toUpdate.push({ pk: existing.pk, count: newRow.count });
+    } else if (existing.count !== newRow.count || existing.count_southwest !== newRow.count_southwest || existing.count_northern !== newRow.count_northern) {
+      toUpdate.push({ pk: existing.pk, count: newRow.count, count_southwest: newRow.count_southwest, count_northern: newRow.count_northern });
     } else {
       unchanged++;
     }
@@ -155,7 +161,7 @@ async function run() {
         await trx('ibc_crossings').insert(toInsert.slice(i, i + BATCH_SIZE));
       }
       for (const row of toUpdate) {
-        await trx('ibc_crossings').where('pk', row.pk).update({ count: row.count });
+        await trx('ibc_crossings').where('pk', row.pk).update({ count: row.count, count_southwest: row.count_southwest, count_northern: row.count_northern });
       }
       if (staleKeys.length > 0) {
         await trx('ibc_crossings').whereIn('pk', staleKeys).del();
