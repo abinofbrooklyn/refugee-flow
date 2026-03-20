@@ -134,7 +134,7 @@ const GlobeControllerItems = styled.div`
   top: 160px;
   left: 98px;
   transition: all 300ms ease-in-out;
-  ${props => !props.show
+  ${props => !props.$show
   ? css`
     transform: translateX(-300px);
     opacity: 0;
@@ -154,7 +154,7 @@ const AllConflict = styled.button`
   font-weight: 400;
   color: white;
   padding: 5px 15px 5px 15px;
-  ${props => props.selectornot == 1 && css`
+  ${props => props.$selectornot == 1 && css`
     background: #3f4158;
     border-color: #8387b185;
   `}
@@ -175,7 +175,7 @@ const Conflict_Civilians = styled.button`
   font-weight: 400;
   color: white;
   padding: 5px 15px 5px 15px;
-  ${props => props.selectornot == 2 && css`
+  ${props => props.$selectornot == 2 && css`
     background: #3f4158;
     border-color: #8387b185;
   `}
@@ -192,7 +192,7 @@ const LegendWrapper = styled.div`
   height: 15px;
 
   &:before{
-    content: ${props => props.minMax && "'"+props.minMax[1]+"'"};
+    content: ${props => props.$minMax && "'"+props.$minMax[1]+"'"};
     font-weight: 300;
     color: white;
     font-size: 12px;
@@ -204,7 +204,7 @@ const LegendWrapper = styled.div`
   }
 
   &:after{
-    content: ${props => props.minMax && "'"+props.minMax[0]+"'"};
+    content: ${props => props.$minMax && "'"+props.$minMax[0]+"'"};
     right: 0;
     font-weight: 300;
     color: white;
@@ -224,7 +224,7 @@ const LegendTitle = styled.p`
   color: white;
   top: -50px;
   &:before{
-    content: ${props => props.mode === 1 ? "'Max'" : "'Others'" };
+    content: ${props => props.$mode === 1 ? "'Max'" : "'Others'" };
     font-weight: 300;
     color: white;
     font-size: 12px;
@@ -236,7 +236,7 @@ const LegendTitle = styled.p`
   }
 
   &:after{
-    content: ${props => props.mode === 1 ? "'Min'" : "'Civilians'" };
+    content: ${props => props.$mode === 1 ? "'Min'" : "'Civilians'" };
     font-weight: 300;
     color: white;
     font-size: 12px;
@@ -945,16 +945,16 @@ class GlobeContainer extends React.Component {
            />
           <GlobeControllerButton data-annotation="Map Filter|Filter to show only violence against civilians" onClick ={() => this.setState({controllerShow : !this.state.controllerShow})} >Map Filter</GlobeControllerButton>
 
-          <GlobeControllerItems show ={this.state.controllerShow}>
+          <GlobeControllerItems $show ={this.state.controllerShow}>
 
             <AllConflict
-              selectornot = {this.state.currentControllerSelection}
+              $selectornot = {this.state.currentControllerSelection}
               onClick = {() => this.globeControllerClick(1)}
               >All Armed Conflict
             </AllConflict>
 
             <Conflict_Civilians
-              selectornot = {this.state.currentControllerSelection}
+              $selectornot = {this.state.currentControllerSelection}
               onClick = {() => this.globeControllerClick(2)}
               >Conflict Against Civilians
             </Conflict_Civilians>
@@ -978,8 +978,8 @@ class GlobeContainer extends React.Component {
             {this.state.rotatePause ? '\u25B6' : '\u23F8'}
           </button>
         </GlobeNavPanel>
-        <LegendWrapper data-annotation="Fatality Scale|Color shows fatality count per event" minMax = {this.state.warData && this.state.currentYear && _.find(this.state.warData, d => d.year === this.state.currentYear)['scaler'].domain()}>
-          <LegendTitle mode={this.state.currentControllerSelection}>Fatality Count</LegendTitle>
+        <LegendWrapper data-annotation="Fatality Scale|Color shows fatality count per event" $minMax = {this.state.warData && this.state.currentYear && _.find(this.state.warData, d => d.year === this.state.currentYear)['scaler'].domain()}>
+          <LegendTitle $mode={this.state.currentControllerSelection}>Fatality Count</LegendTitle>
           <Legend src={this.state.currentControllerSelection === 1 ? './assets/globe_lagend-all.png' : './assets/globe_lagend-civilian.png'}></Legend>
         </LegendWrapper>
 

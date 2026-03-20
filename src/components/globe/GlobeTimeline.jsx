@@ -99,11 +99,11 @@ const QuarterButton = styled.button`
     left: -20px;
   }
 
-  ${props => props.param === 'disabled' && css`
+  ${props => props.$param === 'disabled' && css`
     opacity: .2;
   `}
 
-  ${props => props.param === 'currentYear' && css`
+  ${props => props.$param === 'currentYear' && css`
     &:hover{
       opacity: 0.7;
       color: #41edb8;
@@ -111,7 +111,7 @@ const QuarterButton = styled.button`
     }
   `}
 
-  ${props => props.param === 'currentYearSelected' && css`
+  ${props => props.$param === 'currentYearSelected' && css`
     color: #41edb8;
     font-weight: 500;
     &:hover{
@@ -167,7 +167,7 @@ class Timeline extends React.Component {
         </YearButton>
 
         <QuarterButton
-          param = {this.quater_selected_check(1,year)}
+          $param = {this.quater_selected_check(1,year)}
           disabled = {this.checkQuaterDisabled(year)}
           onMouseOver= {() => {
             this.setState({current_Selected_Quater: 1 });
@@ -176,7 +176,7 @@ class Timeline extends React.Component {
           >
           Quarter 1</QuarterButton>
         <QuarterButton
-          param = {this.quater_selected_check(2,year)}
+          $param = {this.quater_selected_check(2,year)}
           disabled = {this.checkQuaterDisabled(year)}
           onMouseOver= {() =>{
             this.setState({current_Selected_Quater: 2 });
@@ -185,7 +185,7 @@ class Timeline extends React.Component {
           >
           Quarter 2</QuarterButton>
         <QuarterButton
-          param = {this.quater_selected_check(3,year)}
+          $param = {this.quater_selected_check(3,year)}
           disabled = {this.checkQuaterDisabled(year)}
           onMouseOver= {() => {
             this.setState({current_Selected_Quater: 3 });
@@ -194,7 +194,7 @@ class Timeline extends React.Component {
           >
           Quarter 3</QuarterButton>
         <QuarterButton
-          param = {this.quater_selected_check(4,year)}
+          $param = {this.quater_selected_check(4,year)}
           disabled = {this.checkQuaterDisabled(year)}
           onMouseOver= {() => {
             this.setState({current_Selected_Quater: 4 });
