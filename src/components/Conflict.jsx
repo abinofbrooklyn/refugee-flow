@@ -16,9 +16,12 @@ class Conflict extends React.Component {
   }
 
   evokePrompt = _.once(() => {
-    !this.state.stillLoading && _.delay(() =>
-      d3.select('.annotation-wrapper').style('display','block').style('opacity','1')
-    , 2000 )
+    const fromLanding = sessionStorage.getItem('lastPage') === '/landing' ||
+      !sessionStorage.getItem('lastPage');
+    if (!fromLanding) return;
+    !this.state.stillLoading && _.delay(() => {
+      d3.select('.annotation-wrapper').style('display','block').style('opacity','1');
+    }, 2000 )
   })
 
   loadingManager(boolean){
