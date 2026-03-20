@@ -49,4 +49,4 @@ typings/
 .DS_Store
 config.js
 dump.rdb
-*.dump
+*.dumptmp/
