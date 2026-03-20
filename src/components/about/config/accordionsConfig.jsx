@@ -214,6 +214,19 @@ export const accordions = [
           </>
         ),
       },
+      {
+        children: (
+          <>
+            &#8226;
+            &nbsp;
+            <em>
+              <a target="_blank" rel="noopener noreferrer" href='https://www.cbp.gov/newsroom/stats/nationwide-encounters'>U.S. Customs and Border Protection</a>
+            </em>
+            &nbsp;
+            (CBP) publishes monthly encounter statistics for U.S. land borders. Refugee Flow uses Title 8 U.S. Border Patrol apprehension data for the Americas route, aggregated quarterly by nationality. CBP data covers FY2020 (October 2019) to present. Pre-2020 data is not available in machine-readable format.
+          </>
+        ),
+      },
     ],
   },
 ];
