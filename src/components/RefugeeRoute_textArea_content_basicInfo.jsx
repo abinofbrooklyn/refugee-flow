@@ -701,7 +701,7 @@ export default class RefugeeRoute_textArea_content_basicInfo extends React.Compo
           onClick={()=> { const el = document.getElementById('CurrentSituation__text'); if (el) el.scrollTop = 0; }}>
           {(() => { const rd = _.find(routeDescDict,d => d.route === this.currentRouteName); return rd ? this.description(rd.desc) : null; })()}
         </CurrentSituation>
-        <DataSource top='-5px' onClick={() => window.open(this.currentRouteName === 'Americas' ? 'https://www.cbp.gov/newsroom/stats/nationwide-encounters' : 'https://frontex.europa.eu/along-eu-borders/migratory-routes/central-mediterranean-route/', '_blank')}>
+        <DataSource top='-5px' onClick={() => window.open(this.currentRouteName === 'Americas' ? 'https://www.cbp.gov/newsroom/stats/nationwide-encounters' : this.currentRouteName === 'English Channel' ? 'https://www.gov.uk/government/statistical-data-sets/immigration-system-statistics-data-tables' : 'https://frontex.europa.eu/along-eu-borders/migratory-routes/central-mediterranean-route/', '_blank')}>
           <svg x="0px" y="0px" width="18.014px" height="19.304px" viewBox="0 0 18.014 19.304">
           <defs>
           </defs>
