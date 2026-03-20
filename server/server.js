@@ -49,7 +49,11 @@ if (require.main === module) {
 
   // Staggered schedules — Eurostat before UNHCR so seasonal ratios are available
   // All jobs wrapped with retry (3 attempts, exponential backoff) + email alert on final failure
-  cron.schedule('0 2 * * 1', () => runWithRetry('acled', runAcledIngestion));                // Monday 02:00 (weekly)
+  if (process.env.ACLED_EMAIL && process.env.ACLED_PASSWORD) {
+    cron.schedule('0 2 * * 1', () => runWithRetry('acled', runAcledIngestion));              // Monday 02:00 (weekly)
+  } else {
+    console.log('[ACLED cron] Skipped — ACLED_EMAIL/ACLED_PASSWORD not set. Will enable when API access is granted.');
+  }
   cron.schedule('0 2 * * 3', () => runWithRetry('eurostat', runEurostatIngestion));           // Wednesday 02:00 (weekly, before UNHCR)
   cron.schedule('0 2 * * 5', () => runWithRetry('iom', runIomIngestion));                    // Friday 02:00 (weekly)
   cron.schedule('0 4 * * 5', () => runWithRetry('unhcr', runUnhcrIngestion));                // Friday 04:00 (weekly, after Eurostat)
