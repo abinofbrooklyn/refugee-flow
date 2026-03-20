@@ -1,11 +1,11 @@
 const { sendIngestionAlert } = require('./alerter');
 
 const MAX_RETRIES = 3;
-const BASE_DELAY_MS = 30000; // 30 seconds
+const BASE_DELAY_MS = process.env.NODE_ENV === 'test' ? 0 : 30000;
 
 /**
  * Run an ingestion function with retry logic and alerting on final failure.
- * Exponential backoff: 30s, 60s, 120s between attempts.
+ * Exponential backoff: 30s, 60s, 120s between attempts (0 in test).
  *
  * @param {string} source - Source name (for logging and alerts)
  * @param {Function} fn - Async ingestion function to run
