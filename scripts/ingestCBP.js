@@ -63,10 +63,12 @@ async function run() {
 
   console.log('Total CSV rows:', records.length);
 
-  // Filter: USBP + Title 8 only (equivalent to Frontex IBC detections)
+  // Filter: USBP + Title 8 + land borders only (equivalent to Frontex IBC detections)
+  // Exclude "Other" (air/sea/interior) — not border crossings
   const filtered = records.filter(r =>
     r['Component'] === 'U.S. Border Patrol' &&
-    r['Title of Authority'] === 'Title 8'
+    r['Title of Authority'] === 'Title 8' &&
+    r['Land Border Region'] !== 'Other'
   );
   console.log('After USBP/Title 8 filter:', filtered.length, 'rows');
 
@@ -136,12 +138,16 @@ async function run() {
     } else {
       unchanged++;
     }
+    existingMap.delete(key);
   }
 
-  console.log(`Diff: ${toInsert.length} new, ${toUpdate.length} updated, ${unchanged} unchanged`);
+  // Rows in DB but not in new data = stale, remove them
+  const staleKeys = [...existingMap.values()].map(r => r.pk);
+
+  console.log(`Diff: ${toInsert.length} new, ${toUpdate.length} updated, ${unchanged} unchanged, ${staleKeys.length} stale`);
 
   // Apply changes in a transaction
-  if (toInsert.length > 0 || toUpdate.length > 0) {
+  if (toInsert.length > 0 || toUpdate.length > 0 || staleKeys.length > 0) {
     await db.transaction(async trx => {
       const BATCH_SIZE = 500;
       for (let i = 0; i < toInsert.length; i += BATCH_SIZE) {
@@ -150,8 +156,11 @@ async function run() {
       for (const row of toUpdate) {
         await trx('ibc_crossings').where('pk', row.pk).update({ count: row.count });
       }
+      if (staleKeys.length > 0) {
+        await trx('ibc_crossings').whereIn('pk', staleKeys).del();
+      }
     });
-    console.log('Done! Inserted:', toInsert.length, 'Updated:', toUpdate.length);
+    console.log('Done! Inserted:', toInsert.length, 'Updated:', toUpdate.length, 'Removed stale:', staleKeys.length);
   } else {
     console.log('No changes needed — data is already up to date.');
   }
