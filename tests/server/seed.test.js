@@ -1,10 +1,4 @@
-const knex = require('knex');
-require('dotenv').config();
-
-const db = knex({
-  client: 'pg',
-  connection: process.env.DATABASE_URL,
-});
+const db = require('../../server/database/connection');
 
 afterAll(async () => {
   await db.destroy();

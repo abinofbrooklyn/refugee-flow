@@ -59,19 +59,30 @@ describe('fetchAllUnhcrApplications()', () => {
 // --- transformUnhcrItems ---
 
 describe('transformUnhcrItems()', () => {
+  // Use non-EU destinations — EU countries are filtered out (Eurostat owns EU/EEA data)
   const sampleItems = [
-    { year: 2022, coo_name: 'Syria', coa_name: 'Germany', applied: '500' },
-    { year: 2021, coo_name: 'Afghanistan', coa_name: 'France', applied: '300' },
+    { year: 2022, coo_name: 'Syria', coa_name: 'Turkey', applied: '500' },
+    { year: 2021, coo_name: 'Afghanistan', coa_name: 'Pakistan', applied: '300' },
   ];
 
   test('Test 3: maps coo_name to origin, coa_name to destination, applied to value', () => {
     const result = transformUnhcrItems(sampleItems);
     expect(result[0].origin).toBe('Syria');
-    expect(result[0].destination).toBe('Germany');
+    expect(result[0].destination).toBe('Turkey');
     expect(result[0].value).toBe(500);
     expect(result[1].origin).toBe('Afghanistan');
-    expect(result[1].destination).toBe('France');
+    expect(result[1].destination).toBe('Pakistan');
     expect(result[1].value).toBe(300);
+  });
+
+  test('Test 3b: filters out EU/EEA destinations (Eurostat owns those)', () => {
+    const euItems = [
+      { year: 2022, coo_name: 'Syria', coa_name: 'Germany', applied: '500' },
+      { year: 2022, coo_name: 'Syria', coa_name: 'Turkey', applied: '200' },
+    ];
+    const result = transformUnhcrItems(euItems);
+    expect(result).toHaveLength(1);
+    expect(result[0].destination).toBe('Turkey');
   });
 
   test("Test 4: sets quarter to 'q1' for all records (UNHCR has annual data only)", () => {
@@ -98,7 +109,12 @@ describe('runUnhcrIngestion()', () => {
     const mergeMock = jest.fn().mockResolvedValue(mergeResult);
     const onConflictMock = jest.fn().mockReturnValue({ merge: mergeMock });
     const insertMock = jest.fn().mockReturnValue({ onConflict: onConflictMock });
-    db.mockReturnValue({ insert: insertMock });
+    // Chain for db('asy_applications').select().sum().whereIn().groupBy()
+    const groupByMock = jest.fn().mockResolvedValue([]);
+    const whereInMock = jest.fn().mockReturnValue({ groupBy: groupByMock });
+    const sumMock = jest.fn().mockReturnValue({ whereIn: whereInMock });
+    const selectMock = jest.fn().mockReturnValue({ sum: sumMock });
+    db.mockReturnValue({ insert: insertMock, select: selectMock });
     return { db, insertMock, onConflictMock, mergeMock };
   }
 
@@ -106,7 +122,8 @@ describe('runUnhcrIngestion()', () => {
     setupDbMock();
     getLastSyncDate.mockResolvedValue(null);
 
-    const page1 = { page: 1, maxPages: 1, items: [{ year: 2022, coo_name: 'Syria', coa_name: 'Germany', applied: '100' }] };
+    // Use non-EU destination so record is not filtered out
+    const page1 = { page: 1, maxPages: 1, items: [{ year: 2022, coo_name: 'Syria', coa_name: 'Turkey', applied: '100' }] };
     global.fetch.mockResolvedValueOnce({ ok: true, json: async () => page1 });
 
     await runUnhcrIngestion();

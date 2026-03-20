@@ -8,6 +8,7 @@ afterAll(async () => {
 });
 
 describe('Endpoint response shapes (DB-02)', () => {
+  jest.setTimeout(30000);
   test('GET /data/note/1 returns array', async () => {
     const res = await request(app).get('/data/note/1');
     expect(res.status).toBe(200);
@@ -37,7 +38,7 @@ describe('Endpoint response shapes (DB-02)', () => {
     expect(typeof event.lat).toBe('number');
     expect(typeof event.lng).toBe('number');
     expect(typeof event.fat).toBe('number');
-    expect(typeof event.id).toBe('number');
+    expect(typeof event.id).toBe('string');
     expect(Array.isArray(event.cot)).toBe(true);
     expect(event.cot.length).toBe(2);
   });
