@@ -1,6 +1,6 @@
 import React from 'react';
 import styled from 'styled-components';
-import { BrowserRouter as Router, Route, Switch, Redirect, Link } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import _ from 'lodash';
 import { color_map } from '../data/routeDictionary';
 import dataDict from '../data/IBC_crossingCountByCountry.json';
@@ -216,34 +216,32 @@ export default class RefugeeRoute_titleGroup extends React.Component {
     return(
       <Wrapper>
         <Title>{this.currentRouteName && this.currentRouteName}</Title>
-        <Router>
-          <div>
-            {(() => {
-              const index = _.findIndex(dataDict, d => d.route === this.currentRouteName);
-              const isFirst = index <= 0;
-              const isLast = index === -1 || index >= dataDict.length - 1;
-              return (
-                <>
-                  <Button_previous
-                    disabled={isFirst}
-                    onClick={() => !isFirst && this.handleClick('previous')}>
-                    <Link to={"/route/" + this.handleRouting('previous')}>
-                      <svg fill="white" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M128 320l128-128 128 128z"/></svg>
-                    </Link>
-                  </Button_previous>
+        <>
+          {(() => {
+            const index = _.findIndex(dataDict, d => d.route === this.currentRouteName);
+            const isFirst = index <= 0;
+            const isLast = index === -1 || index >= dataDict.length - 1;
+            return (
+              <>
+                <Button_previous
+                  disabled={isFirst}
+                  onClick={() => !isFirst && this.handleClick('previous')}>
+                  <Link to={"/route/" + this.handleRouting('previous')}>
+                    <svg fill="white" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M128 320l128-128 128 128z"/></svg>
+                  </Link>
+                </Button_previous>
 
-                  <Button_next
-                    disabled={isLast}
-                    onClick={() => !isLast && this.handleClick('next')}>
-                    <Link to={"/route/" + this.handleRouting('next')}>
-                      <svg fill="white" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M128 192l128 128 128-128z"/></svg>
-                    </Link>
-                  </Button_next>
-                </>
-              );
-            })()}
-          </div>
-        </Router>
+                <Button_next
+                  disabled={isLast}
+                  onClick={() => !isLast && this.handleClick('next')}>
+                  <Link to={"/route/" + this.handleRouting('next')}>
+                    <svg fill="white" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M128 192l128 128 128-128z"/></svg>
+                  </Link>
+                </Button_next>
+              </>
+            );
+          })()}
+        </>
         <Legend>{this.legendGenerator()}</Legend>
 
         <Instructions>
