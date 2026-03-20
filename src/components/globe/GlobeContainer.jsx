@@ -967,14 +967,16 @@ class GlobeContainer extends React.Component {
           <Compass src='./assets/compass_icon.png' onClick={() => this.gv.setTarget([-11.874010, 44.605859],945)}></Compass>
           <ZoomIn  src='./assets/zoomin_icon.png'  onClick={() => this.gv.zoom(100)}></ZoomIn>
           <ZoomOut src='./assets/zoomout_icon.png' onClick={() => this.gv.zoom(-100)}></ZoomOut>
-          <GlobeControllerButton
+          <button
             onClick={() => this.setState(prev => ({ rotatePause: !prev.rotatePause }))}
             aria-label={this.state.rotatePause ? 'Resume globe rotation' : 'Pause globe rotation'}
             title={this.state.rotatePause ? 'Resume rotation' : 'Pause rotation'}
-            style={{ position: 'absolute', top: '110px', padding: '8px 14px', left: '-8px', fontSize: '18px' }}
+            style={{ position: 'absolute', top: '115px', width: '25px', height: '25px', padding: 0, left: '0px', fontSize: '12px', background: '#3f415870', border: '1px solid #555875cf', borderRadius: '3px', color: 'white', cursor: 'pointer', opacity: 0.6, transition: 'all 300ms' }}
+            onMouseEnter={e => e.target.style.opacity = 1}
+            onMouseLeave={e => e.target.style.opacity = 0.6}
           >
             {this.state.rotatePause ? '\u25B6' : '\u23F8'}
-          </GlobeControllerButton>
+          </button>
         </GlobeNavPanel>
         <LegendWrapper data-annotation="Fatality Scale|Color shows fatality count per event" minMax = {this.state.warData && this.state.currentYear && _.find(this.state.warData, d => d.year === this.state.currentYear)['scaler'].domain()}>
           <LegendTitle mode={this.state.currentControllerSelection}>Fatality Count</LegendTitle>
