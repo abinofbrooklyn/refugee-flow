@@ -32,7 +32,7 @@ const CITIZEN_CODES = {
   ML: 'Mali', MR: 'Mauritania', MA: 'Morocco', MZ: 'Mozambique', MM: 'Myanmar',
   NP: 'Nepal', NE: 'Niger', NG: 'Nigeria', PK: 'Pakistan', PS: 'Palestine',
   RW: 'Rwanda', SA: 'Saudi Arabia', SN: 'Senegal', SL: 'Sierra Leone', SO: 'Somalia',
-  ZA: 'South Africa', LK: 'Sri Lanka', SD: 'Sudan', SY: 'Syrian Arab Rep.',
+  ZA: 'South Africa', LK: 'Sri Lanka', SD: 'Sudan',
   TZ: 'Tanzania', TG: 'Togo', TN: 'Tunisia', TR: 'Turkey', UG: 'Uganda',
   AE: 'United Arab Emirates', YE: 'Yemen', ZM: 'Zambia', ZW: 'Zimbabwe',
   CD: 'Dem. Rep. of the Congo', CG: 'Rep. of the Congo', CF: 'Central African Rep.',
