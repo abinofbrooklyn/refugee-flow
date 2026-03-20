@@ -43,6 +43,7 @@ const LabelCard = styled.div`
   border-radius: 4px;
   padding: 6px 10px;
   z-index: 21;
+  white-space: nowrap;
 `
 const LT = styled.span`
   display: inline;
@@ -57,7 +58,27 @@ const LD = styled.span`
   color: #a0a0b8;
 `
 
-// Custom placement rules per annotation title
+const LABEL_PADDING = 8;
+
+// Estimate label width for clamping
+function estimateLabelWidth(title, desc) {
+  return title.length * 6.5 + desc.length * 5 + 32;
+}
+
+// Clamp position to stay within viewport
+function clamp(pos, title, desc) {
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+  const labelW = Math.min(estimateLabelWidth(title, desc), 300);
+  const labelH = 28;
+
+  return {
+    top: Math.max(LABEL_PADDING + 40, Math.min(pos.top, vh - labelH - LABEL_PADDING)),
+    left: Math.max(LABEL_PADDING, Math.min(pos.left, vw - labelW - LABEL_PADDING)),
+  };
+}
+
+// Design-intent placement rules — position relative to element rect
 // Each returns { top, left } in viewport coordinates
 const PLACEMENT = {
   'Select Region': (rect) => ({
@@ -69,37 +90,67 @@ const PLACEMENT = {
     left: rect.right + 40,
   }),
   'Timeline': (rect) => ({
-    // To the right of the timeline sidebar, vertically centered
     top: rect.top + 80,
     left: rect.right + 15,
   }),
   'Refugee Routes': (rect) => ({
-    // Vertically centered with the route icon, to the right
     top: rect.top - 30,
     left: rect.right + 15,
   }),
-  'Map Navigation': (rect) => ({
-    // To the left of the zoom controls, aligned with buttons
-    top: rect.top + 40,
-    left: rect.left - 180,
-  }),
+  'Map Navigation': (rect) => {
+    const labelW = 220;
+    // Place to the left if there's room, otherwise to the right
+    const left = rect.left - labelW - 12 > 0
+      ? rect.left - labelW - 12
+      : rect.right + 12;
+    return { top: rect.top + 40, left };
+  },
   'Asylum Applications': (rect) => ({
-    // Centered horizontally in the panel, near the top
     top: rect.top + 120,
     left: rect.left + 20,
   }),
-  'Conflict Statistics': () => null, // Handled separately as 3 individual labels
   'Fatality Scale': (rect) => ({
-    // Below the legend
     top: rect.bottom + 10,
     left: rect.left,
   }),
   'Data Sources': (rect) => ({
-    // To the right of the data sources icon, shifted up
     top: rect.top - 15,
     left: rect.right + 15,
   }),
+  'Total Fatality': (rect) => ({
+    top: rect.top - 30,
+    left: rect.left,
+  }),
+  'Civilian Fatality': (rect) => ({
+    top: rect.top - 30,
+    left: rect.left,
+  }),
+  'Conflict Count': (rect) => ({
+    top: rect.top - 30,
+    left: rect.left,
+  }),
 };
+
+// Fallback: place to the right of element, or left if no room, or below
+function autoPosition(rect, title, desc) {
+  const vw = window.innerWidth;
+  const labelW = Math.min(estimateLabelWidth(title, desc), 300);
+  const gap = 12;
+
+  let top = rect.top + rect.height / 2 - 14;
+  let left;
+
+  if (rect.right + gap + labelW + LABEL_PADDING < vw) {
+    left = rect.right + gap;
+  } else if (rect.left - gap - labelW - LABEL_PADDING > 0) {
+    left = rect.left - gap - labelW;
+  } else {
+    left = rect.left + rect.width / 2 - labelW / 2;
+    top = rect.bottom + gap;
+  }
+
+  return { top, left };
+}
 
 class Annotation extends React.Component {
   constructor(props) {
@@ -108,13 +159,26 @@ class Annotation extends React.Component {
   }
 
   componentDidMount() {
-    this.scanLabels();
-    this._resize = () => this.scanLabels();
+    this._resize = _.debounce(() => this.scanLabels(), 150);
     window.addEventListener('resize', this._resize);
+
+    // Watch for when overlay is made visible (triggered externally via d3)
+    // and scan labels at that point — all other elements will have loaded
+    this._observer = new MutationObserver(() => {
+      const el = document.querySelector('.annotation-wrapper');
+      if (el && getComputedStyle(el).display !== 'none') {
+        this.scanLabels();
+      }
+    });
+    const wrapper = document.querySelector('.annotation-wrapper');
+    if (wrapper) {
+      this._observer.observe(wrapper, { attributes: true, attributeFilter: ['style'] });
+    }
   }
 
   componentWillUnmount() {
     window.removeEventListener('resize', this._resize);
+    if (this._observer) this._observer.disconnect();
   }
 
   scanLabels() {
@@ -122,38 +186,24 @@ class Annotation extends React.Component {
     const labels = [];
 
     els.forEach((el) => {
-      const [title, desc] = el.getAttribute('data-annotation').split('|');
-      const rect = el.getBoundingClientRect();
+      const attr = el.getAttribute('data-annotation');
+      if (!attr || !attr.includes('|')) return;
+      const [title, desc] = attr.split('|');
       const name = title.trim();
+      const description = desc.trim();
+      const rect = el.getBoundingClientRect();
+
+      // Skip elements not in the document flow (no position at all)
+      if (rect.top === 0 && rect.left === 0 && rect.width === 0 && rect.height === 0) return;
+
+      // Use design-intent placement if available, otherwise auto-position
       const placer = PLACEMENT[name];
+      const rawPos = placer ? placer(rect) : autoPosition(rect, name, description);
 
-      if (placer) {
-        const pos = placer(rect);
-        if (pos) labels.push({ title: name, desc: desc.trim(), ...pos, key: name });
-      }
+      // Clamp to viewport bounds
+      const pos = clamp(rawPos, name, description);
+      labels.push({ title: name, desc: description, ...pos, key: name });
     });
-
-    // Add three individual stats labels based on the stats board layout
-    // Stats board: bottom:50px, right:25%, width = (innerWidth*0.75 - 165 - 90)
-    const vw = window.innerWidth;
-    const vh = window.innerHeight;
-    const containerWidth = (vw * 0.75) - 165 - 90;
-    const cardWidth = containerWidth / 4;
-    const marginEnd = containerWidth / 20;
-    const statsBottom = 50;
-    const statsRight = vw * 0.25;
-    const statsLeft = vw - statsRight - containerWidth;
-
-    const statsY = vh - statsBottom - 40 - 35; // 40 = card height, 35 = label above
-
-    const card0Left = statsLeft + marginEnd;
-    const gapWidth = (containerWidth - (cardWidth * 3 + marginEnd * 2)) / 2;
-    const card1Left = card0Left + cardWidth + gapWidth;
-    const card2Left = card1Left + cardWidth + gapWidth;
-
-    labels.push({ key: 'stat1', title: 'Total Fatality', desc: 'All fatalities for selected year', top: statsY, left: card0Left });
-    labels.push({ key: 'stat2', title: 'Civilian Fatality', desc: 'Civilian deaths during selected year', top: statsY, left: card1Left });
-    labels.push({ key: 'stat3', title: 'Conflict Count', desc: 'Armed conflicts during selected year', top: statsY, left: card2Left });
 
     this.setState({ labels });
   }

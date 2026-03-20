@@ -107,6 +107,11 @@ class GlobeStatsBoard extends React.Component {
       const keys = Object.keys(data);
       for (let i = 0; i<keys.length; i++) {
 
+        const annotations = [
+          'Total Fatality|All fatalities for selected year',
+          'Civilian Fatality|Civilian deaths during selected year',
+          'Conflict Count|Armed conflicts during selected year',
+        ];
         jsxArr.push(
           <BoardItem
             key={keys[i]}
@@ -128,6 +133,7 @@ class GlobeStatsBoard extends React.Component {
                 return '12px';
               }
             })()}>
+            <span data-annotation={annotations[i]} style={{position:'absolute',width:'100%',height:'100%',top:0,left:0}} />
             { <p id ={'stats_'+i}>{ Math.floor(data[keys[i]]) }</p> }
           </BoardItem>
         )

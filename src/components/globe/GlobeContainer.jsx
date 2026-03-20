@@ -981,7 +981,7 @@ class GlobeContainer extends React.Component {
           <Legend src={this.state.currentControllerSelection === 1 ? './assets/globe_lagend-all.png' : './assets/globe_lagend-civilian.png'}></Legend>
         </LegendWrapper>
 
-        <GlobeStatsBoard data-annotation="Conflict Statistics|Fatalities and conflict counts for selected year" data = {
+        <GlobeStatsBoard data = {
           this.state.warData && this.state.currentYear && {
             'Total Fatality': (()=>{
               if(this.props.currentCountry === 'GLOBAL'){
