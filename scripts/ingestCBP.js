@@ -72,7 +72,8 @@ async function run() {
   );
   console.log('After USBP/Title 8 filter:', filtered.length, 'rows');
 
-  // Aggregate: monthly → quarterly by border_location + nationality + calendar year + quarter
+  // Aggregate: monthly → quarterly by nationality + calendar year + quarter
+  // Merge all border regions (Southwest + Northern) into single "Land" entry
   const quarterly = new Map();
   let skipped = 0;
 
@@ -81,7 +82,6 @@ async function run() {
     const fiscalYear = (r['Fiscal Year'] || '').replace('FYTD', '').trim();
     const count = parseInt(r['Encounter Count']) || 0;
     const nationality = r['Citizenship'];
-    const borderRegion = r['Land Border Region'] || 'Other';
 
     if (!monthAbbr || !fiscalYear || !QUARTER_MAP[monthAbbr]) {
       skipped++;
@@ -92,7 +92,8 @@ async function run() {
     const quarter = QUARTER_MAP[monthAbbr];
     const normNationality = normalizeCbpNationality(nationality);
 
-    const key = `${borderRegion}|${normNationality}|${calYear}|${quarter}`;
+    // One entry per nationality+year+quarter (merged across border regions)
+    const key = `Land|${normNationality}|${calYear}|${quarter}`;
     quarterly.set(key, (quarterly.get(key) || 0) + count);
   }
 
