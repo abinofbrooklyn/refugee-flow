@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import styled, { css } from 'styled-components';
+import withRouter6 from './router/withRouter6';
 
 const NavbarContainer = styled.div`
   height: 40px;
@@ -136,16 +137,33 @@ class Navbar extends React.Component {
     const regex_conflict = RegExp('conflict','gi');
     const regex_about = RegExp('about','gi');
 
-    if(regex_route.test(window.location.pathname)){
+    this.updateCurrentPage(window.location.pathname);
+  }
+
+  componentDidUpdate(prevProps) {
+    if (this.props.location && prevProps.location &&
+        this.props.location.pathname !== prevProps.location.pathname) {
+      sessionStorage.setItem('lastPage', prevProps.location.pathname);
+      this.updateCurrentPage(this.props.location.pathname);
+    }
+  }
+
+  updateCurrentPage(pathname) {
+    const regex_route = RegExp('route','gi');
+    const regex_conflict = RegExp('conflict','gi');
+    const regex_about = RegExp('about','gi');
+
+    if(regex_route.test(pathname)){
       this.setState({currentPage: 'route'})
     }
-    else if (regex_conflict.test(window.location.pathname)) {
+    else if (regex_conflict.test(pathname)) {
       this.setState({currentPage: 'conflict'})
     }
-    else if (regex_about.test(window.location.pathname)) {
+    else if (regex_about.test(pathname)) {
       this.setState({currentPage: 'about'})
+    } else {
+      this.setState({currentPage: null})
     }
-
   }
 
   render(){
@@ -171,4 +189,4 @@ class Navbar extends React.Component {
   }
 
 }
-export default Navbar;
+export default withRouter6(Navbar);
