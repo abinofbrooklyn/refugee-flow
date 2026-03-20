@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-stopped_at: Completed 04-06-PLAN.md
-last_updated: "2026-03-19T22:59:39.211Z"
+stopped_at: Completed 04-08-PLAN.md
+last_updated: "2026-03-20T03:11:42.910Z"
 progress:
   total_phases: 5
-  completed_phases: 4
-  total_plans: 18
-  completed_plans: 18
+  completed_phases: 3
+  total_plans: 20
+  completed_plans: 19
 ---
 
 # Project State
@@ -24,7 +24,7 @@ See: .planning/PROJECT.md (updated 2026-03-11)
 ## Current Position
 
 Phase: 04 (data-ingestion-pipeline) — EXECUTING
-Plan: 1 of 6
+Plan: 8 of 8 (COMPLETE)
 
 ## Performance Metrics
 
@@ -62,6 +62,7 @@ Plan: 1 of 6
 | Phase 04-data-ingestion-pipeline P04 | 2 | 2 tasks | 4 files |
 | Phase 04-data-ingestion-pipeline P05 | 2 | 2 tasks | 4 files |
 | Phase 04 P06 | 24 | 2 tasks | 5 files |
+| Phase 04 P08 | 2 | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -104,6 +105,8 @@ Recent decisions affecting current work:
 - [Phase 04-data-ingestion-pipeline]: Auth probe pattern: POST /admin/csv/preview without file body; 400=auth passed, 401=wrong secret
 - [Phase 04]: Remove 'Others' from ROUTE_MAP -- dead code since resolveRoute handles unmapped routes via geoFallback
 - [Phase 04]: Ingestion-time normalization: all route mapping, geo-fallback, bounds correction, dedup happens at write time not read time
+- [Phase 04]: Cote d'Ivoire canonical form kept as ASCII (no accent) matching Eurostat source
+- [Phase 04]: SY duplicate removed from CITIZEN_CODES; Syrian Arab Rep variant handled by countryNormalizer at integration time
 
 ### Pending Todos
 
@@ -115,6 +118,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-19T22:59:39.207Z
-Stopped at: Completed 04-06-PLAN.md
+Last session: 2026-03-20T03:11:42.905Z
+Stopped at: Completed 04-08-PLAN.md
 Resume file: None
