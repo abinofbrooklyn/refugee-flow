@@ -54,7 +54,10 @@ export default class RefugeeRoute_map extends React.Component {
     // Update map padding when slideout is toggled
     if (nextProps.slideoutCollapsed !== this.props.slideoutCollapsed) {
       const rightPad = nextProps.slideoutCollapsed ? 0 : Math.round(this.mapContainer.offsetWidth * 0.55);
-      this.map.setPadding({ top: 0, bottom: 0, left: 0, right: rightPad });
+      this.map.easeTo({
+        padding: { top: 0, bottom: 0, left: 0, right: rightPad },
+        duration: 400,
+      });
     }
 
     if(this.currentRouteName != nextProps.currentRouteName){
