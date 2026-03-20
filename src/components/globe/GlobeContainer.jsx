@@ -339,12 +339,12 @@ class GlobeContainer extends React.Component {
       country_totalConflictCount : []
     }
 
-    this.history = props.history;
+    this.navigate = props.navigate;
 
   }
 
   UNSAFE_componentWillReceiveProps(nextProps){
-    this.history = nextProps.history;
+    this.navigate = nextProps.navigate;
   }
 
   componentDidMount(){
@@ -948,7 +948,7 @@ class GlobeContainer extends React.Component {
           </GlobeControllerItems>
         </TitleContainer>
           {this.renderGlobeTimeline()}
-          <GlobeRouteButton history = {this.history} country = {this.props.currentCountry} />
+          <GlobeRouteButton navigate = {this.navigate} country = {this.props.currentCountry} />
           {this.renderGlobeVisual()}
         <GlobeNavPanel data-annotation="Map Navigation|Zoom and rotate the globe">
           <Compass src='./assets/compass_icon.png' onClick={() => this.gv.setTarget([-11.874010, 44.605859],945)}></Compass>
