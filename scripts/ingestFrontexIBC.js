@@ -104,26 +104,58 @@ async function run() {
 
   console.log('Rows to upsert:', upsertRows.length);
 
-  // Clear existing data and insert fresh
-  console.log('Clearing existing ibc_crossings data...');
-  await db('ibc_crossings').del();
-
-  // Insert in batches
-  const BATCH_SIZE = 500;
-  let inserted = 0;
-  for (let i = 0; i < upsertRows.length; i += BATCH_SIZE) {
-    const batch = upsertRows.slice(i, i + BATCH_SIZE);
-    await db('ibc_crossings').insert(batch);
-    inserted += batch.length;
-    if (inserted % 5000 === 0) console.log('  inserted:', inserted);
+  // Diff against existing Frontex data (exclude Americas/CBP data)
+  console.log('Diffing against existing data...');
+  const existingRows = await db('ibc_crossings').whereNot('route', 'Americas').select('*');
+  const existingMap = new Map();
+  for (const row of existingRows) {
+    const key = `${row.route}|${row.nationality_long}|${row.year}|${row.quarter}`;
+    existingMap.set(key, row);
   }
 
-  console.log('Done! Total inserted:', inserted);
+  const toInsert = [];
+  const toUpdate = [];
+  let unchanged = 0;
+
+  for (const row of upsertRows) {
+    const key = `${row.route}|${row.nationality_long}|${row.year}|${row.quarter}`;
+    const existing = existingMap.get(key);
+    if (!existing) {
+      toInsert.push(row);
+    } else if (existing.count !== row.count) {
+      toUpdate.push({ pk: existing.pk, count: row.count });
+    } else {
+      unchanged++;
+    }
+    existingMap.delete(key);
+  }
+
+  // Rows in DB but not in new data = stale, remove them
+  const staleKeys = [...existingMap.values()].map(r => r.pk);
+
+  console.log(`Diff: ${toInsert.length} new, ${toUpdate.length} updated, ${unchanged} unchanged, ${staleKeys.length} stale`);
+
+  if (toInsert.length > 0 || toUpdate.length > 0 || staleKeys.length > 0) {
+    await db.transaction(async trx => {
+      const BATCH_SIZE = 500;
+      for (let i = 0; i < toInsert.length; i += BATCH_SIZE) {
+        await trx('ibc_crossings').insert(toInsert.slice(i, i + BATCH_SIZE));
+      }
+      for (const row of toUpdate) {
+        await trx('ibc_crossings').where('pk', row.pk).update({ count: row.count });
+      }
+      if (staleKeys.length > 0) {
+        await trx('ibc_crossings').whereIn('pk', staleKeys).del();
+      }
+    });
+    console.log('Done! Inserted:', toInsert.length, 'Updated:', toUpdate.length, 'Removed stale:', staleKeys.length);
+  } else {
+    console.log('No changes needed — data is already up to date.');
+  }
 
   // Verify
-  const yearRange = await db('ibc_crossings').min('year as min_year').max('year as max_year');
-  const routeCount = await db('ibc_crossings').distinct('route').count('* as cnt');
-  console.log('Year range:', yearRange[0].min_year, '-', yearRange[0].max_year);
+  const yearRange = await db('ibc_crossings').whereNot('route', 'Americas').min('year as min_year').max('year as max_year');
+  console.log('Frontex year range:', yearRange[0].min_year, '-', yearRange[0].max_year);
   console.log('Routes in DB:', (await db('ibc_crossings').distinct('route')).map(r => r.route));
 
   await db.destroy();
