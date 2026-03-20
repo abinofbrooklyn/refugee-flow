@@ -256,7 +256,7 @@ class GlobeRouteButton extends React.Component {
         <Icon src='./assets/route_icon.svg'
           onClick={() => this.setState({popup_toggle:!this.state.popup_toggle})}
         />
-        <Icon_text>ROUTE</Icon_text>
+        <Icon_text data-annotation="Refugee Routes|View migration routes and death data">ROUTE</Icon_text>
 
       </div>
     )

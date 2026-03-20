@@ -225,7 +225,7 @@ class Timeline extends React.Component {
     years.forEach( (d,i) => TimelineItems[i] = this.renderYearItem(d) );
 
     return(
-        <TimelineWrapper className = 'TimelineWrapper'>
+        <TimelineWrapper className = 'TimelineWrapper' data-annotation="Timeline|Select a year to view conflict data">
           {TimelineItems}
         </TimelineWrapper>
     )
