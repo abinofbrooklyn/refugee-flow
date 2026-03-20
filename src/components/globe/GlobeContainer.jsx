@@ -912,7 +912,7 @@ class GlobeContainer extends React.Component {
           <TitleText onClick={() => d3.select('.annotation-wrapper').style('display','block').transition().delay(10).style('opacity','1') }>
             {'Armed Conflict | Region : ' + this.props.currentCountry.charAt(0).toUpperCase() + this.props.currentCountry.toLowerCase().slice(1) + " | Year : " + (this.state.currentYear || '...') + '  '}
           </TitleText>
-          <DataSource onClick={() => window.open('https://www.acleddata.com/data/', '_blank')}>
+          <DataSource data-annotation="Data Sources|View data attribution and methodology" onClick={() => window.open('https://www.acleddata.com/data/', '_blank')}>
             <svg x="0px" y="0px" width="18.014px" height="19.304px" viewBox="0 0 18.014 19.304">
             <defs>
             </defs>
@@ -943,7 +943,7 @@ class GlobeContainer extends React.Component {
              removeCountryHandler = {this.removeCountryHandler}
              currentCountry={this.props.currentCountry}
            />
-          <GlobeControllerButton onClick ={() => this.setState({controllerShow : !this.state.controllerShow})} >Map Filter</GlobeControllerButton>
+          <GlobeControllerButton data-annotation="Map Filter|Filter to show only violence against civilians" onClick ={() => this.setState({controllerShow : !this.state.controllerShow})} >Map Filter</GlobeControllerButton>
 
           <GlobeControllerItems show ={this.state.controllerShow}>
 
@@ -963,7 +963,7 @@ class GlobeContainer extends React.Component {
           {this.renderGlobeTimeline()}
           <GlobeRouteButton history = {this.history} country = {this.props.currentCountry} />
           {this.renderGlobeVisual()}
-        <GlobeNavPanel>
+        <GlobeNavPanel data-annotation="Map Navigation|Zoom and rotate the globe">
           <Compass src='./assets/compass_icon.png' onClick={() => this.gv.setTarget([-11.874010, 44.605859],945)}></Compass>
           <ZoomIn  src='./assets/zoomin_icon.png'  onClick={() => this.gv.zoom(100)}></ZoomIn>
           <ZoomOut src='./assets/zoomout_icon.png' onClick={() => this.gv.zoom(-100)}></ZoomOut>
@@ -976,12 +976,12 @@ class GlobeContainer extends React.Component {
             {this.state.rotatePause ? '\u25B6' : '\u23F8'}
           </GlobeControllerButton>
         </GlobeNavPanel>
-        <LegendWrapper minMax = {this.state.warData && this.state.currentYear && _.find(this.state.warData, d => d.year === this.state.currentYear)['scaler'].domain()}>
+        <LegendWrapper data-annotation="Fatality Scale|Color shows fatality count per event" minMax = {this.state.warData && this.state.currentYear && _.find(this.state.warData, d => d.year === this.state.currentYear)['scaler'].domain()}>
           <LegendTitle mode={this.state.currentControllerSelection}>Fatality Count</LegendTitle>
           <Legend src={this.state.currentControllerSelection === 1 ? './assets/globe_lagend-all.png' : './assets/globe_lagend-civilian.png'}></Legend>
         </LegendWrapper>
 
-        <GlobeStatsBoard data = {
+        <GlobeStatsBoard data-annotation="Conflict Statistics|Fatalities and conflict counts for selected year" data = {
           this.state.warData && this.state.currentYear && {
             'Total Fatality': (()=>{
               if(this.props.currentCountry === 'GLOBAL'){

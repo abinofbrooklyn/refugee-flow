@@ -189,7 +189,7 @@ class AsyApplicationContainer extends React.Component {
     const yearList = data.length > 0 ? Object.keys(data[0]) : [];
     const currentYearLabel = yearList[selectedYear] || '';
     return (
-      <Background>
+      <Background data-annotation="Asylum Applications|Quarterly asylum application data by country">
         <Title
           onClick={() => d3.select('.annotation-wrapper')
             .style('display', 'block')

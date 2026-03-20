@@ -135,6 +135,7 @@ class RegionModalButton extends Component {
       <div>
         <SwitchCountryButton
           type="button"
+          data-annotation="Select Region|View conflict data for a specific country or region"
           onClick={this.handleToggleModal}>
           Select Region
         </SwitchCountryButton>

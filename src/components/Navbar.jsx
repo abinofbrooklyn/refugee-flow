@@ -67,62 +67,54 @@ const Nav = styled.nav`
   > a {
     margin-right: 50px;
     font-family: 'Ubuntu';
-    font-size: 15px;
-    font-weight: 100;
-    color: white;
-    box-shadow: 0px 5px 21px -2px rgb(13,19,25);
+    font-size: 14px;
+    font-weight: 300;
+    color: #a0a0b8;
     transition: all 300ms;
     text-decoration: none;
     cursor: pointer;
+    padding: 10px 0;
+    border-bottom: 2px solid transparent;
   }
   > a:hover{
-    box-shadow: 0px 10px 15px -5px rgb(104, 110, 150);
-    background: #a1a1db;
-    padding: 3px 0px;
-    border-radius: 3px;
+    color: #ffffff;
   }
 
   ${props => props.currentPage === "conflict" && css`
-
     > a:first-child{
-      box-shadow: 0px 10px 15px -5px rgb(56, 64, 101);
-      background: #8e95ce;
-      padding: 3px 0px;
-      color: #1c1d21;
-      border-radius: 3px;
+      color: #ffffff;
+      border-bottom-color: #8e95ce;
     }
   `}
 
   ${props => props.currentPage === "route" && css`
-
-  > a:nth-child(2){
-    box-shadow: 0px 10px 15px -5px rgb(56, 64, 101);
-    background: #8e95ce;
-    padding: 3px 0px;
-    color: #1c1d21;
-    border-radius: 3px;
-  }
+    > a:nth-child(2){
+      color: #ffffff;
+      border-bottom-color: #8e95ce;
+    }
   `}
 
   ${props => props.currentPage === "about" && css`
-
-  > a:nth-child(3){
-    box-shadow: 0px 10px 15px -5px rgb(56, 64, 101);
-    background: #8e95ce;
-    padding: 3px 0px;
-    color: #1c1d21;
-    border-radius: 3px;
-  }
+    > a:nth-child(3){
+      color: #ffffff;
+      border-bottom-color: #8e95ce;
+    }
   `}
 
   > a:nth-child(4){
-    box-shadow: 0px 10px 15px -5px rgb(58, 64, 93);
-    background: #a4d0f9;
-    padding: 12px 15px 12px 10px;
-    color: #282846;
-    margin-right: 0px !important;
+    background: #8e95ce;
+    padding: 5px 16px;
+    color: #1a1a2e;
+    margin-right: 15px !important;
     text-align: center;
-    border-radius: 0px;
+    border-radius: 4px;
+    border-bottom: none;
+    font-weight: 500;
+    &:hover{
+      background: #a4aae0;
+      color: #1a1a2e;
+      border-bottom: none;
+    }
   }
 `
 class Navbar extends React.Component {
