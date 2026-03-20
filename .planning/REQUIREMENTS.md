@@ -30,7 +30,7 @@
 
 ### Data Ingestion
 
-- [x] **INGEST-01**: War/conflict data ingested automatically from ACLED API on weekly schedule
+- [ ] **INGEST-01**: War/conflict data ingested automatically from ACLED API on weekly schedule (BLOCKED: waiting on ACLED API access)
 - [x] **INGEST-02**: Asylum application data ingested automatically from UNHCR API on weekly schedule
 - [x] **INGEST-03**: Route death data ingested automatically from IOM Missing Migrants API on weekly schedule
 - [x] **INGEST-04**: All ingested lat/lng data passes through precision reduction and deduplication before storage
@@ -77,7 +77,8 @@
 | STAB-01 through STAB-06 | Phase 1 | Complete |
 | MOD-01 through MOD-04 | Phase 2 | Complete |
 | DB-01 through DB-04 | Phase 3 | Complete |
-| INGEST-01 through INGEST-07 | Phase 4 | Pending |
+| INGEST-02 through INGEST-07 | Phase 4 | Complete |
+| INGEST-01 | Phase 4 | Blocked (ACLED API access) |
 | DATA-01 through DATA-03 | Phase 5 | Pending |
 | MOD-05 | Phase 6 | Complete |
 
@@ -88,4 +89,4 @@
 
 ---
 *Requirements defined: 2026-03-11*
-*Last updated: 2026-03-11 after initialization*
+*Last updated: 2026-03-20 — Phase 6 complete, Phase 4 INGEST-01 blocked on ACLED*

@@ -2,7 +2,7 @@
 
 ## Overview
 
-The project modernizes a brownfield conflict/refugee visualization app from a fragile static-data state to a live, API-driven system. Five phases follow the natural dependency chain: stabilize the existing app first, then upgrade the stack, then migrate to a new database, then build automated ingestion, then verify data coverage is complete.
+The project modernizes a brownfield conflict/refugee visualization app from a fragile static-data state to a live, API-driven system. Six phases cover stability, stack modernization, database migration, automated ingestion, data coverage verification, and router migration.
 
 ## Phases
 
@@ -17,6 +17,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 3: Database Migration** - Move all data from MongoDB to PostgreSQL/Supabase with geo precision baked in (completed 2026-03-17)
 - [ ] **Phase 4: Data Ingestion Pipeline** - Automate ACLED, UNHCR, and IOM data ingestion plus admin CSV upload; normalize all ingested data at ingestion time
 - [ ] **Phase 5: Data Coverage** - Audit, validate, and close gaps in data coverage across years and corridors
+- [x] **Phase 6: React Router v6 Migration** - Eliminate legacy context API warnings by upgrading react-router-dom to v6 (completed 2026-03-20)
 
 ## Phase Details
 
@@ -81,7 +82,7 @@ Plans:
   2. Every lat/lng value from any ingestion source is precision-reduced and deduplicated before reaching the database
   3. Admin can navigate to /admin with a shared-secret password, upload a CSV, preview the parsed rows, and commit or cancel
   4. When an ingestion job fails, an error row with details appears in the ingestion_log table
-**Plans**: 9 plans (Plan 07 blocked on ACLED API access)
+**Plans**: 14 plans (Plan 07 blocked on ACLED API access)
 
 Plans:
 - [x] 04-01-PLAN.md — Database migration (ingestion_log table, event_id type fix), shared utilities, install dependencies

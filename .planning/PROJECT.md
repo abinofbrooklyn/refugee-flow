@@ -32,10 +32,12 @@ Users can explore the human cost of conflict — where wars happen, where people
 - [x] THREE.js r150+ upgrade — Phase 2
 - [x] Dependency cleanup (remove jquery, underscore, legacy mapbox-gl) — Phase 2
 - [x] PostgreSQL/Supabase replacing MongoDB — Phase 3
-- [ ] Automated data ingestion from ACLED, UNHCR, IOM APIs
-- [ ] Admin CSV upload interface for manual data sources
-- [ ] Geo precision pipeline applied at ingestion time
-- [ ] Data gap audit and forward-looking data coverage
+- [x] Automated data ingestion from UNHCR, IOM, Eurostat, Frontex, CBP, UK Home Office APIs — Phase 4
+- [ ] Automated data ingestion from ACLED API (blocked on API access) — Phase 4
+- [x] Admin CSV upload interface for manual data sources — Phase 4
+- [x] Geo precision pipeline applied at ingestion time — Phase 4
+- [x] React Router v6 migration (zero legacy context warnings) — Phase 6
+- [ ] Data gap audit and forward-looking data coverage — Phase 5
 
 ### Out of Scope
 
@@ -64,8 +66,9 @@ Brownfield project. Codebase mapped 2026-03-10. Key issues: React 16 with deprec
 | Vite over Webpack 5 | Faster builds, simpler config, drops legacy OpenSSL hack | Done (Phase 2) |
 | No historical backfill | Avoid months of data archaeology; ingest forward only | Active |
 | Geo precision at ingestion time | Prevent GPU overload; store clean data, not raw API coords | Done (Phase 3) |
-| Shared secret admin (no full auth) | Low-traffic app, simple enough, full auth is overkill | Pending (Phase 4) |
-| Supabase Edge Functions for ingestion | Co-located with DB, built-in cron, no separate service | Pending (Phase 4) |
+| Shared secret admin (no full auth) | Low-traffic app, simple enough, full auth is overkill | Done (Phase 4) |
+| withRouter6 HOC over class→functional conversion | Minimal change, preserve working code, matches Phase 2 philosophy | Done (Phase 6) |
+| SPA navigation via navigate() replacing window.open(_self) | No page reload flash, important for exhibit kiosk UX | Done (Phase 6) |
 
 ---
-*Last updated: 2026-03-17 — Phases 1-3 complete*
+*Last updated: 2026-03-20 — Phases 1-4 (partial), 6 complete. Phase 4 Plan 07 blocked on ACLED API access.*
