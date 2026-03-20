@@ -93,6 +93,11 @@ Plans:
 - [ ] 04-07-PLAN.md — ACLED normalization: populate evt/int/cot fields, map event types and country regions (BLOCKED: waiting on ACLED API access)
 - [x] 04-08-PLAN.md — Asylum data normalizer modules: country name canonicalization + quarterly estimation from seasonal ratios
 - [x] 04-09-PLAN.md — Integrate asylum normalizers into UNHCR/Eurostat pipelines, backfill seed data, add estimation footnote
+- [x] 04-10-PLAN.md — CBP border crossing ingestion + automation for Americas route (diff-based upsert, monthly cron)
+- [x] 04-11-PLAN.md — UK Home Office small boat crossing ingestion + automation for English Channel route (quarterly cron)
+- [x] 04-12-PLAN.md — DB migration for border breakdown columns, route-aware Data Sources links, route ordering
+- [ ] 04-13-PLAN.md — Automate IOM Missing Migrants + Frontex IBC ingestion (auto-download scripts, diff-based upsert)
+- [ ] 04-14-PLAN.md — Automate UNHCR asylum + Eurostat monthly asylum ingestion (REST API scripts, diff-based upsert)
 
 ### Phase 5: Data Coverage
 **Goal**: The app accurately reflects what data exists — year range and route display match actual database contents with no silent gaps
@@ -114,5 +119,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | 1. Stabilize | 4/4 | Complete | 2026-03-12 |
 | 2. Modernize Stack | 4/4 | Complete | 2026-03-12 |
 | 3. Database Migration | 4/4 | Complete   | 2026-03-17 |
-| 4. Data Ingestion Pipeline | 8/9 | In Progress (Plan 07 blocked on ACLED API access) | - |
+| 4. Data Ingestion Pipeline | 12/15 | In Progress (Plan 07 blocked on ACLED, Plans 13-14 pending) | - |
 | 5. Data Coverage | 0/TBD | Not started | - |
