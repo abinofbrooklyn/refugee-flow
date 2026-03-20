@@ -6,9 +6,10 @@ const { runAcledIngestion } = require('../../ingestion/acledIngestion');
 const { runUnhcrIngestion } = require('../../ingestion/unhcrIngestion');
 const { runIomIngestion } = require('../../ingestion/iomIngestion');
 const { runEurostatIngestion } = require('../../ingestion/eurostatIngestion');
+const { runFrontexIngestion } = require('../../ingestion/frontexIngestion');
 
 const ALLOWED_TARGETS = ['war_events', 'asy_applications', 'route_deaths'];
-const ALLOWED_SOURCES = { acled: runAcledIngestion, unhcr: runUnhcrIngestion, iom: runIomIngestion, eurostat: runEurostatIngestion };
+const ALLOWED_SOURCES = { acled: runAcledIngestion, unhcr: runUnhcrIngestion, iom: runIomIngestion, eurostat: runEurostatIngestion, frontex: runFrontexIngestion };
 
 async function csvPreview(req, res) {
   try {

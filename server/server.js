@@ -44,12 +44,14 @@ if (require.main === module) {
   const { runUnhcrIngestion } = require('./ingestion/unhcrIngestion');
   const { runIomIngestion } = require('./ingestion/iomIngestion');
   const { runEurostatIngestion } = require('./ingestion/eurostatIngestion');
+  const { runFrontexIngestion } = require('./ingestion/frontexIngestion');
 
-  // Staggered weekly schedules — Eurostat before UNHCR so seasonal ratios are available
-  cron.schedule('0 2 * * 1', () => runAcledIngestion().catch(err => console.error('[ACLED cron]', err.message)));       // Monday 02:00
-  cron.schedule('0 2 * * 3', () => runEurostatIngestion().catch(err => console.error('[Eurostat cron]', err.message))); // Wednesday 02:00 (before UNHCR)
-  cron.schedule('0 2 * * 5', () => runIomIngestion().catch(err => console.error('[IOM cron]', err.message)));           // Friday 02:00
-  cron.schedule('0 4 * * 5', () => runUnhcrIngestion().catch(err => console.error('[UNHCR cron]', err.message)));       // Friday 04:00 (after Eurostat)
+  // Staggered schedules — Eurostat before UNHCR so seasonal ratios are available
+  cron.schedule('0 2 * * 1', () => runAcledIngestion().catch(err => console.error('[ACLED cron]', err.message)));           // Monday 02:00 (weekly)
+  cron.schedule('0 2 * * 3', () => runEurostatIngestion().catch(err => console.error('[Eurostat cron]', err.message)));     // Wednesday 02:00 (weekly, before UNHCR)
+  cron.schedule('0 2 * * 5', () => runIomIngestion().catch(err => console.error('[IOM cron]', err.message)));               // Friday 02:00 (weekly)
+  cron.schedule('0 4 * * 5', () => runUnhcrIngestion().catch(err => console.error('[UNHCR cron]', err.message)));           // Friday 04:00 (weekly, after Eurostat)
+  cron.schedule('0 3 1 * *', () => runFrontexIngestion().catch(err => console.error('[Frontex cron]', err.message)));       // 1st of month 03:00
 
   app.listen(process.env.PORT);
 }

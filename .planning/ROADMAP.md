@@ -96,7 +96,7 @@ Plans:
 - [x] 04-10-PLAN.md — CBP border crossing ingestion + automation for Americas route (diff-based upsert, monthly cron)
 - [x] 04-11-PLAN.md — UK Home Office small boat crossing ingestion + automation for English Channel route (quarterly cron)
 - [x] 04-12-PLAN.md — DB migration for border breakdown columns, route-aware Data Sources links, route ordering
-- [ ] 04-13-PLAN.md — Automate IOM Missing Migrants + Frontex IBC ingestion (auto-download scripts, diff-based upsert)
+- [x] 04-13-PLAN.md — Automate Frontex IBC ingestion (server-side cron + admin trigger; IOM already automated in 04-03/04-04)
 - [ ] 04-14-PLAN.md — Automate UNHCR asylum + Eurostat monthly asylum ingestion (REST API scripts, diff-based upsert)
 
 ### Phase 5: Data Coverage
@@ -119,5 +119,5 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 | 1. Stabilize | 4/4 | Complete | 2026-03-12 |
 | 2. Modernize Stack | 4/4 | Complete | 2026-03-12 |
 | 3. Database Migration | 4/4 | Complete   | 2026-03-17 |
-| 4. Data Ingestion Pipeline | 12/15 | In Progress (Plan 07 blocked on ACLED, Plans 13-14 pending) | - |
+| 4. Data Ingestion Pipeline | 13/15 | In Progress (Plan 07 blocked on ACLED, Plan 14 pending) | - |
 | 5. Data Coverage | 0/TBD | Not started | - |

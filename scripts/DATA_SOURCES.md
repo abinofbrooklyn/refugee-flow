@@ -1,80 +1,87 @@
 # Data Source Automation Registry
 
-This document tracks all data ingestion pipelines — what's automated, what's manual, and how to fix them if they break.
+This document tracks all data ingestion pipelines — what's automated, how they run, and how to fix them if they break.
 
 ## Automated Pipelines
 
-| Source | Ingestion Script | Auto-Update Script | Cron Schedule | Data Type | Route/Feature |
-|--------|-----------------|-------------------|---------------|-----------|---------------|
-| **CBP** (US border) | `ingestCBP.js` | `updateCBP.js` | `0 0 15 * *` (monthly, 15th) | Border crossings | Americas IBC tab |
-| **UK Home Office** | `ingestUKChannel.js` | `updateUKChannel.js` | `0 0 1 * *` (monthly, 1st) | Small boat crossings | English Channel IBC tab |
+### Server-side (node-cron, runs when server is up)
 
-## Manual Pipelines (to be automated)
+These run inside the Express server process via node-cron. Also triggerable from `/admin` panel.
 
-| Source | Current Script | Access Method | Priority |
-|--------|---------------|---------------|----------|
-| **IOM Missing Migrants** | `seed.js` | Direct CSV URL (stable) | 1 - easiest |
-| **Frontex IBC** | `ingestFrontexIBC.js` | Scrape page for XLSX | 2 |
-| **UNHCR Asylum** | `seed.js` | REST API | 3 |
-| **Eurostat** | `seed.js` | REST API (SDMX) | 4 |
+| Source | Module | Cron Schedule | Data Type | Target Table |
+|--------|--------|---------------|-----------|-------------|
+| **ACLED** | `server/ingestion/acledIngestion.js` | Monday 2 AM (weekly) | War/conflict events | `war_events`, `war_notes` |
+| **Eurostat** | `server/ingestion/eurostatIngestion.js` | Wednesday 2 AM (weekly) | Monthly asylum stats | `asy_applications` |
+| **IOM Missing Migrants** | `server/ingestion/iomIngestion.js` | Friday 2 AM (weekly) | Route deaths/missing | `route_deaths` |
+| **UNHCR** | `server/ingestion/unhcrIngestion.js` | Friday 4 AM (weekly) | Asylum applications | `asy_applications` |
+| **Frontex IBC** | `server/ingestion/frontexIngestion.js` | 1st of month 3 AM | European border crossings | `ibc_crossings` |
+
+### Standalone scripts (system cron, runs independently)
+
+These run as standalone Node scripts via system crontab. Independent of server process.
+
+| Source | Ingestion Script | Auto-Update Script | Cron Schedule | Data Type | Target Table |
+|--------|-----------------|-------------------|---------------|-----------|-------------|
+| **CBP** (US border) | `scripts/ingestCBP.js` | `scripts/updateCBP.js` | `0 0 15 * *` (monthly, 15th) | Border crossings | `ibc_crossings` |
+| **UK Home Office** | `scripts/ingestUKChannel.js` | `scripts/updateUKChannel.js` | `0 0 1 * *` (monthly, 1st) | Small boat crossings | `ibc_crossings` |
 
 ## Cron Setup
 
 ```bash
-# Add to crontab (crontab -e) on the server:
+# System crontab (crontab -e) — standalone scripts:
 0 0 15 * *  cd /path/to/refugee-flow && node scripts/updateCBP.js >> logs/cbp-update.log 2>&1
 0 0 1  * *  cd /path/to/refugee-flow && node scripts/updateUKChannel.js >> logs/uk-update.log 2>&1
-# Add these as they are built:
-# 0 0 5  * *  cd /path/to/refugee-flow && node scripts/updateIOM.js >> logs/iom-update.log 2>&1
-# 0 0 10 * *  cd /path/to/refugee-flow && node scripts/updateFrontex.js >> logs/frontex-update.log 2>&1
-# 0 0 20 * *  cd /path/to/refugee-flow && node scripts/updateUNHCR.js >> logs/unhcr-update.log 2>&1
-# 0 0 22 * *  cd /path/to/refugee-flow && node scripts/updateEurostat.js >> logs/eurostat-update.log 2>&1
+
+# Server-side cron (automatic when server runs) — configured in server/server.js:
+# ACLED:    Monday 2 AM weekly
+# Eurostat: Wednesday 2 AM weekly (runs before UNHCR — provides seasonal ratios)
+# IOM:     Friday 2 AM weekly
+# UNHCR:   Friday 4 AM weekly (after Eurostat)
+# Frontex: 1st of month 3 AM
 ```
 
 ## Troubleshooting
 
-All auto-update scripts exit with specific codes:
+### Exit codes (standalone scripts)
 - **Exit 0** — success (or no new data)
 - **Exit 1** — download failed (URL pattern changed, site down, or access blocked)
 - **Exit 2** — ingestion failed (data format changed, DB error)
 
+### Server-side ingestion failures
+- Check `ingestion_log` table for error details: `SELECT * FROM ingestion_log WHERE status='error' ORDER BY completed_at DESC;`
+- Trigger manual re-run from `/admin` panel (select source → trigger ingestion)
+
 ### If a pipeline breaks:
 
-1. Check the log file in `logs/` for the error message
-2. **Exit 1 (download failed):**
+1. Check the log (`ingestion_log` table for server-side, `logs/` directory for standalone)
+2. **Download failed:**
    - Visit the source website manually to check if it's up
-   - Check if the URL structure or page layout changed
    - For scraped sources (Frontex, UK): inspect the page HTML for the new download link pattern
    - For direct URLs (IOM, CBP): verify the URL still works in a browser
-   - Update the URL pattern in the update script
-3. **Exit 2 (ingestion failed):**
+   - For API sources (UNHCR, Eurostat): test the API endpoint manually
+3. **Ingestion failed:**
    - Download the file manually and inspect its structure
    - Check if column names, sheet names, or data format changed
-   - Update the ingestion script to match the new format
-4. Re-run the update script manually: `node scripts/update<Source>.js`
+   - Update the ingestion module/script to match the new format
+4. **Manual fallback:** Download file from source, then `node scripts/ingest<Source>.js <path>`
 5. All scripts are idempotent — safe to re-run at any time
-
-### Manual fallback for any source:
-
-```bash
-# Download the file manually from the source website, then:
-node scripts/ingest<Source>.js <path-to-downloaded-file>
-```
 
 ## Data Flow Architecture
 
 ```
 Source Website/API
         ↓
-  updateXxx.js (download)
+  Auto-download (scrape page / stable URL / REST API)
         ↓
-  ingestXxx.js (normalize + diff-based upsert)
+  Normalize (route mapping, country codes, FY conversion, coordinate parsing)
         ↓
-  ibc_crossings / route_deaths / asy_applications (PostgreSQL)
+  Diff-based upsert (insert new, update changed, skip unchanged)
         ↓
-  Server API (dataController.js queries DB live)
+  PostgreSQL (ibc_crossings / route_deaths / asy_applications / war_events)
+        ↓
+  Server API (dataController.js queries DB live — no restart needed)
         ↓
   Frontend components (auto-populate from API response)
 ```
 
-All ingestion scripts use **diff-based upsert**: only insert new rows, update changed counts, skip unchanged data. No bulk deletes. Safe to run repeatedly.
+All ingestion uses **diff-based upsert**: only write what's new or changed. No bulk deletes (except Frontex which removes stale rows when source data is corrected). Safe to run repeatedly.
