@@ -58,11 +58,12 @@ describe('getAcledToken()', () => {
     const [url, opts] = global.fetch.mock.calls[0];
     expect(url).toBe('https://acleddata.com/oauth/token');
     expect(opts.method).toBe('POST');
-    const body = JSON.parse(opts.body);
-    expect(body.email).toBe('test@example.com');
-    expect(body.password).toBe('secret');
-    expect(body.grant_type).toBe('password');
-    expect(body.client_id).toBe('acled');
+    expect(opts.headers['Content-Type']).toBe('application/x-www-form-urlencoded');
+    const body = new URLSearchParams(opts.body);
+    expect(body.get('username')).toBe('test@example.com');
+    expect(body.get('password')).toBe('secret');
+    expect(body.get('grant_type')).toBe('password');
+    expect(body.get('client_id')).toBe('acled');
     expect(token).toBe('tok_abc123');
   });
 
