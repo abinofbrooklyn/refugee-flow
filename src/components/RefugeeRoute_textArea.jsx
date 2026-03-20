@@ -10,12 +10,13 @@ const Wrapper = styled.div`
   float: right;
   width: 55%;
   margin: 0;
-  right:   ${props => props.toggle ? (-window.innerWidth * 0.55) + 21 + 27 + 'px' : 0};${'' /* +27 is showing the route icon */}
+  right: 0;
+  transform: ${props => props.toggle ? `translateX(calc(100% - 48px))` : 'translateX(0)'};
   background: ${props => props.toggle ? '#1111177a': '#111117'};
   box-shadow: 5px 0px 78px -6px rgba(0,0,0,0.62);
-  z-index: 1;
-  transition: all cubic-bezier(0.63, 0.13, 0.01, 0.99) 500ms;
+  transition: transform 400ms cubic-bezier(0.25, 0.1, 0.25, 1), background 400ms ease;
   z-index: 2;
+  will-change: transform;
 
   @media (max-width: 1100px) {
     width: 45%;
