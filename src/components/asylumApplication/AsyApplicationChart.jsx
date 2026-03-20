@@ -26,8 +26,6 @@ class AsyApplicationChart extends React.Component {
   }
 
   drawChart(){
-      console.log('draw');
-
       //hard coded quaterList
       this.quaterList = ['q1','q2','q3','q4'];
 
@@ -419,7 +417,6 @@ class AsyApplicationChart extends React.Component {
   }
 
   render(){
-    console.log("a");
     return(
       <g
         transform = {"translate(" + this.margin.left + "," + this.margin.top + ")"}

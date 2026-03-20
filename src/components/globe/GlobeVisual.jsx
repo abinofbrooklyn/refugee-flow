@@ -462,7 +462,7 @@ class GlobeVisual extends React.Component{
     // _baseGeometry is then transform to 'points' to do visualization
     if (this._baseGeometry !== undefined) {
         const morphCount = this._morphTargetNames ? this._morphTargetNames.length : 0;
-        if (morphCount >= 8) console.log("maybe too many data?");
+        if (morphCount >= 8) console.warn("maybe too many data?");
 
         // points is the ultimate thing used to do visualization
         this.points = new THREE.Mesh(this._baseGeometry, new THREE.MeshBasicMaterial({
@@ -1001,7 +1001,6 @@ class GlobeVisual extends React.Component{
   render() {
     // console.log({...this.props});
     // render is execute ahead of componentDidMount
-    console.count("---------- GlobeVisual's render called");
 
     return(
       <div>

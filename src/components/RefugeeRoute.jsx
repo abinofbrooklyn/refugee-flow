@@ -97,7 +97,6 @@ export default class RefugeeRoute extends React.Component {
   }
 
   passRemoveClickedPointManager(){
-    console.log('removed point manager called');
     this.setState({clickedPointRemoved: true});
   }
 

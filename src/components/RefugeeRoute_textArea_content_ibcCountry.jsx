@@ -437,7 +437,6 @@ export default class RefugeeRoute_textArea_content_ibcCountry extends React.Comp
   }
 
   render(){
-    console.count('render!');
     const cards = this.cardGenerator();
     const pageMax = cards.size;
 
