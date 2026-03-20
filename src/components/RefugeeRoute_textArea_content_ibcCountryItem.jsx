@@ -136,19 +136,29 @@ const BorderLocation = styled.div`
     background: #54547a;
   }
 `
-const BorderBreakdown = styled.div`
+const BorderBreakdownRow = styled.div`
   position: absolute;
   left: 30px;
-  top: 68px;
+  top: ${props => props.top || '95px'};
+  display: flex;
+  align-items: center;
+  gap: 6px;
   font-family: 'Roboto';
-  font-size: 10px;
+  font-size: 11px;
+  color: #ffffffc0;
   font-weight: 300;
-  color: #ffffffa0;
-  line-height: 1.5;
-  &>span{
-    color: #ffffffd0;
-    font-weight: 500;
-  }
+`
+const BorderLabel = styled.span`
+  background: ${props => props.bg || '#54547ab3'};
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-weight: 400;
+  font-size: 11px;
+  color: white;
+`
+const BorderCount = styled.span`
+  font-weight: 500;
+  color: #ffffffd0;
 `
 const ChartContainer = styled.div`
   width: 60%;
@@ -346,18 +356,26 @@ export default class RefugeeRoute_textArea_content_ibcCountryItem extends React.
           <CountryName>{this.data['NationalityLong']}</CountryName>
           <Region>{(() => { const c = _.find(countryList, d => d[0] === this.data['NationalityLong'].toUpperCase()); return c ? c[1] + ' Region' : ''; })()}</Region>
 
-          <BorderLocation><p>{this.data['BorderLocation']}</p></BorderLocation>
           {this.data.borderBreakdown ? (() => {
             let sw = 0, n = 0;
             Object.values(this.data.borderBreakdown).forEach(q => {
               Object.values(q).forEach(v => { sw += v.southwest || 0; n += v.northern || 0; });
             });
             return (
-              <BorderBreakdown>
-                SW: <span>{d3.format(",")(sw)}</span> &nbsp;|&nbsp; N: <span>{d3.format(",")(n)}</span>
-              </BorderBreakdown>
+              <>
+                <BorderBreakdownRow top="75px">
+                  <BorderLabel bg="#3d6b5e">Southwest Border</BorderLabel>
+                  <BorderCount>{d3.format(",")(sw)}</BorderCount>
+                </BorderBreakdownRow>
+                <BorderBreakdownRow top="98px">
+                  <BorderLabel bg="#4a5a7a">Northern Border</BorderLabel>
+                  <BorderCount>{d3.format(",")(n)}</BorderCount>
+                </BorderBreakdownRow>
+              </>
             );
-          })() : null}
+          })() : (
+            <BorderLocation><p>{this.data['BorderLocation']}</p></BorderLocation>
+          )}
           <Stats><p>{d3.format(",")(this.data['totalCross'])}</p></Stats>
 
           <ChartContainer>
