@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-stopped_at: Completed 06-01-PLAN.md
-last_updated: "2026-03-20T20:16:59.185Z"
+stopped_at: Completed 06-02-PLAN.md
+last_updated: "2026-03-20T20:21:27.391Z"
 progress:
   total_phases: 6
   completed_phases: 4
   total_plans: 25
-  completed_plans: 26
+  completed_plans: 27
 ---
 
 # Project State
@@ -65,6 +65,7 @@ Plan: 2 of 3
 | Phase 04 P08 | 2 | 2 tasks | 4 files |
 | Phase 04 P09 | 4 | 2 tasks | 5 files |
 | Phase 06-react-router-v6-migration P01 | 2 | 2 tasks | 4 files |
+| Phase 06-react-router-v6-migration P02 | 2 | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -112,6 +113,9 @@ Recent decisions affecting current work:
 - [Phase 04]: UNHCR ingestion skips EU/EEA destinations to prevent double-counting; annual totals distributed into quarterly using Eurostat seasonal ratios
 - [Phase 06-react-router-v6-migration]: Two-step v4→v5→v6 upgrade confirmed no regression: same 11 pre-existing test failures before and after
 - [Phase 06-react-router-v6-migration]: withRouter6 HOC must be outermost wrapper when stacked with Redux connect()
+- [Phase 06-react-router-v6-migration]: NavbarLayout wraps all non-landing routes via v6 layout route pattern; landing excluded via route nesting
+- [Phase 06-react-router-v6-migration]: routeRegistry centralized as element-prop array; Router.jsx filters landing vs non-landing routes
+- [Phase 06-react-router-v6-migration]: Nested BrowserRouter in RefugeeRoute_titleGroup removed (was redundant; v6 hard crash prevented)
 
 ### Pending Todos
 
@@ -123,6 +127,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-20T20:16:59.174Z
-Stopped at: Completed 06-01-PLAN.md
+Last session: 2026-03-20T20:21:27.384Z
+Stopped at: Completed 06-02-PLAN.md
 Resume file: None
