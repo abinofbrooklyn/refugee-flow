@@ -11,8 +11,8 @@ const Wrapper = styled.div`
   width: 55%;
   margin: 0;
   right: 0;
-  transform: ${props => props.toggle ? `translateX(calc(100% - 48px))` : 'translateX(0)'};
-  background: ${props => props.toggle ? '#1111177a': '#111117'};
+  transform: ${props => props.$toggle ? `translateX(calc(100% - 48px))` : 'translateX(0)'};
+  background: ${props => props.$toggle ? '#1111177a': '#111117'};
   box-shadow: 5px 0px 78px -6px rgba(0,0,0,0.62);
   transition: transform 400ms cubic-bezier(0.25, 0.1, 0.25, 1), background 400ms ease;
   z-index: 2;
@@ -160,7 +160,7 @@ export default class RefugeeRoute_textArea extends React.Component {
     if (navCtrl) navCtrl.style.right = this.props.slideoutCollapsed ? '3.3%' : '57%';
 
     return(
-      <Wrapper toggle={this.props.slideoutCollapsed}>
+      <Wrapper $toggle={this.props.slideoutCollapsed}>
         <Icon src='/assets/route_icon.svg'></Icon>
         <CollapseButton onClick={this.props.onCollapseToggle}><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M190.4 354.1L91.9 256l98.4-98.1-30-29.9L32 256l128.4 128 30-29.9zm131.2 0L420 256l-98.4-98.1 30-29.9L480 256 351.6 384l-30-29.9z"/></svg></CollapseButton>
         {/* tab nav */}

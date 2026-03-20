@@ -241,7 +241,7 @@ class GlobeRouteButton extends React.Component {
 
     return(
       <div>
-        <Icon_popup className = 'route_popup' toggle = {this.state.popup_toggle}>
+        <Icon_popup className = 'route_popup' $toggle = {this.state.popup_toggle}>
           <Icon_popup_exit onClick={() => this.setState({popup_toggle:false}) }>x</Icon_popup_exit>
           <Icon_popup_title>Refugee Flee Route - {this.country.charAt(0).toUpperCase() + this.country.toLowerCase().slice(1)}</Icon_popup_title>
           <Icon_popup_subtitle> people can't get asylum application through or dont know how to. Include illegal border crossing(IBC). </Icon_popup_subtitle>

@@ -103,12 +103,12 @@ const CurrentYearButton = styled.button`
     background: #2b2c3c;
     border-color: #2e9493cc;
   }
-  ${props => props.selected == 1 && css`
+  ${props => props.$selected == 1 && css`
     background: #3f415894;
     border-color: #555875cf;
   `};
   &::after{
-    content: ${ props => "'(" + props.selectedYear + ")'" };
+    content: ${ props => "'(" + props.$selectedYear + ")'" };
     color: white;
     font-weight: 700;
     font-size: 9px;
@@ -139,7 +139,7 @@ const AllYearButton = styled.button`
     background: #2b2c3c;
     border-color: #2e9493cc;
   }
-  ${props => props.selected == 2 && css`
+  ${props => props.$selected == 2 && css`
     background: #3f415894;
     border-color: #555875cf;
   `};
@@ -203,14 +203,14 @@ class AsyApplicationContainer extends React.Component {
         <ButtonWrapper>
           <CurrentYearButton
             onClick={() => this.buttonClick(1)}
-            selected={buttonMode}
-            selectedYear={currentYearLabel}
+            $selected={buttonMode}
+            $selectedYear={currentYearLabel}
           >
           SHOW CURRENT YEAR
           </CurrentYearButton>
           <AllYearButton
             onClick={() => this.buttonClick(2)}
-            selected={buttonMode}
+            $selected={buttonMode}
           >
           SHOW ALL YEARS
           </AllYearButton>

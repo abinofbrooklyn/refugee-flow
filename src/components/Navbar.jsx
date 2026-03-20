@@ -12,7 +12,7 @@ const NavbarContainer = styled.div`
 
   &::before{
     content: '';
-    width: ${props => props.loadBar ? '100%':'0%'};
+    width: ${props => props.$loadBar ? '100%':'0%'};
     height: 4px;
     background: #00ffb0bd;
     position: absolute;
@@ -152,8 +152,8 @@ class Navbar extends React.Component {
 
     return (
       <NavbarContainer
-        loadBar={this.state.loadBar}
-        hovered={this.state.hovered} id="nav-show">
+        $loadBar={this.state.loadBar}
+        $hovered={this.state.hovered} id="nav-show">
           <Link to='/'
             onMouseOver={() => this.setState({hovered: true})}
             onMouseOut={() => this.setState({hovered: false})}>

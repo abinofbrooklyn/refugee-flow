@@ -42,24 +42,24 @@ const CurrentCountryTag = styled.div`
   top: 110px;
   color: white;
   left: 187px;
-  padding: ${props => props.currentCountry !='GLOBAL'?'5px 15px 5px 25px':'5px 15px 5px 15px' };
+  padding: ${props => props.$currentCountry !='GLOBAL'?'5px 15px 5px 25px':'5px 15px 5px 15px' };
   border-radius: 4px;
   border: 1px solid #060610b5;
   font-family: 'Roboto';
   font-size: 10px;
   font-weight: 400;
-  cursor: ${props => props.currentCountry !='GLOBAL'?'pointer':'default' };
+  cursor: ${props => props.$currentCountry !='GLOBAL'?'pointer':'default' };
   transition: all 400ms;
 
-  ${props => props.currentCountry !='GLOBAL'&&css`
+  ${props => props.$currentCountry !='GLOBAL'&&css`
     background: #3f4158;
     border-color: #8387b185;
   `};
 
   &:before{
     ${props =>
-      props.currentCountry && css`
-        content: ${props.currentCountry !='GLOBAL'?"'x'":null};
+      props.$currentCountry && css`
+        content: ${props.$currentCountry !='GLOBAL'?"'x'":null};
     `}
     font-weight: 300;
     color: white;
@@ -69,7 +69,7 @@ const CurrentCountryTag = styled.div`
     top: 2px;
     }
   &:hover{
-    ${props => props.currentCountry !='GLOBAL'&&css`
+    ${props => props.$currentCountry !='GLOBAL'&&css`
       background: #2b2c3c;
       border-color: #2e9493cc;
     `};
@@ -139,7 +139,7 @@ class RegionModalButton extends Component {
           onClick={this.handleToggleModal}>
           Select Region
         </SwitchCountryButton>
-        <CurrentCountryTag currentCountry={this.currentCountry} onClick={this.removeCountryHandler} > {this.currentCountry} </CurrentCountryTag>
+        <CurrentCountryTag $currentCountry={this.currentCountry} onClick={this.removeCountryHandler} > {this.currentCountry} </CurrentCountryTag>
 
         <RegionModalCreator showModal={showModal} onCloseRequest={this.handleToggleModal}>
           <ModalInnerContainer>
