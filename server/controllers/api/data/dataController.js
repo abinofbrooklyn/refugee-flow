@@ -115,6 +115,15 @@ const findRouteIbc = async () => {
     const rec = routeMap[row.route][key];
     if (!rec[row.year]) rec[row.year] = { q1: 0, q2: 0, q3: 0, q4: 0 };
     rec[row.year][row.quarter] = row.count;
+    // Include border region breakdown if available (CBP Americas data)
+    if (row.count_southwest != null || row.count_northern != null) {
+      if (!rec.borderBreakdown) rec.borderBreakdown = {};
+      if (!rec.borderBreakdown[row.year]) rec.borderBreakdown[row.year] = {};
+      rec.borderBreakdown[row.year][row.quarter] = {
+        southwest: row.count_southwest || 0,
+        northern: row.count_northern || 0,
+      };
+    }
     // Clean footnote markers (^ * etc.) from nationality names
     rec.NationalityLong = rec.NationalityLong.replace(/[\^*~]+$/g, '').trim();
   });

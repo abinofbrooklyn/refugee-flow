@@ -136,6 +136,20 @@ const BorderLocation = styled.div`
     background: #54547a;
   }
 `
+const BorderBreakdown = styled.div`
+  position: absolute;
+  left: 30px;
+  top: 68px;
+  font-family: 'Roboto';
+  font-size: 10px;
+  font-weight: 300;
+  color: #ffffffa0;
+  line-height: 1.5;
+  &>span{
+    color: #ffffffd0;
+    font-weight: 500;
+  }
+`
 const ChartContainer = styled.div`
   width: 60%;
   position: absolute;
@@ -332,8 +346,19 @@ export default class RefugeeRoute_textArea_content_ibcCountryItem extends React.
           <CountryName>{this.data['NationalityLong']}</CountryName>
           <Region>{(() => { const c = _.find(countryList, d => d[0] === this.data['NationalityLong'].toUpperCase()); return c ? c[1] + ' Region' : ''; })()}</Region>
 
-          <Stats><p>{d3.format(",")(this.data['totalCross'])}</p></Stats>
           <BorderLocation><p>{this.data['BorderLocation']}</p></BorderLocation>
+          {this.data.borderBreakdown ? (() => {
+            let sw = 0, n = 0;
+            Object.values(this.data.borderBreakdown).forEach(q => {
+              Object.values(q).forEach(v => { sw += v.southwest || 0; n += v.northern || 0; });
+            });
+            return (
+              <BorderBreakdown>
+                SW: <span>{d3.format(",")(sw)}</span> &nbsp;|&nbsp; N: <span>{d3.format(",")(n)}</span>
+              </BorderBreakdown>
+            );
+          })() : null}
+          <Stats><p>{d3.format(",")(this.data['totalCross'])}</p></Stats>
 
           <ChartContainer>
             <p>Illegal Border Crossing by Year</p>
