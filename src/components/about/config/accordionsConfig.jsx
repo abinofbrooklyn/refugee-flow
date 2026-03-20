@@ -46,11 +46,7 @@ export const accordions = [
             and placed first at the
             &nbsp;
             <a target="_blank" rel="noopener noreferrer" href="https://medium.com/@nycmedialab/prototyping-teams-win-12-000-in-prizes-at-mlbam-hackathon-organized-by-nyc-media-lab-d9fee4c7ccaf">MLB Advanced Media Hackathon</a>
-            . He was featured at
-            &nbsp;
-            <a target="_blank" rel="noopener noreferrer" href="https://www.nypl.org/events/exhibitions/nyc-foodiverse">New York Public Library</a>
-            &nbsp;
-            and NYC Media Lab 2017 conf. He speaks regularly at
+            . He speaks regularly at
             &nbsp;
             <a target="_blank" rel="noopener noreferrer" href="https://www.meetup.com/UX-Support-Group/events/248956066/">Meetups</a>
             &nbsp;
@@ -72,14 +68,7 @@ export const accordions = [
             is drawn to the intersection of technology, art, and policy.
             He is pursuing creative ways to understand the complex challenges facing the world
             today and believes that creativity is the key to effective policymaking.
-            He works as a web developer at the United Nations Global Compact and has worked on
-            &nbsp;
-            <a href="https://www.unglobalcompact.org/interactive">UNGC Interactive</a>
-            &nbsp;
-            and the
-            &nbsp;
-            <a href="http://blueprint.unglobalcompact.org/">SDG Blueprint</a>
-            .
+            He works as a web developer at the United Nations Global Compact.
           </>
         ),
       },
@@ -153,10 +142,10 @@ export const accordions = [
             &#8226;
             &nbsp;
             <em>
-              <a target="_blank" rel="noopener noreferrer" href="http://popstats.unhcr.org/en/asylum_seekers_monthly">UNHCR Population Statistics Database</a>
+              <a target="_blank" rel="noopener noreferrer" href="https://www.unhcr.org/refugee-statistics/download/">UNHCR Refugee Data Finder</a>
             </em>
             &nbsp;
-            currently contains data about UNHCR's populations of concern from the year 1951 up to 2014 and you can use it to investigate different aspects of these populations: their general composition by location of residence or origin, their status (refugees, asylum seekers, internally displaced persons, etc.), their evolution over time, and so on.
+            provides global asylum application data by country of origin and destination. Refugee Flow uses UNHCR annual totals from 2010 to present, covering asylum seekers, refugees, and other populations of concern worldwide.
           </>
         ),
       },
