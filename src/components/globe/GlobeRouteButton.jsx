@@ -83,7 +83,7 @@ const Icon_popup_subtitle = styled.p`
 const Route_list = styled.div`
   width: 94%;
   margin: 0 3%;
-  height: 190px;
+  height: 350px;
   position: absolute;
   bottom: 10px;
   overflow-x: scroll;
@@ -178,7 +178,7 @@ class GlobeRouteButton extends React.Component {
   componentDidMount(){
     // get Data
     get_routeCountryList().then( d => {
-      d.push({'country':'GLOBAL',route:[ 'Eastern Mediterranean','Central Mediterranean','Western Mediterranean','Western Balkans','Eastern Land Borders','Western African','Others']})
+      d.push({'country':'GLOBAL',route:[ 'Eastern Mediterranean','Central Mediterranean','Western Mediterranean','Western Balkans','Eastern Land Borders','Western African','Americas','Horn of Africa','East & Southern Africa','Iran-Afghanistan Corridor','South & East Asia','English Channel']})
       this.setState({data: d});
     }).catch(() => {
       this.setState({ error: 'Failed to load route data.' });
@@ -214,7 +214,7 @@ class GlobeRouteButton extends React.Component {
         .ease(d3.easeCircle)
         .style('opacity',1)
         .style('width','350px')
-        .style('height','290px')
+        .style('height','450px')
     }
 
     const list_d = _.find(this.state.data,d => d.country === this.country );
@@ -227,10 +227,10 @@ class GlobeRouteButton extends React.Component {
           onClick={() =>
             {
               // this.history.push('/route/'+d.replace(' ',''))
-              window.open('/route/'+d.replace(' ',''),'_self')
+              window.open('/route/'+d.replace(/[^a-zA-Z0-9]/g, ''),'_self')
             }}>
           <Individual_route_listItem_title>{d + ' Route'}</Individual_route_listItem_title>
-          <Individual_route_listItem_crossCount>Total Corssing - <em>{ d3.format(',')(_.find(this.state.cross_count, _d => _d.route === d) && _.find(this.state.cross_count, _d => _d.route === d).total_cross) }</em> </Individual_route_listItem_crossCount>
+          <Individual_route_listItem_crossCount>Total Crossing - <em>{ d3.format(',')(_.find(this.state.cross_count, _d => _d.route === d) && _.find(this.state.cross_count, _d => _d.route === d).total_cross) }</em> </Individual_route_listItem_crossCount>
           <Click_note>Click for more...</Click_note>
         </Individual_route_listItem>)
     })
