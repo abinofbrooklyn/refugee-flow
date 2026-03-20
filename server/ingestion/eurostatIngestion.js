@@ -3,6 +3,7 @@
 const { XMLParser } = require('fast-xml-parser');
 const db = require('../database/connection');
 const { logIngestion, getLastSyncDate } = require('./ingestionLogger');
+const { normalizeCountryName } = require('./countryNormalizer');
 
 const EUROSTAT_BASE = 'https://ec.europa.eu/eurostat/api/dissemination/sdmx/2.1/data/migr_asyappctzm';
 const BATCH_SIZE = 500;
@@ -112,8 +113,8 @@ function sumToQuarters(monthlyData, originName, destName) {
     record_id: null,
     year: b.year,
     quarter: b.quarter,
-    origin: originName,
-    destination: destName,
+    origin: normalizeCountryName(originName),
+    destination: normalizeCountryName(destName),
     value: b.total,
   }));
 }
