@@ -1,26 +1,31 @@
 import React from 'react';
-import { BrowserRouter, Route, Switch, Redirect } from 'react-router-dom';
-import { compact } from 'lodash';
+import { BrowserRouter, Routes, Route, Outlet, Navigate } from 'react-router-dom';
+
+import Navbar from '../Navbar';
+import LandingResolver from './LandingResolver';
 
 import routeRegistry from './config/routeRegistry';
 
-const exclusiveRoutes = compact(routeRegistry.map(
-  (route, index) => route.isExclusive && <Route {...route} key={index} />,
-));
-
-const inclusiveRoutes = compact(routeRegistry.map(
-  (route, index) => !route.isExclusive && <Route {...route} key={index} />,
-));
+function NavbarLayout() {
+  return (
+    <>
+      <Navbar />
+      <Outlet />
+    </>
+  );
+}
 
 const Router = () => (
   <BrowserRouter>
-    <>
-      {inclusiveRoutes}
-      <Switch>
-        {exclusiveRoutes}
-        <Redirect to="/landing" />
-      </Switch>
-    </>
+    <Routes>
+      <Route element={<NavbarLayout />}>
+        {routeRegistry.filter(r => r.path !== '/landing').map(r => (
+          <Route key={r.path} path={r.path} element={r.element} />
+        ))}
+      </Route>
+      <Route path="/landing" element={routeRegistry.find(r => r.path === '/landing').element} />
+      <Route path="*" element={<Navigate to="/landing" replace />} />
+    </Routes>
   </BrowserRouter>
 );
 
