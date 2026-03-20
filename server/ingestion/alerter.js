@@ -1,7 +1,7 @@
 const { Resend } = require('resend');
 
 const ALERT_EMAIL = 'abin.abraham4@gmail.com';
-const FROM_EMAIL = 'alerts@refugee-flow.dev';
+const FROM_EMAIL = 'onboarding@resend.dev';
 
 // Source descriptions for diagnostic context
 const SOURCE_INFO = {
