@@ -21,15 +21,16 @@ function formatDate(date) {
  * Throws if authentication fails.
  */
 async function getAcledToken() {
+  const params = new URLSearchParams({
+    username: process.env.ACLED_EMAIL,
+    password: process.env.ACLED_PASSWORD,
+    grant_type: 'password',
+    client_id: 'acled',
+  });
   const res = await fetch(ACLED_TOKEN_URL, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      email: process.env.ACLED_EMAIL,
-      password: process.env.ACLED_PASSWORD,
-      grant_type: 'password',
-      client_id: 'acled',
-    }),
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: params.toString(),
   });
   const data = await res.json();
   if (!data.access_token) {
