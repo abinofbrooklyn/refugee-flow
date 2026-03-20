@@ -145,16 +145,15 @@ async function run() {
     } else {
       unchanged++;
     }
-    existingMap.delete(key);
   }
 
-  // Rows in DB but not in new data = stale, remove them
-  const staleKeys = [...existingMap.values()].map(r => r.pk);
+  // No stale row removal for CBP — CSV files only cover partial date ranges
+  // (e.g., FY23-26 doesn't contain FY20-22 data, but we still want those rows)
 
-  console.log(`Diff: ${toInsert.length} new, ${toUpdate.length} updated, ${unchanged} unchanged, ${staleKeys.length} stale`);
+  console.log(`Diff: ${toInsert.length} new, ${toUpdate.length} updated, ${unchanged} unchanged`);
 
   // Apply changes in a transaction
-  if (toInsert.length > 0 || toUpdate.length > 0 || staleKeys.length > 0) {
+  if (toInsert.length > 0 || toUpdate.length > 0) {
     await db.transaction(async trx => {
       const BATCH_SIZE = 500;
       for (let i = 0; i < toInsert.length; i += BATCH_SIZE) {
@@ -163,11 +162,8 @@ async function run() {
       for (const row of toUpdate) {
         await trx('ibc_crossings').where('pk', row.pk).update({ count: row.count, count_southwest: row.count_southwest, count_northern: row.count_northern });
       }
-      if (staleKeys.length > 0) {
-        await trx('ibc_crossings').whereIn('pk', staleKeys).del();
-      }
     });
-    console.log('Done! Inserted:', toInsert.length, 'Updated:', toUpdate.length, 'Removed stale:', staleKeys.length);
+    console.log('Done! Inserted:', toInsert.length, 'Updated:', toUpdate.length);
   } else {
     console.log('No changes needed — data is already up to date.');
   }
