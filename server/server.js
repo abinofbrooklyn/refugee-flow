@@ -7,7 +7,6 @@ const cors = require('cors');
 const rateLimit = require('express-rate-limit');
 const ENV_INFO = require('./helpers/envInfo');
 const dataRoutes = require('./routes/dataRoute');
-const adminRoutes = require('./routes/adminRoute');
 
 const app = express();
 
@@ -33,7 +32,6 @@ const apiLimiter = rateLimit({
 // API routing
 app.use('/data', apiLimiter);
 app.use('/data', dataRoutes);
-app.use('/admin', adminRoutes);
 // Serve react app
 app.use(express.static(path.join(__dirname, '../dist')));
 app.use((req, res) => { res.sendFile(path.join(__dirname, '../dist/index.html')); });
@@ -45,6 +43,8 @@ if (require.main === module) {
   const { runIomIngestion } = require('./ingestion/iomIngestion');
   const { runEurostatIngestion } = require('./ingestion/eurostatIngestion');
   const { runFrontexIngestion } = require('./ingestion/frontexIngestion');
+  const { runCbpIngestion } = require('./ingestion/cbpIngestion');
+  const { runUkChannelIngestion } = require('./ingestion/ukChannelIngestion');
 
   // Staggered schedules — Eurostat before UNHCR so seasonal ratios are available
   cron.schedule('0 2 * * 1', () => runAcledIngestion().catch(err => console.error('[ACLED cron]', err.message)));           // Monday 02:00 (weekly)
@@ -52,6 +52,8 @@ if (require.main === module) {
   cron.schedule('0 2 * * 5', () => runIomIngestion().catch(err => console.error('[IOM cron]', err.message)));               // Friday 02:00 (weekly)
   cron.schedule('0 4 * * 5', () => runUnhcrIngestion().catch(err => console.error('[UNHCR cron]', err.message)));           // Friday 04:00 (weekly, after Eurostat)
   cron.schedule('0 3 1 * *', () => runFrontexIngestion().catch(err => console.error('[Frontex cron]', err.message)));       // 1st of month 03:00
+  cron.schedule('0 5 15 * *', () => runCbpIngestion().catch(err => console.error('[CBP cron]', err.message)));              // 15th of month 05:00 (CBP publishes ~2 months behind)
+  cron.schedule('0 5 1 * *', () => runUkChannelIngestion().catch(err => console.error('[UK Channel cron]', err.message))); // 1st of month 05:00 (quarterly data, monthly check)
 
   app.listen(process.env.PORT);
 }
