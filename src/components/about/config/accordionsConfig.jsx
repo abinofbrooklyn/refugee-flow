@@ -212,6 +212,19 @@ export const accordions = [
           </>
         ),
       },
+      {
+        children: (
+          <>
+            &#8226;
+            &nbsp;
+            <em>
+              <a target="_blank" rel="noopener noreferrer" href='https://ec.europa.eu/eurostat/web/migration-asylum/asylum/database'>Eurostat</a>
+            </em>
+            &nbsp;
+            provides monthly asylum application statistics for EU/EEA countries. Quarterly breakdowns for non-EU destinations are estimated using Eurostat seasonal distribution patterns applied to UNHCR annual totals.
+          </>
+        ),
+      },
     ],
   },
 ];
