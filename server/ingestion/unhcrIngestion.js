@@ -1,5 +1,7 @@
 const db = require('../database/connection');
 const { logIngestion, getLastSyncDate } = require('./ingestionLogger');
+const { normalizeCountryName, EU_DESTINATIONS } = require('./countryNormalizer');
+const { computeSeasonalRatios, distributeByQuarter } = require('./quarterlyEstimator');
 
 const UNHCR_API_BASE = 'https://api.unhcr.org/population/v1/asylum-applications/';
 const PAGE_LIMIT = 100;
@@ -38,19 +40,26 @@ async function fetchAllUnhcrApplications(yearFrom) {
 
 /**
  * Transform raw UNHCR API items into rows ready for asy_applications table.
- * UNHCR provides annual totals only — quarter is always 'q1'.
+ * Normalizes country names and skips EU/EEA destinations (Eurostat owns those).
+ * UNHCR provides annual totals only — quarter is 'q1' (expanded later in runUnhcrIngestion).
  * @param {Array} items
  * @returns {Array}
  */
 function transformUnhcrItems(items) {
-  return items.map((item) => ({
-    record_id: null,
-    year: String(item.year),
-    quarter: 'q1',
-    origin: item.coo_name,
-    destination: item.coa_name,
-    value: parseInt(item.applied, 10) || 0,
-  }));
+  const rows = [];
+  for (const item of items) {
+    const destination = normalizeCountryName(item.coa_name);
+    if (EU_DESTINATIONS.has(destination)) continue; // Eurostat owns EU/EEA data
+    rows.push({
+      record_id: null,
+      year: String(item.year),
+      quarter: 'q1',
+      origin: normalizeCountryName(item.coo_name),
+      destination,
+      value: parseInt(item.applied, 10) || 0,
+    });
+  }
+  return rows;
 }
 
 /**
@@ -63,11 +72,33 @@ async function runUnhcrIngestion() {
     const yearFrom = lastSync ? lastSync.getFullYear() : null;
 
     const rawItems = await fetchAllUnhcrApplications(yearFrom);
-    const rows = transformUnhcrItems(rawItems);
+    const annualRows = transformUnhcrItems(rawItems);
 
-    // Deduplicate rows by conflict key — keep the last occurrence (highest value wins)
+    // Fetch seasonal ratios from existing Eurostat quarterly data
+    const eurostatRows = await db('asy_applications')
+      .select('origin', 'quarter')
+      .sum('value as value')
+      .whereIn('destination', Array.from(EU_DESTINATIONS))
+      .groupBy('origin', 'quarter');
+    const ratios = computeSeasonalRatios(eurostatRows);
+
+    // Expand each annual row into 4 quarterly rows using seasonal ratios
+    const expandedRows = [];
+    for (const row of annualRows) {
+      const originRatios = ratios[row.origin] || null;
+      const quarterly = distributeByQuarter(row.value, originRatios);
+      for (const q of ['q1', 'q2', 'q3', 'q4']) {
+        expandedRows.push({
+          ...row,
+          quarter: q,
+          value: quarterly[q],
+        });
+      }
+    }
+
+    // Deduplicate by conflict key — keep the last occurrence
     const deduped = new Map();
-    for (const row of rows) {
+    for (const row of expandedRows) {
       const key = `${row.year}|${row.quarter}|${row.origin}|${row.destination}`;
       deduped.set(key, row);
     }
