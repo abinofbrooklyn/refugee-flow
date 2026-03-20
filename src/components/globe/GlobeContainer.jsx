@@ -353,10 +353,6 @@ class GlobeContainer extends React.Component {
 
     const url = `${window.location.protocol}//${window.location.host}/data/reduced_war_data`;
     this.fetchData(url).then(d =>{
-      d.forEach((d,i) => {
-        console.log('year: ' + i + ' | dataPoint: ' + d.value[0][1].length);
-      })
-
       return ({
         'warData' : d,
         'loadingStatus': true,
@@ -386,10 +382,8 @@ class GlobeContainer extends React.Component {
       this.gv.transition(this.gv.lastIndex); // Animate interface;
       this.gv.octree.update( () => {
         this.setState({loadingStatus: false});
-        console.time('animate takes');
         this.gv.animate();
         this.gv.setTarget([-11.874010, 44.605859],945) // set initial position
-        console.timeEnd('animate takes');
         this.props.loadingManager(false);
 
         this.setState({controllerShow: false})
@@ -436,7 +430,7 @@ class GlobeContainer extends React.Component {
                 let min = d3.min(arr,d => d.fat )
                 return [min,max];
               }else{
-                console.log("err at compute max/min");
+                console.error("err at compute max/min");
               }
             })();
             let scaler = d3.scaleLinear().domain(minMax).range([0,1]);
@@ -550,21 +544,14 @@ class GlobeContainer extends React.Component {
 
     // let data_dict = data.map( (d) =>d[0] );
 
-    console.time('********************add data takes');
     data.forEach(d => this.gv.addData(d[1], {format: 'legend', name: d[0], animated: true} ) ) // this loop takes a quite bit time
-    console.timeEnd('********************add data takes');
 
     this.gv.createPoints(data); // doesn't take time
 
-    console.time('********************octree update takes');
     this.gv.renderer.render(this.gv.scene, this.gv.camera); // this takes quite a bit time
-
-    console.timeEnd('********************octree update takes');
   }
 
   renderGlobeVisual(){
-    console.count("---------- Globe's render called");
-
     if (this.state.loadingError) {
       return (
         <div style={{width: '75%', display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh'}}>
@@ -612,7 +599,7 @@ class GlobeContainer extends React.Component {
       //switch data
       const yearIndex = this.state.availableYears.indexOf(year);
       this.setState({loadingStatus : true, loadingText : 'Switching data to '+ year,currentControllerSelection:1})
-      this.timeLineScroll.toElement(document.querySelectorAll('.individualWrapper')[yearIndex]).then(()=>console.log('aaaaa'));
+      this.timeLineScroll.toElement(document.querySelectorAll('.individualWrapper')[yearIndex]);
 
       this.gv.transition(5,() => {
         //update visualization
@@ -885,7 +872,7 @@ class GlobeContainer extends React.Component {
             this.gv.scaler = d.scaler;
             //after init octree, present animation
             this.gv.octree.update(() =>{
-              this.timeLineScroll.toElement(document.querySelectorAll('.individualWrapper')[this.state.availableYears.indexOf(this.state.currentYear)]).then(()=>console.log('aaaaa'));
+              this.timeLineScroll.toElement(document.querySelectorAll('.individualWrapper')[this.state.availableYears.indexOf(this.state.currentYear)]);
               this.gv.transition(0);
               this.gv.setTarget([-11.874010, 44.605859],945) // set initial position
               // inform parent component loading status

@@ -339,7 +339,6 @@ export default class RefugeeRoute_textArea_content_basicInfo extends React.Compo
         .transition()
         .duration(600)
         .attr("width",d =>{
-          console.log(d);
           return xScale(d.total)
         }  )
         .style('transition','fill 400ms')
@@ -508,7 +507,6 @@ export default class RefugeeRoute_textArea_content_basicInfo extends React.Compo
 
           if((mx > xStart && mx < xEnd) && (my > yStart && my < yEnd)){
             d3.select('#chartTooltip__text').on('mouseout',() => {
-              console.log('ssa');
               d3.select('#chartTooltip__text').remove()
             })
           }
@@ -666,8 +664,6 @@ export default class RefugeeRoute_textArea_content_basicInfo extends React.Compo
 
     if(nextProps.currentRouteName != this.currentRouteName){
       this.currentRouteName = nextProps.currentRouteName;
-      console.log(nextProps);
-      console.log('update');
       d3.select('.route-map-titleGroup__basic') && d3.select('.route-map-titleGroup__basic')
         .style('opacity',0)
         .transition()
@@ -694,7 +690,6 @@ export default class RefugeeRoute_textArea_content_basicInfo extends React.Compo
   }
 
   render(){
-    console.log('remd');
     return(
       <Wrapper className='route-map-titleGroup__basic'>
         <CurrentSituation currentRouteName = {this.currentRouteName} id="CurrentSituation__text"

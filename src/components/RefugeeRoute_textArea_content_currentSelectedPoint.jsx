@@ -250,7 +250,6 @@ export default class RefugeeRoute_textArea_content_currentSelectedPoint extends 
 
     const map_lng = this.selected_dataPoint ? this.selected_dataPoint.lng : 0;
     const map_lat = this.selected_dataPoint? this.selected_dataPoint.lat: 0;
-    console.log("new props");
     this.mapFly(map_lng,map_lat);
   }
 

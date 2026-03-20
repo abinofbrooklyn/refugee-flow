@@ -71,7 +71,6 @@ class AsyApplicationChartContainer extends React.Component {
   }
 
   processData(data,selectedYear,mode){
-    console.log('processData Caleed');
     // console.log(this.state.currentCountry);
     // console.log(selectedYear);
 
@@ -126,7 +125,6 @@ class AsyApplicationChartContainer extends React.Component {
           const yearTotal = _data[0][year].reduce((sum, q) => sum + q, 0);
           allData.push(yearTotal);
         }
-        console.count('process chart data called - all');
         this.setState({
           chartData : allData
         })
@@ -138,9 +136,7 @@ class AsyApplicationChartContainer extends React.Component {
 
 
   renderChart(){
-    console.count('renderChart called');
     if(this.state.data.length != 0 && this.state.chartData.length != 0){
-      console.log("renderchart correctly");
       return (<AsyApplicationChart {...this.state} ref = {(gMount) => {return this.gMount = gMount }}/>)
     }
   }
