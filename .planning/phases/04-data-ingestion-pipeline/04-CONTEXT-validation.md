@@ -19,7 +19,7 @@ This does NOT change what data is ingested or from where — it adds quality gat
 ### Validation Rules (all 4 selected)
 - **Geo-label mismatch:** Coordinates must fall within the expected geographic region for the labeled route. Claude decides whether to use bounding boxes or distance-from-centroid per route — pick whichever best fits each route's geography.
 - **Outlier coordinates:** Catch clearly wrong lat/lng — null island (0,0), ocean coordinates for land events, values outside valid ranges (-90 to 90 lat, -180 to 180 lng).
-- **Duplicate detection:** Beyond the existing onConflict dedup — catch near-duplicates where the same event appears with slightly different values across ingestion runs.
+- **Duplicate detection:** Covered by existing onConflict dedup (ID-based sources) + value anomaly rule (count-swing detection for Frontex/CBP/UK Channel). No separate duplicate rule needed — folded into value anomalies per research recommendation.
 - **Value anomalies:** Claude decides thresholds per source based on historical data patterns. At minimum: negative counts, zero values where non-zero expected, impossible values.
 
 ### Bad Data Handling
