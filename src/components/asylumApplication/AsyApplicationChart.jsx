@@ -287,7 +287,7 @@ class AsyApplicationChart extends React.Component {
                   return +d3.select(this).attr('cy') + 15 + 40
                 }
               })
-              .text('Total application: '+ d3.format(".5s")(d3.select(this).datum()))
+              .text('Total application: '+ d3.format(",")(d3.select(this).datum()))
               .attr("fill", "#b9b7b7")
               .style('font-family','Roboto')
               .style('font-weight',400)
