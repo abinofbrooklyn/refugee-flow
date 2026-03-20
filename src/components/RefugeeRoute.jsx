@@ -7,15 +7,16 @@ import RefugeeRoute_titleGroup from './RefugeeRoute_titleGroup';
 import RefugeeRoute_textArea from './RefugeeRoute_textArea';
 import RefugeeRoute_map from './RefugeeRoute_map';
 import RefugeeRoute_map_popup from './RefugeeRoute_map_popup';
+import withRouter6 from './router/withRouter6';
 
-export default class RefugeeRoute extends React.Component {
+class RefugeeRoute extends React.Component {
 
   constructor(props){
     super(props);
     this.state = {
         loading: true,
         error: null,
-        currentRouteName: _.find(["Eastern Mediterranean","Central Mediterranean","Western Mediterranean","English Channel","Western Balkans","Eastern Land Borders","Americas","Western African","Horn of Africa","East & Southern Africa","Iran-Afghanistan Corridor","South & East Asia"],d => d.replace(/[^a-zA-Z0-9]/g, '') === props.match.params.arg),
+        currentRouteName: _.find(["Eastern Mediterranean","Central Mediterranean","Western Mediterranean","English Channel","Western Balkans","Eastern Land Borders","Americas","Western African","Horn of Africa","East & Southern Africa","Iran-Afghanistan Corridor","South & East Asia"],d => d.replace(/[^a-zA-Z0-9]/g, '') === props.params.arg),
         banned_category: null,
         clicked_datapoint: null,
         clickedPointRemoved: true,
@@ -49,7 +50,7 @@ export default class RefugeeRoute extends React.Component {
   }
 
   checkCurrentRouteName(ibcData, deathData){
-    const urlArg = this.props.match.params.arg;
+    const urlArg = this.props.params.arg;
     const toSlug = (s) => s.replace(/[^a-zA-Z0-9]/g, '');
     // Check IBC routes first
     for (var route in ibcData) {
@@ -155,3 +156,5 @@ export default class RefugeeRoute extends React.Component {
     )
   }
 }
+
+export default withRouter6(RefugeeRoute);

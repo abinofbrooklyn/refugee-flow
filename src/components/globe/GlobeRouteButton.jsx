@@ -170,7 +170,7 @@ class GlobeRouteButton extends React.Component {
       error: null,
     };
     this.country = props.country;
-    this.history = props.history;
+    this.navigate = props.navigate;
     this.render_route_list = this.render_route_list.bind(this);
   }
 
@@ -191,7 +191,7 @@ class GlobeRouteButton extends React.Component {
 
   UNSAFE_componentWillReceiveProps(nextProps) {
     this.country = nextProps.country;
-    this.history = nextProps.history;
+    this.navigate = nextProps.navigate;
   }
 
   render_route_list(){
@@ -225,8 +225,7 @@ class GlobeRouteButton extends React.Component {
         <Individual_route_listItem key={'route_item_' + i}
           onClick={() =>
             {
-              // this.history.push('/route/'+d.replace(' ',''))
-              window.open('/route/'+d.replace(/[^a-zA-Z0-9]/g, ''),'_self')
+              this.navigate('/route/'+d.replace(/[^a-zA-Z0-9]/g, ''))
             }}>
           <Individual_route_listItem_title>{d + ' Route'}</Individual_route_listItem_title>
           <Individual_route_listItem_crossCount>Total Crossing - <em>{ d3.format(',')(_.find(this.state.cross_count, _d => _d.route === d) && _.find(this.state.cross_count, _d => _d.route === d).total_cross) }</em> </Individual_route_listItem_crossCount>

@@ -5,8 +5,9 @@ import * as d3 from 'd3';
 import GlobeContainer from './globe/GlobeContainer';
 import AsyApplicationContainer from './asylumApplication/AsyApplicationContainer';
 import Annotation from './Annotation';
+import withRouter6 from './router/withRouter6';
 
-export default class Conflict extends React.Component {
+class Conflict extends React.Component {
   constructor(props) {
     super(props);
     this.state = { stillLoading: true };
@@ -32,7 +33,7 @@ export default class Conflict extends React.Component {
         <Annotation />
         <GlobeContainer
           loadingManager={this.loadingManager}
-          history={this.props.history}
+          navigate={this.props.navigate}
         />
         <AsyApplicationContainer
           loadingManager={this.state.stillLoading}
@@ -41,3 +42,5 @@ export default class Conflict extends React.Component {
     )
   }
 }
+
+export default withRouter6(Conflict);
