@@ -82,7 +82,7 @@ Plans:
   2. Every lat/lng value from any ingestion source is precision-reduced and deduplicated before reaching the database
   3. Admin can navigate to /admin with a shared-secret password, upload a CSV, preview the parsed rows, and commit or cancel
   4. When an ingestion job fails, an error row with details appears in the ingestion_log table
-**Plans**: 14 plans (Plan 07 blocked on ACLED API access)
+**Plans**: 16 plans (Plan 07 blocked on ACLED API access)
 
 Plans:
 - [x] 04-01-PLAN.md — Database migration (ingestion_log table, event_id type fix), shared utilities, install dependencies
@@ -99,6 +99,8 @@ Plans:
 - [x] 04-12-PLAN.md — DB migration for border breakdown columns, route-aware Data Sources links, route ordering
 - [x] 04-13-PLAN.md — Automate Frontex IBC ingestion (server-side cron + admin trigger; IOM already automated in 04-03/04-04)
 - [x] 04-14-PLAN.md — UNHCR + Eurostat automation verified (already built in 04-03/04-04/04-08/04-09)
+- [ ] 04-15-PLAN.md — Data validation: migration 004 (quarantine table), validator module with TDD (4 rule types)
+- [ ] 04-16-PLAN.md — Data validation: alerter extension + integrate validator into all 7 ingestion pipelines
 
 ### Phase 5: Data Coverage
 **Goal**: The app accurately reflects what data exists — year range and route display match actual database contents with no silent gaps
@@ -136,6 +138,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 1. Stabilize | 4/4 | Complete | 2026-03-12 |
 | 2. Modernize Stack | 4/4 | Complete | 2026-03-12 |
 | 3. Database Migration | 4/4 | Complete   | 2026-03-17 |
-| 4. Data Ingestion Pipeline | 13/14 | In Progress (Plan 07 blocked on ACLED API access) | - |
+| 4. Data Ingestion Pipeline | 13/16 | In Progress (Plan 07 blocked on ACLED API access) | - |
 | 5. Data Coverage | 0/TBD | Not started | - |
 | 6. React Router v6 Migration | 3/3 | Complete | 2026-03-20 |
