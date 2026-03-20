@@ -117,6 +117,14 @@ const CurrentYearButton = styled.button`
     text-decoration-color: #9ca6d6f7;
   }
 `
+const Footnote = styled.p`
+  font-family: 'Roboto';
+  font-size: 9px;
+  font-weight: 300;
+  color: #7f7f7f;
+  margin: 4px 5% 8px 5%;
+  line-height: 1.3;
+`;
 const AllYearButton = styled.button`
   display: flex;
   align-items: center;
@@ -229,13 +237,18 @@ class AsyApplicationContainer extends React.Component {
           </LoadingIndicator>
         </LoadingDivWrapper>
         {data.length > 0 && (
-          <AsyApplicationChartContainer
-            selectedYear={selectedYear}
-            currentCountry={currentCountry}
-            data={data}
-            loadingManager={loadingManager}
-            chartMode={buttonMode}
-          />
+          <>
+            <AsyApplicationChartContainer
+              selectedYear={selectedYear}
+              currentCountry={currentCountry}
+              data={data}
+              loadingManager={loadingManager}
+              chartMode={buttonMode}
+            />
+            <Footnote>
+              Quarterly breakdown for non-EU destinations estimated from Eurostat seasonal patterns. Annual totals from UNHCR.
+            </Footnote>
+          </>
         )}
       </Background>
     );
