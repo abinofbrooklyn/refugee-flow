@@ -45,15 +45,17 @@ if (require.main === module) {
   const { runFrontexIngestion } = require('./ingestion/frontexIngestion');
   const { runCbpIngestion } = require('./ingestion/cbpIngestion');
   const { runUkChannelIngestion } = require('./ingestion/ukChannelIngestion');
+  const { runWithRetry } = require('./ingestion/retryRunner');
 
   // Staggered schedules — Eurostat before UNHCR so seasonal ratios are available
-  cron.schedule('0 2 * * 1', () => runAcledIngestion().catch(err => console.error('[ACLED cron]', err.message)));           // Monday 02:00 (weekly)
-  cron.schedule('0 2 * * 3', () => runEurostatIngestion().catch(err => console.error('[Eurostat cron]', err.message)));     // Wednesday 02:00 (weekly, before UNHCR)
-  cron.schedule('0 2 * * 5', () => runIomIngestion().catch(err => console.error('[IOM cron]', err.message)));               // Friday 02:00 (weekly)
-  cron.schedule('0 4 * * 5', () => runUnhcrIngestion().catch(err => console.error('[UNHCR cron]', err.message)));           // Friday 04:00 (weekly, after Eurostat)
-  cron.schedule('0 3 1 * *', () => runFrontexIngestion().catch(err => console.error('[Frontex cron]', err.message)));       // 1st of month 03:00
-  cron.schedule('0 5 15 * *', () => runCbpIngestion().catch(err => console.error('[CBP cron]', err.message)));              // 15th of month 05:00 (CBP publishes ~2 months behind)
-  cron.schedule('0 5 1 * *', () => runUkChannelIngestion().catch(err => console.error('[UK Channel cron]', err.message))); // 1st of month 05:00 (quarterly data, monthly check)
+  // All jobs wrapped with retry (3 attempts, exponential backoff) + email alert on final failure
+  cron.schedule('0 2 * * 1', () => runWithRetry('acled', runAcledIngestion));                // Monday 02:00 (weekly)
+  cron.schedule('0 2 * * 3', () => runWithRetry('eurostat', runEurostatIngestion));           // Wednesday 02:00 (weekly, before UNHCR)
+  cron.schedule('0 2 * * 5', () => runWithRetry('iom', runIomIngestion));                    // Friday 02:00 (weekly)
+  cron.schedule('0 4 * * 5', () => runWithRetry('unhcr', runUnhcrIngestion));                // Friday 04:00 (weekly, after Eurostat)
+  cron.schedule('0 3 1 * *', () => runWithRetry('frontex', runFrontexIngestion));             // 1st of month 03:00
+  cron.schedule('0 5 15 * *', () => runWithRetry('cbp', runCbpIngestion));                   // 15th of month 05:00 (CBP publishes ~2 months behind)
+  cron.schedule('0 5 1 * *', () => runWithRetry('uk-channel', runUkChannelIngestion));       // 1st of month 05:00 (quarterly data, monthly check)
 
   app.listen(process.env.PORT);
 }
