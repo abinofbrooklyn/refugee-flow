@@ -137,4 +137,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 3. Database Migration | 4/4 | Complete   | 2026-03-17 |
 | 4. Data Ingestion Pipeline | 14/15 | In Progress (Plan 07 blocked on ACLED API access) | - |
 | 5. Data Coverage | 0/TBD | Not started | - |
-| 6. React Router v6 Migration | 0/3 | Not started | - |
+| 6. React Router v6 Migration | 1/3 | In Progress|  |

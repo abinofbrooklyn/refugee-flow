@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-stopped_at: Phase 6 context gathered
-last_updated: "2026-03-20T19:46:38.889Z"
+stopped_at: Completed 06-01-PLAN.md
+last_updated: "2026-03-20T20:16:59.185Z"
 progress:
   total_phases: 6
   completed_phases: 4
-  total_plans: 22
-  completed_plans: 25
+  total_plans: 25
+  completed_plans: 26
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-11)
 
 **Core value:** Users can explore the human cost of conflict through an interactive, data-accurate visualization.
-**Current focus:** Phase 04 — data-ingestion-pipeline
+**Current focus:** Phase 06 — react-router-v6-migration
 
 ## Current Position
 
-Phase: 04 (data-ingestion-pipeline) — IN PROGRESS
-Plan: 12 of 15 (Plans 07, 13, 14, 15 remaining)
+Phase: 06 (react-router-v6-migration) — EXECUTING
+Plan: 2 of 3
 
 ## Performance Metrics
 
@@ -64,6 +64,7 @@ Plan: 12 of 15 (Plans 07, 13, 14, 15 remaining)
 | Phase 04 P06 | 24 | 2 tasks | 5 files |
 | Phase 04 P08 | 2 | 2 tasks | 4 files |
 | Phase 04 P09 | 4 | 2 tasks | 5 files |
+| Phase 06-react-router-v6-migration P01 | 2 | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -109,6 +110,8 @@ Recent decisions affecting current work:
 - [Phase 04]: Cote d'Ivoire canonical form kept as ASCII (no accent) matching Eurostat source
 - [Phase 04]: SY duplicate removed from CITIZEN_CODES; Syrian Arab Rep variant handled by countryNormalizer at integration time
 - [Phase 04]: UNHCR ingestion skips EU/EEA destinations to prevent double-counting; annual totals distributed into quarterly using Eurostat seasonal ratios
+- [Phase 06-react-router-v6-migration]: Two-step v4→v5→v6 upgrade confirmed no regression: same 11 pre-existing test failures before and after
+- [Phase 06-react-router-v6-migration]: withRouter6 HOC must be outermost wrapper when stacked with Redux connect()
 
 ### Pending Todos
 
@@ -120,6 +123,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-20T19:46:38.883Z
-Stopped at: Phase 6 context gathered
-Resume file: .planning/phases/06-react-router-v6-migration/06-CONTEXT.md
+Last session: 2026-03-20T20:16:59.174Z
+Stopped at: Completed 06-01-PLAN.md
+Resume file: None
