@@ -227,6 +227,19 @@ export const accordions = [
           </>
         ),
       },
+      {
+        children: (
+          <>
+            &#8226;
+            &nbsp;
+            <em>
+              <a target="_blank" rel="noopener noreferrer" href='https://www.gov.uk/government/statistical-data-sets/immigration-system-statistics-data-tables'>UK Home Office</a>
+            </em>
+            &nbsp;
+            publishes quarterly statistics on irregular entry routes to the UK. Refugee Flow uses small boat arrival data for the English Channel route, aggregated by nationality. Data covers 2018 Q1 to present.
+          </>
+        ),
+      },
     ],
   },
 ];
