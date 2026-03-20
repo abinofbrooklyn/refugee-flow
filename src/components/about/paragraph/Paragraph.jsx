@@ -3,28 +3,29 @@ import styled, { css } from 'styled-components';
 
 const Text = styled.p`
   transition: opacity cubic-bezier(0.13, 0.01, 0.02, 0.92) 1500ms;
-  color: white;
+  color: #d0d0e0;
   font-family: 'Roboto';
   font-size: 14px;
   font-weight: 300;
-  width: calc(100% - 140px);
   opacity: ${props => (props.animate ? 1 : 0)};
-  line-height: 2;
+  line-height: 1.8;
+  margin: 8px 0;
 
   &>em>a{
     transition: color 800ms;
     font-family: 'Tajawal';
-    font-size: 24px;
-    font-weight: 100;
+    font-size: 20px;
+    font-weight: 200;
     font-style: normal;
-    text-decoration: underline;
+    text-decoration: none;
     color: #9cddf7;
     letter-spacing: 1px;
     cursor: pointer;
-    filter: drop-shadow(0px 2px 5px #a2a2c9);
+    border-bottom: 1px solid rgba(156, 221, 247, 0.3);
 
     &:hover{
       color: #f2fbff;
+      border-bottom-color: #f2fbff;
     }
   }
 
@@ -32,17 +33,19 @@ const Text = styled.p`
     transition: color 800ms;
     font-family: 'Roboto';
     font-size: 14px;
-    font-weight: 100;
+    font-weight: 300;
     font-style: normal;
-    text-decoration: underline;
+    text-decoration: none;
     color: #9cddf7;
-    letter-spacing: 1px;
     cursor: pointer;
-    filter: drop-shadow(0px 2px 5px #a2a2c9);
-    &:hover { color: #f2fbff; }
+    border-bottom: 1px solid rgba(156, 221, 247, 0.3);
+    &:hover {
+      color: #f2fbff;
+      border-bottom-color: #f2fbff;
+    }
   }
 
-  ${props => props.isClosed && (css`display:  none;`)}
+  ${props => props.isClosed && (css`display: none;`)}
 `;
 
 

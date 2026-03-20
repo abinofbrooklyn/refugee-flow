@@ -25,8 +25,10 @@ const Wrapper = styled.div`
   }
 `;
 
-const Footer = styled.div`
-  margin-top: 100px;
+const Content = styled.div`
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 20px 40px 100px;
 `;
 
 export default class About extends React.Component {
@@ -43,33 +45,33 @@ export default class About extends React.Component {
     const { animate, AccordionsVisibility } = this.state;
     return (
       <Wrapper animate={animate}>
-        <DownloadLink />
+        <Content>
+          <DownloadLink />
 
-        {accordions.map(({ name, contents }) => (
-          <Accordion
-            key={name}
-            isClosed={AccordionsVisibility[name].isClosed}
-            onToggle={() => this.setState({
-              AccordionsVisibility: {
-                ...AccordionsVisibility,
-                [name]: { isClosed: !AccordionsVisibility[name].isClosed },
-              },
-            })}
-            animate={animate}
-            title={name}
-          >
-            {contents.map((content, i) => (
-              <Paragraph
-                key={i}
-                animate={animate}
-                isClosed={AccordionsVisibility[name].isClosed}
-                {...content}
-              />
-            ))}
-          </Accordion>
-        ))}
-
-        <Footer />
+          {accordions.map(({ name, contents }) => (
+            <Accordion
+              key={name}
+              isClosed={AccordionsVisibility[name].isClosed}
+              onToggle={() => this.setState({
+                AccordionsVisibility: {
+                  ...AccordionsVisibility,
+                  [name]: { isClosed: !AccordionsVisibility[name].isClosed },
+                },
+              })}
+              animate={animate}
+              title={name}
+            >
+              {contents.map((content, i) => (
+                <Paragraph
+                  key={i}
+                  animate={animate}
+                  isClosed={AccordionsVisibility[name].isClosed}
+                  {...content}
+                />
+              ))}
+            </Accordion>
+          ))}
+        </Content>
       </Wrapper>
     );
   }
