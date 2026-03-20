@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-stopped_at: Completed 04-08-PLAN.md
-last_updated: "2026-03-20T03:11:42.910Z"
+stopped_at: Completed 04-09-PLAN.md
+last_updated: "2026-03-20T03:17:45.361Z"
 progress:
   total_phases: 5
-  completed_phases: 3
+  completed_phases: 4
   total_plans: 20
-  completed_plans: 19
+  completed_plans: 20
 ---
 
 # Project State
@@ -23,8 +23,8 @@ See: .planning/PROJECT.md (updated 2026-03-11)
 
 ## Current Position
 
-Phase: 04 (data-ingestion-pipeline) — EXECUTING
-Plan: 8 of 8 (COMPLETE)
+Phase: 04 (data-ingestion-pipeline) — COMPLETE
+Plan: 9 of 9 (COMPLETE)
 
 ## Performance Metrics
 
@@ -63,6 +63,7 @@ Plan: 8 of 8 (COMPLETE)
 | Phase 04-data-ingestion-pipeline P05 | 2 | 2 tasks | 4 files |
 | Phase 04 P06 | 24 | 2 tasks | 5 files |
 | Phase 04 P08 | 2 | 2 tasks | 4 files |
+| Phase 04 P09 | 4 | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -107,6 +108,7 @@ Recent decisions affecting current work:
 - [Phase 04]: Ingestion-time normalization: all route mapping, geo-fallback, bounds correction, dedup happens at write time not read time
 - [Phase 04]: Cote d'Ivoire canonical form kept as ASCII (no accent) matching Eurostat source
 - [Phase 04]: SY duplicate removed from CITIZEN_CODES; Syrian Arab Rep variant handled by countryNormalizer at integration time
+- [Phase 04]: UNHCR ingestion skips EU/EEA destinations to prevent double-counting; annual totals distributed into quarterly using Eurostat seasonal ratios
 
 ### Pending Todos
 
@@ -118,6 +120,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-20T03:11:42.905Z
-Stopped at: Completed 04-08-PLAN.md
+Last session: 2026-03-20T03:17:45.355Z
+Stopped at: Completed 04-09-PLAN.md
 Resume file: None
