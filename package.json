@@ -58,7 +58,8 @@
     "redux": "^4.0.1",
     "scroll-js": "^1.8.8",
     "styled-components": "^6.3.11",
-    "three": "0.165.0"
+    "three": "0.165.0",
+    "xlsx": "^0.18.5"
   },
   "acceptedRisks": {},
   "overrides": {
