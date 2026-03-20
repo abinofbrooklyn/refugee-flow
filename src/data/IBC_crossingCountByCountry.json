@@ -21,6 +21,13 @@
     "zoom": 3.5
   },
   {
+    "route": "English Channel",
+    "total_cross": 190118,
+    "center_lng": 1.5,
+    "center_lat": 49.0,
+    "zoom": 3.5
+  },
+  {
     "route": "Western Balkans",
     "total_cross": 259738,
     "center_lng": 30.01,
@@ -74,13 +81,6 @@
     "total_cross": 543,
     "center_lng": 100.0,
     "center_lat": 15.0,
-    "zoom": 3.5
-  },
-  {
-    "route": "English Channel",
-    "total_cross": 190118,
-    "center_lng": 1.5,
-    "center_lat": 49.0,
     "zoom": 3.5
   }
 ]
