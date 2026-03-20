@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: unknown
-stopped_at: Completed 06-02-PLAN.md
-last_updated: "2026-03-20T21:03:08.752Z"
+status: in_progress
+stopped_at: Phase 06 complete; Phase 04 Plan 07 blocked on ACLED API access
+last_updated: "2026-03-20T21:30:00.000Z"
 progress:
   total_phases: 6
-  completed_phases: 5
-  total_plans: 25
-  completed_plans: 28
+  completed_phases: 4
+  total_plans: 28
+  completed_plans: 27
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-11)
 
 **Core value:** Users can explore the human cost of conflict through an interactive, data-accurate visualization.
-**Current focus:** Phase 06 — react-router-v6-migration
+**Current focus:** Phase 04 — data-ingestion-pipeline (Plan 07 blocked on ACLED API access)
 
 ## Current Position
 
-Phase: 06 (react-router-v6-migration) — EXECUTING
-Plan: 2 of 3
+Phase: 04 (data-ingestion-pipeline) — BLOCKED
+Plan: 7 of 14 (ACLED normalization — waiting on API access)
 
 ## Performance Metrics
 

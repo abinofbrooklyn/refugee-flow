@@ -121,9 +121,9 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
-- [ ] 06-01-PLAN.md — Upgrade react-router-dom to v6, create withRouter6 HOC and LandingResolver component
-- [ ] 06-02-PLAN.md — Rewrite Router.jsx and routeRegistry.jsx for v6, fix nested BrowserRouter in titleGroup
-- [ ] 06-03-PLAN.md — Wrap consumer components with withRouter6, thread navigate prop, browser smoke test
+- [x] 06-01-PLAN.md — Upgrade react-router-dom to v6, create withRouter6 HOC and LandingResolver component
+- [x] 06-02-PLAN.md — Rewrite Router.jsx and routeRegistry.jsx for v6, fix nested BrowserRouter in titleGroup
+- [x] 06-03-PLAN.md — Wrap consumer components with withRouter6, thread navigate prop, browser smoke test
 
 ## Progress
 
@@ -135,6 +135,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 1. Stabilize | 4/4 | Complete | 2026-03-12 |
 | 2. Modernize Stack | 4/4 | Complete | 2026-03-12 |
 | 3. Database Migration | 4/4 | Complete   | 2026-03-17 |
-| 4. Data Ingestion Pipeline | 14/15 | In Progress (Plan 07 blocked on ACLED API access) | - |
+| 4. Data Ingestion Pipeline | 13/14 | In Progress (Plan 07 blocked on ACLED API access) | - |
 | 5. Data Coverage | 0/TBD | Not started | - |
-| 6. React Router v6 Migration | 2/3 | In Progress|  |
+| 6. React Router v6 Migration | 3/3 | Complete | 2026-03-20 |
