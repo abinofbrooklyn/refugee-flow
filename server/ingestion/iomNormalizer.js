@@ -106,7 +106,8 @@ const geoFallback = (lat, lng) => {
 
   // === North Africa / Sahara / Arabian Peninsula (lat 15-30) ===
   if (lat > 15 && lat <= 30 && lng >= -15 && lng <= 15) return 'Central Mediterranean'; // Sahara transit (Niger, Mali north, Algeria south)
-  if (lat > 15 && lat <= 30 && lng > 15 && lng <= 37) return 'Central Mediterranean'; // Egypt, Sudan north, Libya south
+  if (lat > 15 && lat <= 30 && lng > 15 && lng <= 21) return 'Central Mediterranean'; // Libya south transit
+  if (lat > 15 && lat <= 30 && lng > 21 && lng <= 37) return 'Eastern Mediterranean'; // Egypt, Sudan north, Sinai transit
   if (lat > 25 && lat <= 30 && lng > 37 && lng <= 48) return 'Horn of Africa'; // Red Sea, Saudi Arabia
   if (lat > 25 && lat <= 30 && lng > 48 && lng <= 55) return 'Iran-Afghanistan Corridor'; // Iranian coast, Persian Gulf
   if (lat > 15 && lat <= 25 && lng > 37 && lng <= 48) return 'Horn of Africa'; // Yemen, Gulf of Aden, Saudi south
@@ -178,7 +179,7 @@ function applyGeoBoundsCorrections(route, lat, lng) {
 
   // Route-specific geographic bounds — reroute if record is far from its assigned region
   // Every route has a bounds check to catch IOM source data errors (fat-fingered coords)
-  if (route === 'Central Mediterranean' && (lng > 37 || lng < -15 || lat < 5 || lat > 48)) return geoFallback(lat, lng);
+  if (route === 'Central Mediterranean' && (lng > 21 || lng < -15 || lat < 5 || lat > 48)) return geoFallback(lat, lng);
   if (route === 'Central Mediterranean' && lat < 10 && lng > 15) return geoFallback(lat, lng); // Equatorial Africa — not CM transit
   if (route === 'Eastern Mediterranean' && (lng < 15 || lng > 45 || lat < 30 || lat > 45)) return geoFallback(lat, lng);
   if (route === 'Western Mediterranean' && (lng > 15 || lng < -25 || lat < 25 || lat > 48)) return geoFallback(lat, lng);
