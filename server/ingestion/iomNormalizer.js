@@ -90,8 +90,10 @@ const geoFallback = (lat, lng) => {
   if (lat > 48 && lng >= -10 && lng <= 10) return 'English Channel'; // NW Europe
   if (lat > 40 && lng >= -10 && lng <= 5) return 'Western Mediterranean';
   if (lat > 40 && lng > 5 && lng <= 10) return 'Western Mediterranean'; // Italy/France/Switzerland
-  if (lat > 40 && lat <= 55 && lng > 10 && lng <= 30) return 'Western Balkans';
-  if (lat > 40 && lat <= 55 && lng > 30 && lng <= 50) return 'Western Balkans'; // Caucasus
+  if (lat > 40 && lat <= 50 && lng > 10 && lng <= 30) return 'Western Balkans';
+  if (lat > 50 && lat <= 55 && lng > 10 && lng <= 30) return 'Eastern Land Borders'; // Poland, Germany, Czechia
+  if (lat > 40 && lat <= 55 && lng > 30 && lng <= 40) return 'Eastern Land Borders'; // Ukraine, Black Sea region
+  if (lat > 40 && lat <= 55 && lng > 40 && lng <= 50) return 'Eastern Mediterranean'; // Caucasus, eastern Turkey
 
   // === Mediterranean belt (lat 30-40) ===
   if (lat > 30 && lng >= -10 && lng <= 15) return 'Western Mediterranean';
