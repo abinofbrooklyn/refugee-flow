@@ -20,6 +20,9 @@ const ROUTE_MAP = {
   'Eastern Mediterranean': 'Eastern Mediterranean',
   'Iran to Türkiye': 'Eastern Mediterranean',
   'Syria to Türkiye': 'Eastern Mediterranean',
+  // Türkiye-Europe land route: deep Turkey/Caucasus (lng 30-47) is Eastern Mediterranean,
+  // not Western Balkans. Re-mapped per validation context decision 2026-03-20.
+  'Türkiye-Europe land route': 'Eastern Mediterranean',
 
   // === Western Mediterranean (Morocco -> Spain) ===
   'Western Mediterranean': 'Western Mediterranean',
@@ -30,7 +33,6 @@ const ROUTE_MAP = {
 
   // === Western Balkans (Greece/Turkey -> Central Europe overland) ===
   'Western Balkans': 'Western Balkans',
-  'Türkiye-Europe land route': 'Western Balkans',
 
   // === Eastern Land Borders (EU eastern frontier) ===
   'Eastern Land Borders': 'Eastern Land Borders',
@@ -168,10 +170,14 @@ function applyGeoBoundsCorrections(route, lat, lng) {
 
   // Route-specific geographic bounds — reroute if record is far from its assigned region
   if (route === 'Western African' && (lng > 15 || lat < -17)) return geoFallback(lat, lng);
-  if (route === 'Central Mediterranean' && (lng > 55 || lng < -15)) return geoFallback(lat, lng);
+  // Central Med: tightened from lng > 55 to lng > 37 — excludes Qatar/UAE (lng ~51)
+  // and aligns with actual Libya/Tunisia → Italy corridor boundary.
+  if (route === 'Central Mediterranean' && (lng > 37 || lng < -15)) return geoFallback(lat, lng);
   if (route === 'Eastern Mediterranean' && (lng < 15 || lng > 45)) return geoFallback(lat, lng);
   if (route === 'Western Mediterranean' && (lng > 15 || lng < -25)) return geoFallback(lat, lng);
-  if (route === 'Western Balkans' && (lng < 10 || lng > 50 || lat > 55 || lat < 35)) return geoFallback(lat, lng);
+  // Western Balkans: tightened upper lng from 50 to 35 (excludes deep Caucasus/Azerbaijan)
+  // and upper lat from 55 to 50 (excludes Russia at lat 53-54).
+  if (route === 'Western Balkans' && (lng < 10 || lng > 35 || lat > 50 || lat < 35)) return geoFallback(lat, lng);
   if (route === 'Eastern Land Borders' && (lng > 40 || lng < 10)) return geoFallback(lat, lng);
   if (route === 'Horn of Africa' && (lng < 15 || lat > 30 || lng > 55)) return geoFallback(lat, lng);
   if (route === 'Iran-Afghanistan Corridor' && (lng < 42 || lng > 70 || lat > 40)) return geoFallback(lat, lng);
