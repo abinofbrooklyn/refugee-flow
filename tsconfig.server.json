@@ -11,9 +11,9 @@
     "resolveJsonModule": true,
     "skipLibCheck": true,
     "lib": ["ES2020"],
-    "types": ["node"],
+    "types": ["node", "jest"],
     "forceConsistentCasingInFileNames": true
   },
-  "include": ["server/**/*"],
+  "include": ["server/**/*", "tests/server/**/*"],
   "exclude": ["node_modules", "dist", "src"]
 }

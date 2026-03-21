@@ -1,8 +1,18 @@
-const { sumToQuarters, fetchMonthlyData, EU_GEO, CITIZEN_CODES } = require('../../server/ingestion/eurostatIngestion');
+import { sumToQuarters, fetchMonthlyData, EU_GEO, CITIZEN_CODES } from '../../server/ingestion/eurostatIngestion';
 
 // Mock database
 jest.mock('../../server/database/connection', () => {
-  const mockKnex = jest.fn(() => mockKnex);
+  // Use explicit type to avoid TS7022 circular initializer error
+  type MockChain = jest.MockedFunction<() => MockChain> & {
+    insert: jest.Mock;
+    onConflict: jest.Mock;
+    merge: jest.Mock;
+    select: jest.Mock;
+    where: jest.Mock;
+    orderBy: jest.Mock;
+    first: jest.Mock;
+  };
+  const mockKnex: MockChain = jest.fn(() => mockKnex) as unknown as MockChain;
   mockKnex.insert = jest.fn(() => mockKnex);
   mockKnex.onConflict = jest.fn(() => mockKnex);
   mockKnex.merge = jest.fn(() => Promise.resolve());
@@ -53,10 +63,10 @@ describe('eurostatIngestion', () => {
       ];
       const rows = sumToQuarters(monthly, 'Iraq', 'Sweden');
       expect(rows).toHaveLength(4);
-      expect(rows.find(r => r.quarter === 'q1').value).toBe(60);
-      expect(rows.find(r => r.quarter === 'q2').value).toBe(150);
-      expect(rows.find(r => r.quarter === 'q3').value).toBe(240);
-      expect(rows.find(r => r.quarter === 'q4').value).toBe(330);
+      expect(rows.find(r => r.quarter === 'q1')!.value).toBe(60);
+      expect(rows.find(r => r.quarter === 'q2')!.value).toBe(150);
+      expect(rows.find(r => r.quarter === 'q3')!.value).toBe(240);
+      expect(rows.find(r => r.quarter === 'q4')!.value).toBe(330);
     });
 
     it('handles data spanning multiple years', () => {
@@ -67,8 +77,8 @@ describe('eurostatIngestion', () => {
       ];
       const rows = sumToQuarters(monthly, 'Somalia', 'Italy');
       expect(rows).toHaveLength(2);
-      expect(rows.find(r => r.year === '2022' && r.quarter === 'q4').value).toBe(300);
-      expect(rows.find(r => r.year === '2023' && r.quarter === 'q1').value).toBe(300);
+      expect(rows.find(r => r.year === '2022' && r.quarter === 'q4')!.value).toBe(300);
+      expect(rows.find(r => r.year === '2023' && r.quarter === 'q1')!.value).toBe(300);
     });
 
     it('returns empty array for no data', () => {
@@ -102,21 +112,21 @@ describe('eurostatIngestion', () => {
 
   describe('fetchMonthlyData', () => {
     beforeEach(() => {
-      global.fetch = jest.fn();
+      global.fetch = jest.fn() as typeof fetch;
     });
 
     afterEach(() => {
-      delete global.fetch;
+      delete (global as Record<string, unknown>).fetch;
     });
 
     it('returns empty array on 404 (no data for pair)', async () => {
-      global.fetch.mockResolvedValue({ ok: false, status: 404, statusText: 'Not Found' });
+      (global.fetch as jest.Mock).mockResolvedValue({ ok: false, status: 404, statusText: 'Not Found' });
       const result = await fetchMonthlyData('AF', 'AT', '2023-01', '2023-06');
       expect(result).toEqual([]);
     });
 
     it('throws on non-404 error', async () => {
-      global.fetch.mockResolvedValue({ ok: false, status: 500, statusText: 'Server Error' });
+      (global.fetch as jest.Mock).mockResolvedValue({ ok: false, status: 500, statusText: 'Server Error' });
       await expect(fetchMonthlyData('AF', 'AT', '2023-01', '2023-06')).rejects.toThrow('Eurostat API error: 500');
     });
 
@@ -133,7 +143,7 @@ describe('eurostatIngestion', () => {
           </m:DataSet>
         </m:GenericData>`;
 
-      global.fetch.mockResolvedValue({ ok: true, text: () => Promise.resolve(xml) });
+      (global.fetch as jest.Mock).mockResolvedValue({ ok: true, text: () => Promise.resolve(xml) });
       const result = await fetchMonthlyData('AF', 'AT', '2023-01', '2023-03');
 
       expect(result).toEqual([

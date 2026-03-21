@@ -1,10 +1,10 @@
 /**
  * Unit tests for CBP border crossing ingestion utilities
  */
-const {
+import {
   CBP_NATIONALITY_MAP,
   normalizeCbpNationality,
-} = require('../../scripts/nationality-map');
+} from '../../scripts/nationality-map';
 
 // --- CBP_NATIONALITY_MAP ---
 
@@ -22,7 +22,7 @@ describe('CBP_NATIONALITY_MAP', () => {
   test('all values are non-empty strings', () => {
     Object.values(CBP_NATIONALITY_MAP).forEach(v => {
       expect(typeof v).toBe('string');
-      expect(v.length).toBeGreaterThan(0);
+      expect((v as string).length).toBeGreaterThan(0);
     });
   });
 });
@@ -89,7 +89,7 @@ describe('normalizeCbpNationality', () => {
 
 describe('Fiscal year to calendar year conversion logic', () => {
   // Replicate the logic here to unit test it
-  function toCalendarYear(fiscalYear, monthAbbr) {
+  function toCalendarYear(fiscalYear: string, monthAbbr: string): string {
     const fy = parseInt(fiscalYear);
     if (['OCT', 'NOV', 'DEC'].includes(monthAbbr)) {
       return String(fy - 1);
@@ -127,7 +127,7 @@ describe('Fiscal year to calendar year conversion logic', () => {
 // --- Quarter mapping ---
 
 describe('Quarter mapping', () => {
-  const QUARTER_MAP = {
+  const QUARTER_MAP: Record<string, string> = {
     JAN: 'q1', FEB: 'q1', MAR: 'q1',
     APR: 'q2', MAY: 'q2', JUN: 'q2',
     JUL: 'q3', AUG: 'q3', SEP: 'q3',

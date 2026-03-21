@@ -1,4 +1,5 @@
-require('dotenv').config();
+import 'dotenv/config';
+import { execSync } from 'child_process';
 
 describe('Database connection (DB-01)', () => {
   test('knex connects to Postgres without MONGODB_URI', async () => {
@@ -13,12 +14,11 @@ describe('Database connection (DB-01)', () => {
   });
 
   test('mongoose is not in package.json dependencies', () => {
-    const pkg = require('../../package.json');
+    const pkg = require('../../package.json') as { dependencies: Record<string, string> };
     expect(pkg.dependencies.mongoose).toBeUndefined();
   });
 
   test('no mongoose require in server directory', () => {
-    const { execSync } = require('child_process');
     const result = execSync('grep -r "require.*mongoose" server/ --include="*.js" -l 2>/dev/null || echo ""').toString().trim();
     expect(result).toBe('');
   });

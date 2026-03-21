@@ -1,7 +1,7 @@
-require('dotenv').config();
-const request = require('supertest');
-const app = require('../../server/server');
-const db = require('../../server/database/connection');
+import 'dotenv/config';
+import request from 'supertest';
+import app from '../../server/server';
+import db from '../../server/database/connection';
 
 afterAll(async () => {
   await db.destroy();
@@ -34,7 +34,7 @@ describe('GET /data/ingestion-health', () => {
 
   test('each source has expected shape', async () => {
     const res = await request(app).get('/data/ingestion-health');
-    for (const source of Object.values(res.body.sources)) {
+    for (const source of Object.values(res.body.sources) as Record<string, unknown>[]) {
       expect(source).toHaveProperty('lastSuccess');
       expect(source).toHaveProperty('lastSuccessAgo');
       expect(source).toHaveProperty('rowsAffected');

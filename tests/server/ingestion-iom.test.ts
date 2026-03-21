@@ -2,26 +2,27 @@
  * Unit tests for IOM Missing Migrants ingestion module (04-03)
  */
 jest.mock('../../server/database/connection', () => {
-  const mockDb = jest.fn();
-  mockDb.destroy = jest.fn().mockResolvedValue();
+  const mockDb = jest.fn() as jest.Mock & { destroy: jest.Mock };
+  mockDb.destroy = jest.fn().mockResolvedValue(undefined);
   return mockDb;
 });
 
 jest.mock('../../server/ingestion/ingestionLogger', () => ({
-  logIngestion: jest.fn().mockResolvedValue(),
+  logIngestion: jest.fn().mockResolvedValue(undefined),
   getLastSyncDate: jest.fn().mockResolvedValue(null),
 }));
 
-global.fetch = jest.fn();
+global.fetch = jest.fn() as typeof fetch;
 
-const { logIngestion } = require('../../server/ingestion/ingestionLogger');
-const {
+import { logIngestion } from '../../server/ingestion/ingestionLogger';
+import {
   parseCoordinates,
   monthToQuarter,
   transformIomRows,
-  fetchAndParseIomCsv,
   runIomIngestion,
-} = require('../../server/ingestion/iomIngestion');
+} from '../../server/ingestion/iomIngestion';
+
+const mockLogIngestion = logIngestion as jest.MockedFunction<typeof logIngestion>;
 
 beforeEach(() => {
   jest.clearAllMocks();
@@ -116,17 +117,17 @@ describe('runIomIngestion()', () => {
 `;
 
   function setupDbMock() {
-    const db = require('../../server/database/connection');
+    const db = require('../../server/database/connection') as jest.MockedFunction<() => Record<string, jest.Mock>>;
     const ignoreMock = jest.fn().mockResolvedValue({ rowCount: 1 });
     const onConflictMock = jest.fn().mockReturnValue({ ignore: ignoreMock });
     const insertMock = jest.fn().mockReturnValue({ onConflict: onConflictMock });
-    db.mockReturnValue({ insert: insertMock });
+    db.mockReturnValue({ insert: insertMock } as unknown as ReturnType<typeof db>);
     return { db, insertMock, onConflictMock, ignoreMock };
   }
 
   test('Test 8: fetches CSV, parses, upserts with onConflict("id").ignore()', async () => {
     const { ignoreMock } = setupDbMock();
-    global.fetch.mockResolvedValueOnce({
+    (global.fetch as jest.Mock).mockResolvedValueOnce({
       ok: true,
       text: async () => csvContent,
     });
@@ -139,14 +140,14 @@ describe('runIomIngestion()', () => {
 
   test('Test 9: logs success with row count', async () => {
     setupDbMock();
-    global.fetch.mockResolvedValueOnce({
+    (global.fetch as jest.Mock).mockResolvedValueOnce({
       ok: true,
       text: async () => csvContent,
     });
 
     await runIomIngestion();
 
-    expect(logIngestion).toHaveBeenCalledWith(expect.objectContaining({
+    expect(mockLogIngestion).toHaveBeenCalledWith(expect.objectContaining({
       source: 'iom',
       status: 'success',
       rowsAffected: 1,
@@ -155,11 +156,11 @@ describe('runIomIngestion()', () => {
 
   test('Test 10: logs error on failure', async () => {
     setupDbMock();
-    global.fetch.mockRejectedValueOnce(new Error('Connection refused'));
+    (global.fetch as jest.Mock).mockRejectedValueOnce(new Error('Connection refused'));
 
     await runIomIngestion();
 
-    expect(logIngestion).toHaveBeenCalledWith(expect.objectContaining({
+    expect(mockLogIngestion).toHaveBeenCalledWith(expect.objectContaining({
       source: 'iom',
       status: 'error',
       errorMessage: 'Connection refused',

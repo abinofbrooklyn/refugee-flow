@@ -1,4 +1,4 @@
-const db = require('../../server/database/connection');
+import db from '../../server/database/connection';
 
 afterAll(async () => {
   await db.destroy();
@@ -7,7 +7,7 @@ afterAll(async () => {
 describe('Seed data integrity', () => {
   test('war_events lat values have at most 2 decimal places', async () => {
     const rows = await db('war_events').select('lat').limit(1000);
-    rows.forEach(row => {
+    rows.forEach((row: { lat: number }) => {
       const decimals = String(row.lat).split('.')[1];
       expect(!decimals || decimals.length <= 2).toBe(true);
     });
@@ -15,7 +15,7 @@ describe('Seed data integrity', () => {
 
   test('war_events lng values have at most 2 decimal places', async () => {
     const rows = await db('war_events').select('lng').limit(1000);
-    rows.forEach(row => {
+    rows.forEach((row: { lng: number }) => {
       const decimals = String(row.lng).split('.')[1];
       expect(!decimals || decimals.length <= 2).toBe(true);
     });
@@ -34,7 +34,7 @@ describe('Seed data integrity', () => {
 
   test('war_events lat and lng are numbers not strings', async () => {
     const rows = await db('war_events').select('lat', 'lng').limit(10);
-    rows.forEach(row => {
+    rows.forEach((row: { lat: unknown; lng: unknown }) => {
       expect(typeof row.lat).toBe('number');
       expect(typeof row.lng).toBe('number');
     });
@@ -42,7 +42,7 @@ describe('Seed data integrity', () => {
 
   test('route_deaths lat values have at most 2 decimal places', async () => {
     const rows = await db('route_deaths').select('lat').whereNotNull('lat').limit(500);
-    rows.forEach(row => {
+    rows.forEach((row: { lat: number }) => {
       const decimals = String(row.lat).split('.')[1];
       expect(!decimals || decimals.length <= 2).toBe(true);
     });

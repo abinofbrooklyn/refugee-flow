@@ -1,9 +1,10 @@
 /**
  * Unit tests for UK Channel small boat crossing ingestion
  */
+import { execSync } from 'child_process';
 
 // Reimplement parseQuarter for unit testing (script isn't a module)
-function parseQuarter(qStr) {
+function parseQuarter(qStr: string): { year: string; quarter: string } | null {
   const match = qStr.match(/^(\d{4})\s+Q(\d)$/);
   if (!match) return null;
   return { year: match[1], quarter: 'q' + match[2] };
@@ -34,10 +35,10 @@ describe('parseQuarter', () => {
   });
 
   test('handles all four quarters', () => {
-    expect(parseQuarter('2020 Q1').quarter).toBe('q1');
-    expect(parseQuarter('2020 Q2').quarter).toBe('q2');
-    expect(parseQuarter('2020 Q3').quarter).toBe('q3');
-    expect(parseQuarter('2020 Q4').quarter).toBe('q4');
+    expect(parseQuarter('2020 Q1')!.quarter).toBe('q1');
+    expect(parseQuarter('2020 Q2')!.quarter).toBe('q2');
+    expect(parseQuarter('2020 Q3')!.quarter).toBe('q3');
+    expect(parseQuarter('2020 Q4')!.quarter).toBe('q4');
   });
 });
 
@@ -58,13 +59,13 @@ describe('SKIP_NATIONALITIES', () => {
 
 describe('ingestion script', () => {
   test('exits with usage message when no args', () => {
-    const { execSync } = require('child_process');
     try {
       execSync('node scripts/ingestUKChannel.js 2>&1', { encoding: 'utf-8' });
       fail('Should have exited with code 1');
-    } catch (e) {
-      expect(e.stdout || e.stderr).toContain('Usage:');
-      expect(e.status).toBe(1);
+    } catch (e: unknown) {
+      const err = e as { stdout?: string; stderr?: string; status?: number };
+      expect(err.stdout || err.stderr).toContain('Usage:');
+      expect(err.status).toBe(1);
     }
   });
 });

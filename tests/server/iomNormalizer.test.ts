@@ -1,7 +1,7 @@
 /**
  * Unit tests for IOM route normalization pipeline (04-06)
  */
-const {
+import {
   ROUTE_MAP,
   geoFallback,
   fixSwappedLatLng,
@@ -9,7 +9,7 @@ const {
   applyGeoBoundsCorrections,
   normalizeRow,
   deduplicateRows,
-} = require('../../server/ingestion/iomNormalizer');
+} from '../../server/ingestion/iomNormalizer';
 
 // --- ROUTE_MAP ---
 
