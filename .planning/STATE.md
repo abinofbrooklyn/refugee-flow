@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-stopped_at: Completed 07-05-PLAN.md (RefugeeRoute component family to TSX functional components)
-last_updated: "2026-03-21T20:18:04.563Z"
+stopped_at: Completed 07-04-PLAN.md (simple/leaf components, navbar, landing, router to TSX)
+last_updated: "2026-03-21T20:18:59.089Z"
 progress:
   total_phases: 7
   completed_phases: 5
   total_plans: 37
-  completed_plans: 35
+  completed_plans: 36
 ---
 
 # Project State
@@ -73,6 +73,7 @@ Plan: 8 of 10
 | Phase 07-start-v2-typescript-migration P03 | 6 | 2 tasks | 8 files |
 | Phase 07-start-v2-typescript-migration P08 | 12 | 2 tasks | 11 files |
 | Phase 07-start-v2-typescript-migration P05 | 20 | 2 tasks | 20 files |
+| Phase 07-start-v2-typescript-migration P04 | 19 | 2 tasks | 23 files |
 
 ## Accumulated Context
 
@@ -140,6 +141,9 @@ Recent decisions affecting current work:
 - [Phase 07-start-v2-typescript-migration]: D3 v5 mouse API preserved via (d3 as any).mouse(this) — project uses D3 v5.16.0 which has d3.mouse() removed from TypeScript types but present at runtime
 - [Phase 07-start-v2-typescript-migration]: MapLibre NavigationControl({}) — constructor requires NavigationOptions object; empty object equivalent to no-arg call
 - [Phase 07-start-v2-typescript-migration]: Mutable map instance variables migrated to useRef in RefugeeRoute_map — avoids stale closure issues while preserving direct mutation semantics for canvas rendering
+- [Phase 07-start-v2-typescript-migration]: Navbar uses useLocation hook directly instead of withRouter6 — functional components can consume hooks natively, withRouter6 bridging not needed
+- [Phase 07-start-v2-typescript-migration]: SVG imports cast through unknown for TypeScript 5.9 bundler mode — TS5 bundler moduleResolution does not resolve *.svg wildcards; cast through unknown is correct idiomatic pattern
+- [Phase 07-start-v2-typescript-migration]: styled.video.attrs() replaced with CSS template interpolation — styled-components v6 attrs only accepts valid HTML attributes; inline template interpolation used for dynamic opacity/filter
 
 ### Roadmap Evolution
 
@@ -155,6 +159,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-21T20:18:04.560Z
-Stopped at: Completed 07-05-PLAN.md (RefugeeRoute component family to TSX functional components)
+Last session: 2026-03-21T20:18:59.086Z
+Stopped at: Completed 07-04-PLAN.md (simple/leaf components, navbar, landing, router to TSX)
 Resume file: None
