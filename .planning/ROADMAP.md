@@ -141,3 +141,32 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 4. Data Ingestion Pipeline | 15/12 | Complete   | 2026-03-21 |
 | 5. Data Coverage | 0/TBD | Not started | - |
 | 6. React Router v6 Migration | 3/3 | Complete | 2026-03-20 |
+| 7. Start v2 TypeScript Migration | 0/10 | Planned | - |
+
+### Phase 7: Start v2 TypeScript Migration
+
+**Goal:** The entire codebase (frontend + server + tests) is TypeScript with strict: true — all 39 class components converted to functional with hooks, Redux uses useSelector/useDispatch, zero JavaScript source files remain
+**Requirements**: MOD-V2-01
+**Depends on:** Phase 6
+**Success Criteria** (what must be TRUE):
+  1. `tsc --noEmit` exits 0 for both frontend and server tsconfig files
+  2. `npm run build` (Vite) produces dist/ successfully
+  3. All 17 test suites pass with ts-jest
+  4. Zero .js/.jsx source files remain in src/, server/, or tests/
+  5. All class components are functional components with hooks
+  6. Redux uses useAppSelector/useAppDispatch (no connect() HOCs)
+  7. GlobeVisual exposes typed GlobeVisualHandle via forwardRef + useImperativeHandle
+  8. Manual smoke test confirms no visual or functional regressions
+**Plans**: 10 plans
+
+Plans:
+- [ ] 07-01-PLAN.md — Install TypeScript toolchain, create dual tsconfig (frontend + server), update Jest for ts-jest, create type foundation files
+- [ ] 07-02-PLAN.md — Convert Redux layer to TypeScript (actionConstants, actions, reducers, store, defaults)
+- [ ] 07-03-PLAN.md — Convert utilities (api, color-conversion, fetchers), data dictionaries, and vendored THREE.js scripts to TypeScript
+- [ ] 07-04-PLAN.md — Convert simple/leaf components to TSX: about, navbar, annotation, landing, router (14 files)
+- [ ] 07-05-PLAN.md — Convert RefugeeRoute family to TSX: route page, map, popup, textArea, content panels (10 files)
+- [ ] 07-06-PLAN.md — Convert asylum chart, Conflict page, RegionModal, and app entry point to TSX (9 files)
+- [ ] 07-07-PLAN.md — Convert globe components to TSX: GlobeVisual (forwardRef), GlobeContainer, timeline, stats, tooltips, route button (6 files)
+- [ ] 07-08-PLAN.md — Convert server core to TypeScript: types, connection, controllers, routes, server entry (11 files)
+- [ ] 07-09-PLAN.md — Convert all 14 server ingestion modules to TypeScript
+- [ ] 07-10-PLAN.md — Convert 17 test files to .test.ts + final smoke test checkpoint
