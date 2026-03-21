@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-stopped_at: Completed 07-07-PLAN.md (globe family TSX conversion + withRouter6 elimination)
-last_updated: "2026-03-21T20:40:36.574Z"
+stopped_at: "Checkpoint: Task 2 manual smoke test pending for 07-10 (final TypeScript migration verification)"
+last_updated: "2026-03-21T20:56:38.661Z"
 progress:
   total_phases: 7
-  completed_phases: 5
+  completed_phases: 6
   total_plans: 37
-  completed_plans: 39
+  completed_plans: 40
 ---
 
 # Project State
@@ -77,6 +77,7 @@ Plan: 8 of 10
 | Phase 07-start-v2-typescript-migration P06 | 22 | 2 tasks | 11 files |
 | Phase 07-start-v2-typescript-migration P09 | 13 | 2 tasks | 14 files |
 | Phase 07-start-v2-typescript-migration P07 | 16 | 2 tasks | 9 files |
+| Phase 07-start-v2-typescript-migration PP10 | 14 | 1 tasks | 19 files |
 
 ## Accumulated Context
 
@@ -155,6 +156,8 @@ Recent decisions affecting current work:
 - [Phase 07-start-v2-typescript-migration]: GlobeVisual uses forwardRef + useImperativeHandle exposing GlobeVisualHandle; GlobeContainer uses useRef<GlobeVisualHandle>
 - [Phase 07-start-v2-typescript-migration]: State refs pattern (warDataRef, etc.) prevents stale closures in GlobeContainer callbacks without bloating dependency arrays
 - [Phase 07-start-v2-typescript-migration]: Conflict.tsx withRouter6 removed — GlobeContainer uses useNavigate() directly; withRouter6 fully eliminated from all consumers
+- [Phase 07-start-v2-typescript-migration]: @types/jest and @types/supertest installed as devDependencies for ts-jest strict mode compliance
+- [Phase 07-start-v2-typescript-migration]: jest.Mock intersection type for mocks with extra properties (jest.fn() as jest.Mock & { destroy: jest.Mock })
 
 ### Roadmap Evolution
 
@@ -170,6 +173,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-21T20:40:36.569Z
-Stopped at: Completed 07-07-PLAN.md (globe family TSX conversion + withRouter6 elimination)
+Last session: 2026-03-21T20:56:38.657Z
+Stopped at: Checkpoint: Task 2 manual smoke test pending for 07-10 (final TypeScript migration verification)
 Resume file: None
