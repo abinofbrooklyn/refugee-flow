@@ -6,6 +6,8 @@ const path = require('path');
 const XLSX = require('xlsx');
 const db = require('../database/connection');
 const { logIngestion } = require('./ingestionLogger');
+const { validateRows, quarantineRows } = require('./validator');
+const { sendQuarantineAlert } = require('./alerter');
 
 const FRONTEX_PAGE_URL = 'https://www.frontex.europa.eu/what-we-do/monitoring-and-risk-analysis/migratory-map/';
 const BATCH_SIZE = 500;
@@ -211,7 +213,23 @@ async function runFrontexIngestion() {
     const upsertRows = parseXlsx(tmpPath);
     console.log(`[Frontex] ${upsertRows.length} rows from XLSX`);
 
-    const result = await upsertFrontexData(upsertRows);
+    // Validate rows — quarantine bad data, proceed with clean
+    let cleanRows = upsertRows;
+    let quarantineCount = 0;
+    try {
+      const { clean, quarantined } = await validateRows('frontex', upsertRows);
+      cleanRows = clean;
+      quarantineCount = quarantined.length;
+      if (quarantined.length > 0) {
+        await quarantineRows('frontex', quarantined);
+        await sendQuarantineAlert('frontex', quarantined);
+        console.log(`[Frontex] ${quarantined.length} rows quarantined, ${clean.length} clean`);
+      }
+    } catch (valErr) {
+      console.error('[Frontex] Validation failed, proceeding with all rows:', valErr.message);
+    }
+
+    const result = await upsertFrontexData(cleanRows);
     console.log(`[Frontex] Done: ${result.inserted} inserted, ${result.updated} updated, ${result.unchanged} unchanged, ${result.stale} stale`);
 
     await logIngestion({
@@ -219,6 +237,7 @@ async function runFrontexIngestion() {
       status: 'success',
       rowsAffected: result.inserted + result.updated,
       startedAt,
+      quarantineCount,
     });
   } catch (err) {
     console.error('[Frontex] Error:', err.message);

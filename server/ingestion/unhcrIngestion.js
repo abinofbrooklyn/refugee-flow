@@ -2,6 +2,8 @@ const db = require('../database/connection');
 const { logIngestion, getLastSyncDate } = require('./ingestionLogger');
 const { normalizeCountryName, EU_DESTINATIONS } = require('./countryNormalizer');
 const { computeSeasonalRatios, distributeByQuarter } = require('./quarterlyEstimator');
+const { validateRows, quarantineRows } = require('./validator');
+const { sendQuarantineAlert } = require('./alerter');
 
 const UNHCR_API_BASE = 'https://api.unhcr.org/population/v1/asylum-applications/';
 const PAGE_LIMIT = 100;
@@ -104,9 +106,25 @@ async function runUnhcrIngestion() {
     }
     const uniqueRows = Array.from(deduped.values());
 
+    // Validate rows — quarantine bad data, proceed with clean
+    let cleanRows = uniqueRows;
+    let quarantineCount = 0;
+    try {
+      const { clean, quarantined } = await validateRows('unhcr', uniqueRows);
+      cleanRows = clean;
+      quarantineCount = quarantined.length;
+      if (quarantined.length > 0) {
+        await quarantineRows('unhcr', quarantined);
+        await sendQuarantineAlert('unhcr', quarantined);
+        console.log(`[UNHCR] ${quarantined.length} rows quarantined, ${clean.length} clean`);
+      }
+    } catch (valErr) {
+      console.error('[UNHCR] Validation failed, proceeding with all rows:', valErr.message);
+    }
+
     let totalInserted = 0;
-    for (let i = 0; i < uniqueRows.length; i += BATCH_SIZE) {
-      const batch = uniqueRows.slice(i, i + BATCH_SIZE);
+    for (let i = 0; i < cleanRows.length; i += BATCH_SIZE) {
+      const batch = cleanRows.slice(i, i + BATCH_SIZE);
       await db('asy_applications')
         .insert(batch)
         .onConflict(['year', 'quarter', 'origin', 'destination'])
@@ -119,6 +137,7 @@ async function runUnhcrIngestion() {
       status: 'success',
       rowsAffected: totalInserted,
       startedAt,
+      quarantineCount,
     });
   } catch (err) {
     await logIngestion({
