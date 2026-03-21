@@ -1,6 +1,14 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import styled from 'styled-components';
 import * as d3 from 'd3';
+
+interface AnimationProps {
+  animation?: boolean;
+}
+
+interface VideoLoopProps {
+  videoLoop?: boolean;
+}
 
 const NavbarContainer = styled.div`
   height: 40px;
@@ -12,7 +20,7 @@ const NavbarContainer = styled.div`
 
   &::before{
     content: '';
-    width: ${props => props.loadBar ? '100%':'0%'};
+    width: 0%;
     height: 4px;
     background: #00ffb0bd;
     position: absolute;
@@ -52,7 +60,7 @@ const NavbarContainer = styled.div`
     filter: drop-shadow(0px 0px 0px #000) !important;
   }
 `
-const Wrapper  = styled.div`
+const Wrapper = styled.div`
   & ::selection {
     text-shadow: 0 0 0.8rem #de2279;
     background: rgba(54, 56, 126, 0.1);
@@ -64,10 +72,7 @@ const Wrapper  = styled.div`
   width: 100vw;
   height: 100vh;
 `
-const Video = styled.video.attrs({
-  opacity: props => props.animation?1:0,
-  filter: props => props.videoLoop ? 'blur('+ Math.abs(d3.randomNormal(0,10)()) +'px'+') hue-rotate(0deg) contrast(1.2) saturate(0.8) brightness(0.5);': 'blur(' + Math.abs(d3.randomNormal(0,10)()) + 'px'+ ') hue-rotate(0deg) contrast(1.2) saturate('+d3.randomUniform(1, 2.5)()+') brightness('+d3.randomUniform(0.4, 1.2)()+');'
-})`
+const Video = styled.video<AnimationProps & VideoLoopProps>`
     height: 130vh;
     position: absolute;
     top: -15vh;
@@ -75,8 +80,11 @@ const Video = styled.video.attrs({
     z-index: -1;
     background-size: cover;
     transition: opacity 5500ms, filter 1550ms;
-    opacity: ${props => props.opacity};
-    filter: ${props => props.filter};
+    opacity: ${props => (props.animation ? 1 : 0)};
+    filter: ${props => props.videoLoop
+      ? 'blur('+ Math.abs(d3.randomNormal(0,10)()) +'px'+') hue-rotate(0deg) contrast(1.2) saturate(0.8) brightness(0.5)'
+      : 'blur(' + Math.abs(d3.randomNormal(0,10)()) + 'px'+ ') hue-rotate(0deg) contrast(1.2) saturate('+d3.randomUniform(1, 2.5)()+') brightness('+d3.randomUniform(0.4, 1.2)()+')'
+    };
 
     @media (max-width:1590px) and (min-width: 1270px) {
       width: 900%;
@@ -98,7 +106,7 @@ const Video = styled.video.attrs({
       width: 800%;
     };
 `
-const Text = styled.p`
+const Text = styled.p<AnimationProps>`
   position: absolute;
   font-family: 'Playfair Display',serif;
   width: 70%;
@@ -114,7 +122,7 @@ const Text = styled.p`
   transition: top 2100ms,opacity 300ms;
   z-index: 2;
 `
-const LearnMore = styled.p`
+const LearnMore = styled.p<AnimationProps>`
 text-align: center;
 text-decoration: none;
 z-index: 100;
@@ -139,38 +147,34 @@ border: 0px;
 }
 `
 
-class MobileLanding extends React.Component {
+const MobileLanding: React.FC = () => {
+  const [animation, setAnimation] = useState(false);
+  const [videoLoop, setVideoLoop] = useState(false);
+  const [hovered, setHovered] = useState(false);
 
-    state = {
-      animation:false,
-      videoLoop: false,
-      wikiOn: false,
-      hovered: false,
-    }
+  useEffect(() => {
+    d3.select('#nav-show').style('display', 'none');
+    const animTimer = window.setTimeout(() => setAnimation(true), 1000);
+    const videoInterval = window.setInterval(() => setVideoLoop(prev => !prev), 1650);
 
-  componentDidMount(){
-    d3.select('#nav-show').style('display','none');
-    window.setTimeout(() => this.setState({animation: true}) ,1000);
-    this.videoLoopInterval = window.setInterval(() => this.setState({videoLoop: !this.state.videoLoop}),1650);
-  }
+    return () => {
+      clearTimeout(animTimer);
+      clearInterval(videoInterval);
+    };
+  }, []);
 
-  componentWillUnmount(){
-    clearInterval(this.videoLoopInterval);
-  }
-
-  render(){
-    return (
-
-      <Wrapper>
-        <NavbarContainer hovered={this.state.hovered} >
-          <a href='/' onMouseOver={() => this.setState({hovered: true})} onMouseOut={() => this.setState({hovered: false})}>Refugee Flow</a>
-        </NavbarContainer>
-        <Video animation={this.state.animation} videoLoop={this.state.videoLoop} autoPlay muted loop style={{backgroundVideo: 'url(assets/img/hero.jpg)'}}><source src="https://player.vimeo.com/external/278983563.hd.mp4?s=df2675a8395d48ad7b455f155ae148361121b298&profile_id=175" /></Video>
-        <Text animation={this.state.animation}>Thanks for your interest in learning more about the refugee crisis. We designed Refugee Flow as an exploratory experience.<br/><br/> Unfortunately mobile is not best suited for what we built. Instead, please bookmark the page and comeback and explore when you are on a laptop or desktop. </Text>
-        <LearnMore animation={this.state.animation} onClick={() => window.open('https://drive.google.com/drive/folders/1hR2JjaMN8DzXA8VyixHJ5zAiolnpoTSF?usp=sharing')}>Learn More...</LearnMore>
-      </Wrapper>
-    );
-  }
-}
+  return (
+    <Wrapper>
+      <NavbarContainer>
+        <a href='/' onMouseOver={() => setHovered(true)} onMouseOut={() => setHovered(false)}>Refugee Flow</a>
+      </NavbarContainer>
+      <Video animation={animation} videoLoop={videoLoop} autoPlay muted loop style={{backgroundVideo: 'url(assets/img/hero.jpg)'} as React.CSSProperties}>
+        <source src="https://player.vimeo.com/external/278983563.hd.mp4?s=df2675a8395d48ad7b455f155ae148361121b298&profile_id=175" />
+      </Video>
+      <Text animation={animation}>Thanks for your interest in learning more about the refugee crisis. We designed Refugee Flow as an exploratory experience.<br/><br/> Unfortunately mobile is not best suited for what we built. Instead, please bookmark the page and comeback and explore when you are on a laptop or desktop. </Text>
+      <LearnMore animation={animation} onClick={() => window.open('https://drive.google.com/drive/folders/1hR2JjaMN8DzXA8VyixHJ5zAiolnpoTSF?usp=sharing')}>Learn More...</LearnMore>
+    </Wrapper>
+  );
+};
 
 export default MobileLanding;

@@ -1,12 +1,23 @@
 import React from 'react';
 
-const qaTitleStyle = {
+export interface AccordionContent {
+  children: React.ReactNode;
+  style?: React.CSSProperties;
+}
+
+export interface AccordionDefinition {
+  name: string;
+  isClosed: boolean;
+  contents: AccordionContent[];
+}
+
+const qaTitleStyle: React.CSSProperties = {
   fontSize: '20px',
   fontWeight: 400,
   lineHeight: 2,
 };
 
-export const accordions = [
+export const accordions: AccordionDefinition[] = [
   {
     name: 'MISSION',
     isClosed: false,
@@ -19,7 +30,7 @@ export const accordions = [
     name: 'VISION',
     isClosed: true,
     contents: [
-      { children: "Refugee Flow's vision is for all people to live to their fullest potential without threat of violence and for all people to understand each person’s inherent dignity.",
+      { children: "Refugee Flow's vision is for all people to live to their fullest potential without threat of violence and for all people to understand each person's inherent dignity.",
       },
     ],
   },
@@ -73,7 +84,7 @@ export const accordions = [
         ),
       },
       {
-        style: { fontSize: '17px', fontWeight: '800', margin: 0 },
+        style: { fontSize: '17px', fontWeight: '800', margin: 0 } as React.CSSProperties,
         children: (
           <>
             <em>If you have any questions or feedback, please contact</em>
@@ -104,7 +115,7 @@ export const accordions = [
       { children: 'How can design and technology help find solutions in migration?',
         style: qaTitleStyle,
       },
-      { children: 'Building solutions for the migration crisis requires political will, which must be driven by society. We are continually presented with facts and figures of the lingering refugee crisis but are unmoved. Our idea is to present this data in new, interesting, and visually appealing ways. Facts inform us, but they don’t push us to act. Emotion gets people to act. Refugee Flow aims to merge design and technology to help better understand the migration crisis in a way that resonates with users. We hope this inspires better solutions.',
+      { children: 'Building solutions for the migration crisis requires political will, which must be driven by society. We are continually presented with facts and figures of the lingering refugee crisis but are unmoved. Our idea is to present this data in new, interesting, and visually appealing ways. Facts inform us, but they don\'t push us to act. Emotion gets people to act. Refugee Flow aims to merge design and technology to help better understand the migration crisis in a way that resonates with users. We hope this inspires better solutions.',
       },
 
       { children: 'What makes your team unique for this project?',
@@ -184,7 +195,7 @@ export const accordions = [
               <a target="_blank" rel="noopener noreferrer" href='https://frontex.europa.eu/along-eu-borders/migratory-map/'>Frontex</a>
             </em>
             &nbsp;
-            the European Border and Coast Guard Agency, promotes, coordinates and develops European border management in line with the EU fundamental rights charter and the concept of Integrated Border Management. To help identify migratory patterns as well as trends in cross-border criminal activities, Frontex analyses data related to the situation at and beyond EU’s external borders.
+            the European Border and Coast Guard Agency, promotes, coordinates and develops European border management in line with the EU fundamental rights charter and the concept of Integrated Border Management. To help identify migratory patterns as well as trends in cross-border criminal activities, Frontex analyses data related to the situation at and beyond EU's external borders.
           </>
         ),
       },
@@ -244,7 +255,7 @@ export const accordions = [
   },
 ];
 
-export const accordionsDefaultVisibility = accordions.reduce((acc, accordion) => ({
+export const accordionsDefaultVisibility = accordions.reduce<Record<string, { isClosed: boolean }>>((acc, accordion) => ({
   ...acc,
   [accordion.name]: { isClosed: accordion.isClosed },
 }), {});

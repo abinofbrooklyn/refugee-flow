@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import styled from 'styled-components';
 import _ from 'lodash';
 import * as d3 from 'd3';
@@ -60,13 +60,26 @@ const LD = styled.span`
 
 const LABEL_PADDING = 8;
 
+interface LabelPosition {
+  top: number;
+  left: number;
+}
+
+interface Label extends LabelPosition {
+  title: string;
+  desc: string;
+  key: string;
+}
+
+type PlacementFn = (rect: DOMRect) => LabelPosition;
+
 // Estimate label width for clamping
-function estimateLabelWidth(title, desc) {
+function estimateLabelWidth(title: string, desc: string): number {
   return title.length * 6.5 + desc.length * 5 + 32;
 }
 
 // Clamp position to stay within viewport
-function clamp(pos, title, desc) {
+function clamp(pos: LabelPosition, title: string, desc: string): LabelPosition {
   const vw = window.innerWidth;
   const vh = window.innerHeight;
   const labelW = Math.min(estimateLabelWidth(title, desc), 300);
@@ -80,7 +93,7 @@ function clamp(pos, title, desc) {
 
 // Design-intent placement rules — position relative to element rect
 // Each returns { top, left } in viewport coordinates
-const PLACEMENT = {
+const PLACEMENT: Record<string, PlacementFn> = {
   'Select Region': (rect) => ({
     top: rect.top + rect.height / 2 - 12,
     left: rect.right + 40,
@@ -132,13 +145,13 @@ const PLACEMENT = {
 };
 
 // Fallback: place to the right of element, or left if no room, or below
-function autoPosition(rect, title, desc) {
+function autoPosition(rect: DOMRect, title: string, desc: string): LabelPosition {
   const vw = window.innerWidth;
   const labelW = Math.min(estimateLabelWidth(title, desc), 300);
   const gap = 12;
 
   let top = rect.top + rect.height / 2 - 14;
-  let left;
+  let left: number;
 
   if (rect.right + gap + labelW + LABEL_PADDING < vw) {
     left = rect.right + gap;
@@ -152,38 +165,13 @@ function autoPosition(rect, title, desc) {
   return { top, left };
 }
 
-class Annotation extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = { labels: [] };
-  }
+const Annotation: React.FC = () => {
+  const [labels, setLabels] = useState<Label[]>([]);
+  const observerRef = useRef<MutationObserver | null>(null);
 
-  componentDidMount() {
-    this._resize = _.debounce(() => this.scanLabels(), 150);
-    window.addEventListener('resize', this._resize);
-
-    // Watch for when overlay is made visible (triggered externally via d3)
-    // and scan labels at that point — all other elements will have loaded
-    this._observer = new MutationObserver(() => {
-      const el = document.querySelector('.annotation-wrapper');
-      if (el && getComputedStyle(el).display !== 'none') {
-        this.scanLabels();
-      }
-    });
-    const wrapper = document.querySelector('.annotation-wrapper');
-    if (wrapper) {
-      this._observer.observe(wrapper, { attributes: true, attributeFilter: ['style'] });
-    }
-  }
-
-  componentWillUnmount() {
-    window.removeEventListener('resize', this._resize);
-    if (this._observer) this._observer.disconnect();
-  }
-
-  scanLabels() {
+  const scanLabels = () => {
     const els = document.querySelectorAll('[data-annotation]');
-    const labels = [];
+    const newLabels: Label[] = [];
 
     els.forEach((el) => {
       const attr = el.getAttribute('data-annotation');
@@ -202,28 +190,49 @@ class Annotation extends React.Component {
 
       // Clamp to viewport bounds
       const pos = clamp(rawPos, name, description);
-      labels.push({ title: name, desc: description, ...pos, key: name });
+      newLabels.push({ title: name, desc: description, ...pos, key: name });
     });
 
-    this.setState({ labels });
-  }
+    setLabels(newLabels);
+  };
 
-  render() {
-    return (
-      <Wrapper className='annotation-wrapper' onClick={() => {
-        d3.select('.annotation-wrapper').style('opacity', '0');
-        _.delay(() => d3.select('.annotation-wrapper').style('display', 'none'), 400);
-      }}>
-        <Title>Click anywhere to explore Refugee Flow</Title>
-        {this.state.labels.map(l => (
-          <LabelCard key={l.key} style={{ top: l.top, left: l.left }}>
-            <LT>{l.title}</LT>
-            <LD>{l.desc}</LD>
-          </LabelCard>
-        ))}
-      </Wrapper>
-    );
-  }
-}
+  useEffect(() => {
+    const resizeHandler = _.debounce(() => scanLabels(), 150);
+    window.addEventListener('resize', resizeHandler);
+
+    // Watch for when overlay is made visible (triggered externally via d3)
+    // and scan labels at that point — all other elements will have loaded
+    observerRef.current = new MutationObserver(() => {
+      const el = document.querySelector('.annotation-wrapper');
+      if (el && getComputedStyle(el).display !== 'none') {
+        scanLabels();
+      }
+    });
+    const wrapper = document.querySelector('.annotation-wrapper');
+    if (wrapper) {
+      observerRef.current.observe(wrapper, { attributes: true, attributeFilter: ['style'] });
+    }
+
+    return () => {
+      window.removeEventListener('resize', resizeHandler);
+      if (observerRef.current) observerRef.current.disconnect();
+    };
+  }, []);
+
+  return (
+    <Wrapper className='annotation-wrapper' onClick={() => {
+      d3.select('.annotation-wrapper').style('opacity', '0');
+      _.delay(() => d3.select('.annotation-wrapper').style('display', 'none'), 400);
+    }}>
+      <Title>Click anywhere to explore Refugee Flow</Title>
+      {labels.map(l => (
+        <LabelCard key={l.key} style={{ top: l.top, left: l.left }}>
+          <LT>{l.title}</LT>
+          <LD>{l.desc}</LD>
+        </LabelCard>
+      ))}
+    </Wrapper>
+  );
+};
 
 export default Annotation;

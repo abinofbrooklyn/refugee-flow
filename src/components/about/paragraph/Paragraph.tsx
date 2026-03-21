@@ -1,7 +1,14 @@
 import React from 'react';
 import styled, { css } from 'styled-components';
 
-const Text = styled.p`
+interface ParagraphProps {
+  animate?: boolean;
+  isClosed?: boolean;
+  style?: React.CSSProperties;
+  children?: React.ReactNode;
+}
+
+const Text = styled.p<ParagraphProps>`
   transition: opacity cubic-bezier(0.13, 0.01, 0.02, 0.92) 1500ms;
   color: #d0d0e0;
   font-family: 'Roboto';
@@ -48,7 +55,6 @@ const Text = styled.p`
   ${props => props.isClosed && (css`display: none;`)}
 `;
 
-
-const Paragraph = props => <Text {...props} />;
+const Paragraph: React.FC<ParagraphProps> = (props) => <Text {...props} />;
 
 export default Paragraph;
