@@ -4,8 +4,7 @@ import maplibregl from 'maplibre-gl';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import * as d3 from 'd3';
 // d3-canvas-transition imported for side effects (canvas rendering extensions)
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-require('d3-canvas-transition');
+import 'd3-canvas-transition';
 import { color_map } from '../data/routeDictionary';
 import '../stylesheets/RefugeeRoute_map.css';
 import type { RouteDeath } from '../types/api';

@@ -10,16 +10,15 @@ const Conflict: React.FC = () => {
   const [stillLoading, setStillLoading] = useState(true);
 
   // evokePrompt is called at most once (_.once) after loading completes
+  // Called only when !stillLoading (line 30), so no need to re-check inside
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const evokePrompt = useCallback(_.once(() => {
     const fromLanding = sessionStorage.getItem('lastPage') === '/landing' ||
       !sessionStorage.getItem('lastPage');
     if (!fromLanding) return;
-    if (!stillLoading) {
-      _.delay(() => {
-        d3.select('.annotation-wrapper').style('display', 'block').style('opacity', '1');
-      }, 2000);
-    }
+    _.delay(() => {
+      d3.select('.annotation-wrapper').style('display', 'block').style('opacity', '1');
+    }, 2000);
   }), []);
 
   const loadingManager = useCallback((boolean: boolean) => {

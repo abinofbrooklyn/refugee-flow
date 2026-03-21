@@ -394,22 +394,27 @@ const RefugeeRoute_textArea_content_ibcCountry: React.FC<Props> = ({ IBC_data, c
     }
   };
 
+  // Re-initialize Fuse whenever the card data changes (IBC_data or route change)
+  // Original class used componentDidMount with this.cardItemAll which persisted across renders.
+  // Functional version must re-init when cardItemAllRef updates.
   useEffect(() => {
     d3.select('#CardContainer').style('opacity', 1);
 
-    fuseRef.current = new Fuse(
-      cardItemAllRef.current.map(d => ({ key: d.key as string })),
-      {
-        shouldSort: true,
-        threshold: 0.6,
-        location: 0,
-        distance: 100,
-        maxPatternLength: 32,
-        minMatchCharLength: 1,
-        keys: ["key"]
-      }
-    );
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+    if (cardItemAllRef.current.length > 0) {
+      fuseRef.current = new Fuse(
+        cardItemAllRef.current.map(d => ({ key: d.key as string })),
+        {
+          shouldSort: true,
+          threshold: 0.6,
+          location: 0,
+          distance: 100,
+          maxPatternLength: 32,
+          minMatchCharLength: 1,
+          keys: ["key"]
+        }
+      );
+    }
+  }, [IBC_data, currentRouteName]);
 
   useEffect(() => {
     const trans = d3.select('.route-map-titleGroup__IBC');
@@ -514,9 +519,10 @@ const RefugeeRoute_textArea_content_ibcCountry: React.FC<Props> = ({ IBC_data, c
         onInput={() => {
           if (!fuseRef.current || !searchBarRef.current) return;
           setCurrentPage(1);
+          // Fuse 3.x returns plain objects [{key: "..."}], not wrapped FuseResult
           setDropDownItem(
             fuseRef.current.search(searchBarRef.current.value)
-              .map((d: unknown) => (d as Fuse.FuseResult<{ key: string }>).item.key)
+              .map((d: unknown) => (d as { key: string }).key)
               .slice(0, 10)
           );
         }}
