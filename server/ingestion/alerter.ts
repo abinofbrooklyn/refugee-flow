@@ -1,7 +1,8 @@
 import { Resend } from 'resend';
 
-const ALERT_EMAIL = 'abin.abraham4@gmail.com';
-const FROM_EMAIL = 'onboarding@resend.dev';
+// Read at call time (not import time) so tests can set env vars
+const getAlertEmail = () => process.env.ALERT_EMAIL || '';
+const getFromEmail = () => process.env.FROM_EMAIL || '';
 
 interface SourceInfo {
   name: string;
@@ -171,8 +172,8 @@ export async function sendIngestionAlert(source: string, errorMessage: string, a
   try {
     const resend = new Resend(apiKey);
     await resend.emails.send({
-      from: FROM_EMAIL,
-      to: ALERT_EMAIL,
+      from: getFromEmail(),
+      to: getAlertEmail(),
       subject: `[Refugee Flow] Ingestion Failed: ${info.name}`,
       html,
     });
@@ -215,8 +216,8 @@ export async function sendQuarantineAlert(source: string, quarantinedItems: Quar
   try {
     const resend = new Resend(apiKey);
     await resend.emails.send({
-      from: FROM_EMAIL,
-      to: ALERT_EMAIL,
+      from: getFromEmail(),
+      to: getAlertEmail(),
       subject: `[Refugee Flow] Data Quality: ${quarantinedItems.length} rows quarantined from ${info.name || source}`,
       html,
     });

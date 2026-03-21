@@ -13,6 +13,8 @@ const { Resend, _sendMock: sendMock } = require('resend') as { Resend: jest.Mock
 
 beforeEach(() => {
   jest.clearAllMocks();
+  process.env.ALERT_EMAIL = 'test@example.com';
+  process.env.FROM_EMAIL = 'from@example.com';
 });
 
 describe('sendIngestionAlert()', () => {
@@ -35,7 +37,7 @@ describe('sendIngestionAlert()', () => {
     await sendIngestionAlert('eurostat', 'API timeout', 3);
     const callArgs = sendMock.mock.calls[0][0];
     expect(callArgs.subject).toContain('Eurostat');
-    expect(callArgs.to).toBe('abin.abraham4@gmail.com');
+    expect(callArgs.to).toBe('test@example.com');
     delete process.env.RESEND_API_KEY;
   });
 
@@ -100,7 +102,7 @@ describe('sendQuarantineAlert()', () => {
     expect(Resend).toHaveBeenCalledWith('test_key_123');
     expect(sendMock).toHaveBeenCalledTimes(1);
     const callArgs = sendMock.mock.calls[0][0];
-    expect(callArgs.to).toBe('abin.abraham4@gmail.com');
+    expect(callArgs.to).toBe('test@example.com');
     expect(callArgs.subject).toContain('Data Quality');
     expect(callArgs.subject).toContain('1 rows quarantined');
     expect(callArgs.html).toContain('geo-label-mismatch');
