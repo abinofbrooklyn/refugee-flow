@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-stopped_at: Completed 07-04-PLAN.md (simple/leaf components, navbar, landing, router to TSX)
-last_updated: "2026-03-21T20:18:59.089Z"
+stopped_at: Completed 07-06-PLAN.md (asylum application, region modal, Conflict, and entry point to TSX)
+last_updated: "2026-03-21T20:22:23.017Z"
 progress:
   total_phases: 7
   completed_phases: 5
   total_plans: 37
-  completed_plans: 36
+  completed_plans: 37
 ---
 
 # Project State
@@ -74,6 +74,7 @@ Plan: 8 of 10
 | Phase 07-start-v2-typescript-migration P08 | 12 | 2 tasks | 11 files |
 | Phase 07-start-v2-typescript-migration P05 | 20 | 2 tasks | 20 files |
 | Phase 07-start-v2-typescript-migration P04 | 19 | 2 tasks | 23 files |
+| Phase 07-start-v2-typescript-migration P06 | 22 | 2 tasks | 11 files |
 
 ## Accumulated Context
 
@@ -144,6 +145,9 @@ Recent decisions affecting current work:
 - [Phase 07-start-v2-typescript-migration]: Navbar uses useLocation hook directly instead of withRouter6 — functional components can consume hooks natively, withRouter6 bridging not needed
 - [Phase 07-start-v2-typescript-migration]: SVG imports cast through unknown for TypeScript 5.9 bundler mode — TS5 bundler moduleResolution does not resolve *.svg wildcards; cast through unknown is correct idiomatic pattern
 - [Phase 07-start-v2-typescript-migration]: styled.video.attrs() replaced with CSS template interpolation — styled-components v6 attrs only accepts valid HTML attributes; inline template interpolation used for dynamic opacity/filter
+- [Phase 07-start-v2-typescript-migration]: React.forwardRef + useImperativeHandle for AsyApplicationChart imperative D3 API
+- [Phase 07-start-v2-typescript-migration]: Upgrade react-redux 7.0.3 -> 7.2.9: hooks API required by types/redux.ts was missing in v7.0.3 ES module
+- [Phase 07-start-v2-typescript-migration]: Add src/types/assets.d.ts for declare module *.png/*.svg — fixes static asset TS2307 errors
 
 ### Roadmap Evolution
 
@@ -159,6 +163,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-21T20:18:59.086Z
-Stopped at: Completed 07-04-PLAN.md (simple/leaf components, navbar, landing, router to TSX)
+Last session: 2026-03-21T20:22:23.013Z
+Stopped at: Completed 07-06-PLAN.md (asylum application, region modal, Conflict, and entry point to TSX)
 Resume file: None
