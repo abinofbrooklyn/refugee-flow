@@ -1,4 +1,7 @@
-/** Declaration file for static asset imports (images, fonts, etc.) */
+/** Declaration file for static asset imports (images, fonts, etc.) and untyped modules */
+
+declare module 'scroll-js';
+declare module 'countup.js';
 declare module '*.png' {
   const src: string;
   export default src;

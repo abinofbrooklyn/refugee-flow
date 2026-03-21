@@ -5,13 +5,8 @@ import * as d3 from 'd3';
 import GlobeContainer from './globe/GlobeContainer';
 import AsyApplicationContainer from './asylumApplication/AsyApplicationContainer';
 import Annotation from './Annotation';
-import withRouter6 from './router/withRouter6';
 
-interface ConflictProps {
-  navigate: ReturnType<typeof import('react-router-dom').useNavigate>;
-}
-
-const Conflict: React.FC<ConflictProps> = ({ navigate }) => {
+const Conflict: React.FC = () => {
   const [stillLoading, setStillLoading] = useState(true);
 
   // evokePrompt is called at most once (_.once) after loading completes
@@ -39,7 +34,6 @@ const Conflict: React.FC<ConflictProps> = ({ navigate }) => {
       <Annotation />
       <GlobeContainer
         loadingManager={loadingManager}
-        navigate={navigate}
       />
       <AsyApplicationContainer
         loadingManager={stillLoading}
@@ -48,4 +42,4 @@ const Conflict: React.FC<ConflictProps> = ({ navigate }) => {
   );
 };
 
-export default withRouter6(Conflict);
+export default Conflict;
