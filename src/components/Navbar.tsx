@@ -8,7 +8,7 @@ interface NavContainerProps {
 }
 
 interface NavProps {
-  currentPage: string | null;
+  $currentPage: string | null;
 }
 
 const NavbarContainer = styled.div<NavContainerProps>`
@@ -89,21 +89,21 @@ const Nav = styled.nav<NavProps>`
     color: #ffffff;
   }
 
-  ${props => props.currentPage === "conflict" && css`
+  ${props => props.$currentPage === "conflict" && css`
     > a:first-child{
       color: #ffffff;
       border-bottom-color: #8e95ce;
     }
   `}
 
-  ${props => props.currentPage === "route" && css`
+  ${props => props.$currentPage === "route" && css`
     > a:nth-child(2){
       color: #ffffff;
       border-bottom-color: #8e95ce;
     }
   `}
 
-  ${props => props.currentPage === "about" && css`
+  ${props => props.$currentPage === "about" && css`
     > a:nth-child(3){
       color: #ffffff;
       border-bottom-color: #8e95ce;
@@ -166,7 +166,7 @@ const Navbar: React.FC = () => {
       >
         Refugee Flow
       </Link>
-      <Nav currentPage={currentPage}>
+      <Nav $currentPage={currentPage}>
         <Link to='/conflict' onClick={() => setCurrentPage('conflict')}>Conflict</Link>
         <Link to='/route/EasternMediterranean' onClick={() => setCurrentPage('route')}>Route</Link>
         <Link to='/about' onClick={() => setCurrentPage('about')}>About</Link>
