@@ -56,10 +56,15 @@ This does NOT change what data is ingested or from where — it adds quality gat
 - This catches the UAE record and any other unnoticed outliers already in the database
 - Also tighten Central Med bounds — current check allows lng up to 55, but Central Med corridor is Libya/Tunisia → Italy (lng should be capped around 37)
 
-### Bounds Fix Needed
+### Bounds Fixes Needed
 - **LOCKED:** Central Mediterranean upper lng bound must be tightened from 55 to ~37 in applyGeoBoundsCorrections
-- Current: `route === 'Central Mediterranean' && (lng > 55 || lng < -15)` — lets Qatar (lng 51) through
-- Fix: `route === 'Central Mediterranean' && (lng > 37 || lng < -15)` — matches actual Libya/Tunisia → Italy corridor
+  - Current: `route === 'Central Mediterranean' && (lng > 55 || lng < -15)` — lets Qatar (lng 51) through
+  - Fix: `route === 'Central Mediterranean' && (lng > 37 || lng < -15)` — matches actual Libya/Tunisia → Italy corridor
+- **LOCKED:** Western Balkans bounds too wide — current lng 10-50, lat 35-55 includes Caucasus and Russia
+  - 10 records in Turkey/Georgia/Azerbaijan/Russia labeled Western Balkans (2 in central Russia at lat 53-54)
+  - IOM raw route "Türkiye-Europe land route" maps to Western Balkans — eastern Turkey (lng ~37-44) is a legitimate corridor start
+  - Fix: tighten upper lng to ~35 (excludes deep Caucasus), keep lat < 50 (excludes Russia). Records at lng 35-44 with lat 37-43 may be legitimate Turkey-Europe transit — quarantine for review rather than auto-reject
+- **LOCKED:** Also audit all other route bounds during the retroactive cleanup — if Central Med and Western Balkans are too loose, others may be too
 
 ### Claude's Discretion
 - Exact validation thresholds per source and rule
