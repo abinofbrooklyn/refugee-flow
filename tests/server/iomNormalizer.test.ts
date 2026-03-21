@@ -63,8 +63,8 @@ describe('geoFallback()', () => {
     expect(geoFallback(6, -70)).toBe('Americas');
   });
 
-  test('Western Mediterranean for North Africa lat 30-40, lng -10 to 15', () => {
-    expect(geoFallback(33, 12)).toBe('Western Mediterranean');
+  test('Central Mediterranean for North Africa lat 30-40, lng 5-21', () => {
+    expect(geoFallback(33, 12)).toBe('Central Mediterranean');
   });
 
   test('Horn of Africa for tropical lng 30-55', () => {
