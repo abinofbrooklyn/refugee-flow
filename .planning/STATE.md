@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-stopped_at: "Checkpoint: Task 2 manual smoke test pending for 07-10 (final TypeScript migration verification)"
-last_updated: "2026-03-21T20:56:38.661Z"
+stopped_at: Completed 07-10-PLAN.md — Phase 7 TypeScript migration complete, smoke test approved
+last_updated: "2026-03-21T23:00:08.818Z"
 progress:
   total_phases: 7
   completed_phases: 6
@@ -78,6 +78,7 @@ Plan: 8 of 10
 | Phase 07-start-v2-typescript-migration P09 | 13 | 2 tasks | 14 files |
 | Phase 07-start-v2-typescript-migration P07 | 16 | 2 tasks | 9 files |
 | Phase 07-start-v2-typescript-migration PP10 | 14 | 1 tasks | 19 files |
+| Phase 07-start-v2-typescript-migration P10 | 45 | 2 tasks | 36 files |
 
 ## Accumulated Context
 
@@ -158,6 +159,8 @@ Recent decisions affecting current work:
 - [Phase 07-start-v2-typescript-migration]: Conflict.tsx withRouter6 removed — GlobeContainer uses useNavigate() directly; withRouter6 fully eliminated from all consumers
 - [Phase 07-start-v2-typescript-migration]: @types/jest and @types/supertest installed as devDependencies for ts-jest strict mode compliance
 - [Phase 07-start-v2-typescript-migration]: jest.Mock intersection type for mocks with extra properties (jest.fn() as jest.Mock & { destroy: jest.Mock })
+- [Phase 07-start-v2-typescript-migration]: Annotation overlay moved from render side-effect to useEffect with ref to prevent stale closure crash on initial navigation
+- [Phase 07-start-v2-typescript-migration]: Fuse 3.x search result shape is {item:{key}} not {key} — ibcCountry search destructuring fixed with .item unwrapping
 
 ### Roadmap Evolution
 
@@ -173,6 +176,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-21T20:56:38.657Z
-Stopped at: Checkpoint: Task 2 manual smoke test pending for 07-10 (final TypeScript migration verification)
+Last session: 2026-03-21T23:00:08.812Z
+Stopped at: Completed 07-10-PLAN.md — Phase 7 TypeScript migration complete, smoke test approved
 Resume file: None
