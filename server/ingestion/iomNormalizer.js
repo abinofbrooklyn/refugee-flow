@@ -182,7 +182,7 @@ function applyGeoBoundsCorrections(route, lat, lng) {
   if (route === 'Eastern Land Borders' && (lng > 40 || lng < 10 || lat < 45 || lat > 70)) return geoFallback(lat, lng);
   if (route === 'Western African' && (lng > 15 || lng < -35 || lat < -17 || lat > 36)) return geoFallback(lat, lng);
   if (route === 'East & Southern Africa' && (lat > 15 || lng < 15 || lng > 55)) return geoFallback(lat, lng);
-  if (route === 'Horn of Africa' && (lng < 15 || lng > 55 || lat < -5 || lat > 30)) return geoFallback(lat, lng);
+  if (route === 'Horn of Africa' && (lng < 30 || lng > 55 || lat < -5 || lat > 30)) return geoFallback(lat, lng);
   if (route === 'Iran-Afghanistan Corridor' && (lng < 42 || lng > 70 || lat < 20 || lat > 40)) return geoFallback(lat, lng);
   if (route === 'South & East Asia' && (lng < 70 || lat > 35 || lat < -15)) return geoFallback(lat, lng);
   if (route === 'Americas' && lng > -15) return geoFallback(lat, lng);
