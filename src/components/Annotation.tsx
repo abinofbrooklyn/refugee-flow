@@ -138,7 +138,7 @@ const PLACEMENT: Record<string, PlacementFn> = {
     top: rect.top - 30,
     left: rect.left,
   }),
-  'Conflict Count': (rect) => ({
+  'Armed Conflict Count': (rect) => ({
     top: rect.top - 30,
     left: rect.left,
   }),
