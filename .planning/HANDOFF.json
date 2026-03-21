@@ -1,0 +1,40 @@
+{
+  "version": "1.0",
+  "timestamp": "2026-03-21T07:07:49.619Z",
+  "phase": "04",
+  "phase_name": "data-ingestion-pipeline",
+  "phase_dir": ".planning/phases/04-data-ingestion-pipeline",
+  "plan": 16,
+  "task": 2,
+  "total_tasks": 2,
+  "status": "paused",
+  "completed_tasks": [
+    {"id": "04-15", "name": "Validation layer — quarantine migration, validator module, bounds fixes", "status": "done", "commit": "15ce110"},
+    {"id": "04-16", "name": "Alerter extension + integrate validator into all 7 pipelines", "status": "done", "commit": "fd57497"},
+    {"id": "06-01", "name": "React Router v6 install + withRouter6 HOC + LandingResolver", "status": "done", "commit": "f810450"},
+    {"id": "06-02", "name": "Router.jsx + routeRegistry.jsx rewrite for v6", "status": "done", "commit": "7e997f5"},
+    {"id": "06-03", "name": "Consumer component wrapping + browser smoke test", "status": "done", "commit": "a8afe6c"}
+  ],
+  "remaining_tasks": [],
+  "blockers": [
+    {"description": "ACLED API access not granted — Phase 4 Plan 07 cannot execute", "type": "external", "workaround": "Email sent to access@acleddata.com. All other pipelines operational. ACLED cron auto-enables when credentials are uncommented in .env"},
+    {"description": "Phase 5 (Data Coverage) depends on Phase 4 completion", "type": "external", "workaround": "Can start v2 work (TypeScript migration) independently"}
+  ],
+  "human_actions_pending": [
+    {"action": "Follow up with ACLED on API access", "context": "Email sent to access@acleddata.com — need ACLED_EMAIL and ACLED_PASSWORD credentials", "blocking": true},
+    {"action": "Set up Resend domain verification (optional)", "context": "Currently using onboarding@resend.dev test domain — works for sending to owner email only", "blocking": false}
+  ],
+  "decisions": [
+    {"decision": "Quarantine + alert pattern for bad data", "rationale": "Bad rows stored for review, not deleted. Email alerts with full details.", "phase": "04"},
+    {"decision": "Full IOM re-ingest through corrected pipeline instead of retroactive cleanup migration", "rationale": "IOM CSV always contains full dataset — cleaner than patching existing rows", "phase": "04"},
+    {"decision": "Türkiye-Europe land route remapped from Western Balkans to Eastern Mediterranean", "rationale": "Deep Turkey/Caucasus coords are geographically Eastern Med", "phase": "04"},
+    {"decision": "UNRESOLVED sentinel for unresolvable coordinates", "rationale": "Prevents circular geoFallback loops — validator quarantines UNRESOLVED rows", "phase": "04"},
+    {"decision": "Route bounds derived from Frontex/IOM authoritative country definitions", "rationale": "No published lat/lng boxes exist — derived from country extents per route", "phase": "04"},
+    {"decision": "Admin page removed — all ingestion automated via server-side cron", "rationale": "Security surface eliminated, automation is the real value", "phase": "04"},
+    {"decision": "TypeScript migration recommended as next v2 work", "rationale": "Foundation for RTL tests, better DX, doesn't depend on ACLED", "phase": "v2"},
+    {"decision": "JSON seed files kept until ACLED access — then remove all", "rationale": "war_all.json (17MB) can't be replaced without ACLED API", "phase": "04"}
+  ],
+  "uncommitted_files": [],
+  "next_action": "Start v2 TypeScript migration: /gsd:discuss-phase for a new TypeScript phase, or /gsd:new-milestone for v2",
+  "context_notes": "Massive session covering Phase 6 (React Router v6 migration — complete), Phase 4 validation layer (Plans 15-16 — complete), and extensive data quality work iterating on geographic bounds for all 12 migration routes. IOM re-ingested multiple times through corrected pipeline. Final state: 20,042 clean rows, 11 quarantined, 217 tests passing. User wants to move to v2 (TypeScript) while waiting for ACLED."
+}
