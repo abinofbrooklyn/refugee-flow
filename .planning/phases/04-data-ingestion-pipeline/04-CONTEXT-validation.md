@@ -49,12 +49,21 @@ This does NOT change what data is ingested or from where — it adds quality gat
 - The geo fallback rerouting in dataController.js is a display-time band-aid — validation should catch these at ingestion time going forward
 - Record 2022.MMP0765 (lat 24.86, lng 51.51) labeled "Central Mediterranean" but is in Qatar/UAE — still in DB, needs cleanup
 
-### One-Time Retroactive Cleanup
-- **LOCKED:** Migration 004 must include a one-time re-validation pass over ALL existing route_deaths rows
-- Run every existing row through the validator's geo-label mismatch rules
-- Rows that fail: quarantine them (move to data_quarantine table with reason)
-- This catches the UAE record and any other unnoticed outliers already in the database
-- Also tighten Central Med bounds — current check allows lng up to 55, but Central Med corridor is Libya/Tunisia → Italy (lng should be capped around 37)
+### ROUTE_MAP Fix
+- **LOCKED:** Change `'Türkiye-Europe land route'` mapping from `'Western Balkans'` to `'Eastern Mediterranean'` in `server/ingestion/iomNormalizer.js`
+- Reason: Records with this IOM label in deep Turkey/Caucasus (lng 30-47) are geographically Eastern Mediterranean, not Western Balkans
+- Only affects future ingestion + full re-ingest (existing records don't store raw IOM route name)
+
+### Full Re-Ingest After Validation Layer
+- **LOCKED:** After Plans 15-16 are complete (validation layer + bounds fixes + ROUTE_MAP fix), truncate `route_deaths` and re-ingest from IOM's full CSV
+- IOM CSV always contains the full dataset — re-ingest is safe and idempotent
+- This replaces the one-time retroactive cleanup approach — a full re-ingest through the updated pipeline is cleaner than patching existing rows
+- The updated normalizeRow() + validateRows() pipeline will:
+  1. Apply corrected ROUTE_MAP (Türkiye-Europe → Eastern Mediterranean)
+  2. Apply tightened geo bounds (Central Med lng ≤ 37, Western Balkans lng ≤ 35/lat ≤ 50)
+  3. Quarantine any records that still fail validation
+  4. Email a summary of quarantined records for review
+- No need for a retroactive cleanup migration — the re-ingest IS the cleanup
 
 ### Bounds Fixes Needed
 - **LOCKED:** Central Mediterranean upper lng bound must be tightened from 55 to ~37 in applyGeoBoundsCorrections
