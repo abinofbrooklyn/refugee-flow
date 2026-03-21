@@ -132,7 +132,7 @@ const GlobeStatsBoard: React.FC<GlobeStatsBoardProps> = ({ data }) => {
   const annotations = [
     'Total Fatality|All fatalities for selected year',
     'Civilian Fatality|Civilian deaths during selected year',
-    'Conflict Count|Armed conflicts during selected year',
+    'Armed Conflict Count|Armed conflicts during selected year',
   ];
 
   function drawBoard(data: StatsData) {
