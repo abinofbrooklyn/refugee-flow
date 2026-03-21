@@ -15,7 +15,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 1: Stabilize** - Fix memory leaks, error handling, security vulnerabilities, and UX gaps in the existing app
 - [x] **Phase 2: Modernize Stack** - Replace Webpack 4 with Vite, upgrade React 18 and THREE.js r150+, remove dead dependencies
 - [x] **Phase 3: Database Migration** - Move all data from MongoDB to PostgreSQL/Supabase with geo precision baked in (completed 2026-03-17)
-- [ ] **Phase 4: Data Ingestion Pipeline** - Automate ACLED, UNHCR, and IOM data ingestion plus admin CSV upload; normalize all ingested data at ingestion time
+- [x] **Phase 4: Data Ingestion Pipeline** - Automate ACLED, UNHCR, and IOM data ingestion plus admin CSV upload; normalize all ingested data at ingestion time (completed 2026-03-21)
 - [ ] **Phase 5: Data Coverage** - Audit, validate, and close gaps in data coverage across years and corridors
 - [x] **Phase 6: React Router v6 Migration** - Eliminate legacy context API warnings by upgrading react-router-dom to v6 (completed 2026-03-20)
 
@@ -138,6 +138,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 1. Stabilize | 4/4 | Complete | 2026-03-12 |
 | 2. Modernize Stack | 4/4 | Complete | 2026-03-12 |
 | 3. Database Migration | 4/4 | Complete   | 2026-03-17 |
-| 4. Data Ingestion Pipeline | 13/16 | In Progress (Plan 07 blocked on ACLED API access) | - |
+| 4. Data Ingestion Pipeline | 14/12 | Complete   | 2026-03-21 |
 | 5. Data Coverage | 0/TBD | Not started | - |
 | 6. React Router v6 Migration | 3/3 | Complete | 2026-03-20 |

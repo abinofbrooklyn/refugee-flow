@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-stopped_at: Phase 4 validation context gathered
-last_updated: "2026-03-20T22:24:00.201Z"
+stopped_at: Completed 04-15-PLAN.md (validator module + migration 004 + bounds fixes)
+last_updated: "2026-03-21T00:34:43.919Z"
 progress:
   total_phases: 6
   completed_phases: 5
-  total_plans: 25
-  completed_plans: 28
+  total_plans: 27
+  completed_plans: 29
 ---
 
 # Project State
@@ -66,6 +66,7 @@ Plan: 7 of 14 (ACLED normalization — waiting on API access)
 | Phase 04 P09 | 4 | 2 tasks | 5 files |
 | Phase 06-react-router-v6-migration P01 | 2 | 2 tasks | 4 files |
 | Phase 06-react-router-v6-migration P02 | 2 | 2 tasks | 3 files |
+| Phase 04 P15 | 219 | 1 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -116,6 +117,9 @@ Recent decisions affecting current work:
 - [Phase 06-react-router-v6-migration]: NavbarLayout wraps all non-landing routes via v6 layout route pattern; landing excluded via route nesting
 - [Phase 06-react-router-v6-migration]: routeRegistry centralized as element-prop array; Router.jsx filters landing vs non-landing routes
 - [Phase 06-react-router-v6-migration]: Nested BrowserRouter in RefugeeRoute_titleGroup removed (was redundant; v6 hard crash prevented)
+- [Phase 04]: Türkiye-Europe land route remapped to Eastern Mediterranean (not Western Balkans) in ROUTE_MAP
+- [Phase 04]: Central Med bounds: lng cap tightened 55→37, Western Balkans lng cap 50→35 and lat cap 55→50
+- [Phase 04]: Validator graceful fallback: DB failure never blocks ingestion, all rows pass through as clean
 
 ### Pending Todos
 
@@ -127,6 +131,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-20T22:24:00.196Z
-Stopped at: Phase 4 validation context gathered
-Resume file: .planning/phases/04-data-ingestion-pipeline/04-CONTEXT-validation.md
+Last session: 2026-03-21T00:34:43.913Z
+Stopped at: Completed 04-15-PLAN.md (validator module + migration 004 + bounds fixes)
+Resume file: None
