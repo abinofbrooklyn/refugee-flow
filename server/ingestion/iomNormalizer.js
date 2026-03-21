@@ -169,19 +169,18 @@ function applyGeoBoundsCorrections(route, lat, lng) {
   if (lat > 55 && !['English Channel', 'Eastern Land Borders'].includes(route)) return geoFallback(lat, lng);
 
   // Route-specific geographic bounds — reroute if record is far from its assigned region
-  if (route === 'Western African' && (lng > 15 || lat < -17)) return geoFallback(lat, lng);
-  // Central Med: tightened from lng > 55 to lng > 37 — excludes Qatar/UAE (lng ~51)
-  // and aligns with actual Libya/Tunisia → Italy corridor boundary.
-  if (route === 'Central Mediterranean' && (lng > 37 || lng < -15)) return geoFallback(lat, lng);
-  if (route === 'Eastern Mediterranean' && (lng < 15 || lng > 45)) return geoFallback(lat, lng);
-  if (route === 'Western Mediterranean' && (lng > 15 || lng < -25)) return geoFallback(lat, lng);
-  // Western Balkans: tightened upper lng from 50 to 35 (excludes deep Caucasus/Azerbaijan)
-  // and upper lat from 55 to 50 (excludes Russia at lat 53-54).
+  // Every route has a bounds check to catch IOM source data errors (fat-fingered coords)
+  if (route === 'Central Mediterranean' && (lng > 37 || lng < -15 || lat < 5 || lat > 48)) return geoFallback(lat, lng);
+  if (route === 'Eastern Mediterranean' && (lng < 15 || lng > 45 || lat < 30 || lat > 45)) return geoFallback(lat, lng);
+  if (route === 'Western Mediterranean' && (lng > 15 || lng < -25 || lat < 25 || lat > 48)) return geoFallback(lat, lng);
+  if (route === 'English Channel' && (lng < -10 || lng > 10 || lat < 48 || lat > 60)) return geoFallback(lat, lng);
   if (route === 'Western Balkans' && (lng < 10 || lng > 35 || lat > 50 || lat < 35)) return geoFallback(lat, lng);
-  if (route === 'Eastern Land Borders' && (lng > 40 || lng < 10)) return geoFallback(lat, lng);
+  if (route === 'Eastern Land Borders' && (lng > 40 || lng < 10 || lat < 45 || lat > 70)) return geoFallback(lat, lng);
+  if (route === 'Western African' && (lng > 15 || lng < -35 || lat < -17 || lat > 36)) return geoFallback(lat, lng);
   if (route === 'East & Southern Africa' && (lat > 15 || lng < 15 || lng > 55)) return geoFallback(lat, lng);
-  if (route === 'Horn of Africa' && (lng < 15 || lat > 30 || lng > 55)) return geoFallback(lat, lng);
-  if (route === 'Iran-Afghanistan Corridor' && (lng < 42 || lng > 70 || lat > 40)) return geoFallback(lat, lng);
+  if (route === 'Horn of Africa' && (lng < 15 || lng > 55 || lat < -5 || lat > 30)) return geoFallback(lat, lng);
+  if (route === 'Iran-Afghanistan Corridor' && (lng < 42 || lng > 70 || lat < 20 || lat > 40)) return geoFallback(lat, lng);
+  if (route === 'South & East Asia' && (lng < 70 || lat > 35 || lat < -15)) return geoFallback(lat, lng);
   if (route === 'Americas' && lng > -15) return geoFallback(lat, lng);
   if (route === 'Americas' && lng > -35 && lng < -15 && lat > 5 && lat < 36) return 'Western African';
   return route;
