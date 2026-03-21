@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "module": "CommonJS",
+    "moduleResolution": "node",
+    "strict": true,
+    "allowJs": true,
+    "checkJs": false,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "lib": ["ES2020"],
+    "types": ["node", "jest"],
+    "forceConsistentCasingInFileNames": true
+  },
+  "include": ["server/**/*", "tests/server/**/*"],
+  "exclude": ["node_modules", "dist", "src"]
+}
