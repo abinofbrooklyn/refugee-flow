@@ -144,8 +144,13 @@ const GlobeStatsBoard: React.FC<GlobeStatsBoardProps> = ({ data }) => {
         $_width={container_width / 4}
         $_margin_end={container_width / 20}
         $container_width={container_width}
-        $name={key}
-        $fontSize="10px"
+        $name={(() => {
+          if (window.innerWidth < 1450) {
+            return i === 2 ? 'Conflict Count' : key;
+          }
+          return key;
+        })()}
+        $fontSize={window.innerWidth < 1450 ? '10px' : '12px'}
       >
         <span
           data-annotation={annotations[i]}
