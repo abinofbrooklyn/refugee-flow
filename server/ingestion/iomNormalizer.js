@@ -115,7 +115,8 @@ const geoFallback = (lat, lng) => {
 
   // === Tropical Africa (lat -5 to 15) ===
   if (lat > -5 && lat <= 15 && lng >= -15 && lng <= 15) return 'Western African'; // West Africa (Sahel, coast)
-  if (lat > -5 && lat <= 15 && lng > 15 && lng <= 30) return 'Central Mediterranean'; // Central Africa (Chad, CAR, Sudan south)
+  if (lat > 5 && lat <= 15 && lng > 15 && lng <= 30) return 'Central Mediterranean'; // Sahel transit (Chad, CAR north, Sudan south)
+  if (lat > -5 && lat <= 5 && lng > 15 && lng <= 30) return 'East & Southern Africa'; // Equatorial Africa (DRC, Congo, Gabon)
   if (lat > -5 && lat <= 15 && lng > 30 && lng <= 55) return 'Horn of Africa'; // East Africa (Somalia, Ethiopia, Kenya, Djibouti)
 
   // === Southern Africa (lat < -5) ===
@@ -178,6 +179,7 @@ function applyGeoBoundsCorrections(route, lat, lng) {
   // Route-specific geographic bounds — reroute if record is far from its assigned region
   // Every route has a bounds check to catch IOM source data errors (fat-fingered coords)
   if (route === 'Central Mediterranean' && (lng > 37 || lng < -15 || lat < 5 || lat > 48)) return geoFallback(lat, lng);
+  if (route === 'Central Mediterranean' && lat < 10 && lng > 15) return geoFallback(lat, lng); // Equatorial Africa — not CM transit
   if (route === 'Eastern Mediterranean' && (lng < 15 || lng > 45 || lat < 30 || lat > 45)) return geoFallback(lat, lng);
   if (route === 'Western Mediterranean' && (lng > 15 || lng < -25 || lat < 25 || lat > 48)) return geoFallback(lat, lng);
   if (route === 'English Channel' && (lng < -10 || lng > 10 || lat < 48 || lat > 60)) return geoFallback(lat, lng);
