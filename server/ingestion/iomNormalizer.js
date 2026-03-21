@@ -127,7 +127,8 @@ const geoFallback = (lat, lng) => {
 
   // === Remaining catch-all ===
   if (lng >= -15 && lng <= 15) return 'Western African'; // West/Central Africa remaining
-  if (lat > 20 && lng > 55 && lng <= 70) return 'Iran-Afghanistan Corridor';
+  if (lat > 20 && lat <= 40 && lng > 55 && lng <= 70) return 'Iran-Afghanistan Corridor';
+  // lat > 40, lng 55-70: Central Asia (Kazakhstan, Turkmenistan) — no valid route
   // lat <= 20, lng 55-70: Arabian Sea / Indian Ocean — no valid route
   return 'UNRESOLVED'; // No valid route — validator will quarantine this
 };
