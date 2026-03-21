@@ -20,7 +20,7 @@ const Wrapper = styled.div`
   left: 50%;
   transform: translateX(-50%);
 `;
-const CurrentSituation = styled.div<{ currentRouteName?: string }>`
+const CurrentSituation = styled.div<{ $currentRouteName?: string }>`
 
   height: 120px;
   overflow-y: scroll;
@@ -52,7 +52,7 @@ const CurrentSituation = styled.div<{ currentRouteName?: string }>`
 
   &::before{
 
-    content:${ props => "'" +'Current Situation - '+ (props.currentRouteName || '') + "'" };
+    content:${ props => "'" +'Current Situation - '+ (props.$currentRouteName || '') + "'" };
     font-family: 'Roboto';
     font-size: 25px;
     color: #ffffff;
@@ -61,14 +61,14 @@ const CurrentSituation = styled.div<{ currentRouteName?: string }>`
     top: -40px;
   }
 `;
-const DataSource = styled.div<{ top?: string }>`
+const DataSource = styled.div<{ $top?: string }>`
   fill: white;
   position: absolute;
   right: 0;
   cursor: pointer;
   opacity: 0.8;
   transition: all 200ms;
-  top: ${props => props.top};
+  top: ${props => props.$top};
   &:hover{
     opacity: 1;
   }
@@ -169,7 +169,7 @@ const ChartController = styled.div`
     text-align: left;
   }
 `;
-const ChartControllerButton = styled.p<{ mode: number; index: string; button2W: number }>`
+const ChartControllerButton = styled.p<{ $mode: number; $index: string; $button2W: number }>`
   &::selection {
     text-shadow: none;
     background: none;
@@ -185,14 +185,14 @@ const ChartControllerButton = styled.p<{ mode: number; index: string; button2W: 
   transition: all 400ms;
 
   background:${props => {
-    if(props.mode - 1 == +props.index) return '#606096'
+    if(props.$mode - 1 == +props.$index) return '#606096'
     else return '#28283c'
   }};
   border-bottom: ${props => {
-    if(props.mode - 1 == +props.index) return '3px #ef6363 solid'
+    if(props.$mode - 1 == +props.$index) return '3px #ef6363 solid'
     else return '1px #4e5d9a solid'
   }};
-  left: ${props => props.button2W*(+props.index) + 'px' };
+  left: ${props => props.$button2W*(+props.$index) + 'px' };
   &:hover{
     border-width: 4px;
     background: #3b425a;
@@ -702,14 +702,14 @@ const RefugeeRoute_textArea_content_basicInfo: React.FC<Props> = ({ route_death_
 
   return (
     <Wrapper className='route-map-titleGroup__basic'>
-      <CurrentSituation currentRouteName={currentRouteName} id="CurrentSituation__text"
+      <CurrentSituation $currentRouteName={currentRouteName} id="CurrentSituation__text"
         onClick={() => { const el = document.getElementById('CurrentSituation__text'); if (el) el.scrollTop = 0; }}>
         {(() => {
           const rd = _.find(routeDescDict as Array<{ route: string; desc: string[] }>, d => d.route === currentRouteName);
           return rd ? description(rd.desc) : null;
         })()}
       </CurrentSituation>
-      <DataSource top='-5px' onClick={() => window.open(
+      <DataSource $top='-5px' onClick={() => window.open(
         currentRouteName === 'Americas'
           ? 'https://www.cbp.gov/newsroom/stats/nationwide-encounters'
           : currentRouteName === 'English Channel'
@@ -744,7 +744,7 @@ const RefugeeRoute_textArea_content_basicInfo: React.FC<Props> = ({ route_death_
       <DeathSummary>
         <p>Incident Summary - {currentRouteName}</p>
         <Stats ref={statsRef}><p>{calculateDeathTotal()}</p></Stats>
-        <DataSource top='48px' onClick={(e) => {
+        <DataSource $top='48px' onClick={(e) => {
           e.preventDefault();
           window.open('https://missingmigrants.iom.int/downloads', '_blank');
           if (currentRouteName !== 'Americas') {
@@ -777,22 +777,22 @@ const RefugeeRoute_textArea_content_basicInfo: React.FC<Props> = ({ route_death_
         </DataSource>
         <ChartController ref={chartControllerRef}>
           <ChartControllerButton
-            index="0"
+            $index="0"
             ref={button2Ref}
-            button2W={button2W}
-            mode={mode}
+            $button2W={button2W}
+            $mode={mode}
             onClick={() => handleChartMode(1)}>Total Fatality </ChartControllerButton>
           <ChartControllerButton
-            index="1"
+            $index="1"
             ref={button2Ref}
-            button2W={button2W}
-            mode={mode}
+            $button2W={button2W}
+            $mode={mode}
             onClick={() => handleChartMode(2)}>Incident Type</ChartControllerButton>
           <ChartControllerButton
-            index="2"
+            $index="2"
             ref={button2Ref}
-            button2W={button2W}
-            mode={mode}
+            $button2W={button2W}
+            $mode={mode}
             onClick={() => handleChartMode(3)}>Death/Missing Ratio</ChartControllerButton>
         </ChartController>
         <ChartContainer ref={chartContainerRef}></ChartContainer>
