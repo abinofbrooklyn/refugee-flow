@@ -1,19 +1,21 @@
 'use strict';
 
-const https = require('https');
-const fs = require('fs');
-const path = require('path');
-const XLSX = require('xlsx');
-const db = require('../database/connection');
-const { logIngestion } = require('./ingestionLogger');
-const { validateRows, quarantineRows } = require('./validator');
-const { sendQuarantineAlert } = require('./alerter');
+import https from 'https';
+import fs from 'fs';
+import path from 'path';
+import XLSX from 'xlsx';
+import db from '../database/connection';
+import { logIngestion } from './ingestionLogger';
+import { validateRows, quarantineRows } from './validator';
+import { sendQuarantineAlert } from './alerter';
+import { IngestionResult } from '../types/ingestion';
+import { IbcCrossingRow } from '../types/knex';
 
 const FRONTEX_PAGE_URL = 'https://www.frontex.europa.eu/what-we-do/monitoring-and-risk-analysis/migratory-map/';
 const BATCH_SIZE = 500;
 
 // Map XLSX route names to DB/app route names
-const ROUTE_NAME_MAP = {
+export const ROUTE_NAME_MAP: Record<string, string> = {
   'Central Mediterranean Route': 'Central Mediterranean',
   'Western Mediterranean Route': 'Western Mediterranean',
   'Western Balkan Route': 'Western Balkans',
@@ -25,31 +27,45 @@ const ROUTE_NAME_MAP = {
   'Other': 'Other',
 };
 
-const QUARTER_MAP = {
+const QUARTER_MAP: Record<string, string> = {
   JAN: 'q1', FEB: 'q1', MAR: 'q1',
   APR: 'q2', MAY: 'q2', JUN: 'q2',
   JUL: 'q3', AUG: 'q3', SEP: 'q3',
   OCT: 'q4', NOV: 'q4', DEC: 'q4',
 };
 
+interface ColInfo {
+  col: number;
+  month: string;
+  year: string;
+  quarter: string;
+}
+
+interface FrontexUpsertResult {
+  inserted: number;
+  updated: number;
+  unchanged: number;
+  stale: number;
+}
+
 /**
  * Fetch a URL and return the response body as a string.
  */
-function fetchText(url) {
+function fetchText(url: string): Promise<string> {
   return new Promise((resolve, reject) => {
     https.get(url, {
       headers: { 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36' },
       timeout: 30000,
     }, (res) => {
       if (res.statusCode === 301 || res.statusCode === 302) {
-        return fetchText(res.headers.location).then(resolve).catch(reject);
+        return fetchText(res.headers.location!).then(resolve).catch(reject);
       }
       if (res.statusCode !== 200) {
         res.resume();
         return reject(new Error(`HTTP ${res.statusCode}`));
       }
       let data = '';
-      res.on('data', chunk => data += chunk);
+      res.on('data', (chunk: Buffer) => data += chunk);
       res.on('end', () => resolve(data));
     }).on('error', reject);
   });
@@ -58,14 +74,14 @@ function fetchText(url) {
 /**
  * Download a file from a URL to a local path.
  */
-function downloadFile(url, dest) {
+function downloadFile(url: string, dest: string): Promise<void> {
   return new Promise((resolve, reject) => {
     https.get(url, {
       headers: { 'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36' },
       timeout: 60000,
     }, (res) => {
       if (res.statusCode === 301 || res.statusCode === 302) {
-        return downloadFile(res.headers.location, dest).then(resolve).catch(reject);
+        return downloadFile(res.headers.location!, dest).then(resolve).catch(reject);
       }
       if (res.statusCode !== 200) {
         res.resume();
@@ -73,8 +89,8 @@ function downloadFile(url, dest) {
       }
       const file = fs.createWriteStream(dest);
       res.pipe(file);
-      file.on('finish', () => { file.close(resolve); });
-      file.on('error', (err) => { fs.unlink(dest, () => {}); reject(err); });
+      file.on('finish', () => { file.close(resolve as () => void); });
+      file.on('error', (err: Error) => { fs.unlink(dest, () => {}); reject(err); });
     }).on('error', reject);
   });
 }
@@ -82,16 +98,16 @@ function downloadFile(url, dest) {
 /**
  * Parse Frontex XLSX and return quarterly aggregated rows.
  */
-function parseXlsx(filePath) {
+export function parseXlsx(filePath: string): Omit<IbcCrossingRow, 'pk'>[] {
   const wb = XLSX.readFile(filePath);
   const ws = wb.Sheets['Detections_of_IBC'];
   if (!ws) throw new Error('Sheet "Detections_of_IBC" not found');
 
-  const data = XLSX.utils.sheet_to_json(ws, { header: 1 });
-  const headers = data[1];
+  const data = XLSX.utils.sheet_to_json(ws, { header: 1 }) as unknown[][];
+  const headers = data[1] as string[];
   const rows = data.slice(2);
 
-  const colInfo = [];
+  const colInfo: ColInfo[] = [];
   for (let c = 3; c < headers.length; c++) {
     const h = headers[c];
     if (!h) continue;
@@ -102,22 +118,23 @@ function parseXlsx(filePath) {
     colInfo.push({ col: c, month, year, quarter });
   }
 
-  const quarterly = new Map();
+  const quarterly = new Map<string, number>();
   for (const row of rows) {
-    const routeRaw = row[0];
-    const nationality = row[2];
+    const r = row as unknown[];
+    const routeRaw = r[0] as string | undefined;
+    const nationality = r[2] as string | undefined;
     if (!routeRaw || !nationality) continue;
 
     const route = ROUTE_NAME_MAP[routeRaw] || routeRaw;
     for (const ci of colInfo) {
-      const val = row[ci.col];
+      const val = r[ci.col];
       if (!val || val === 0) continue;
       const key = `${route}|${nationality}|${ci.year}|${ci.quarter}`;
-      quarterly.set(key, (quarterly.get(key) || 0) + (typeof val === 'number' ? val : parseInt(val) || 0));
+      quarterly.set(key, (quarterly.get(key) || 0) + (typeof val === 'number' ? val : parseInt(String(val)) || 0));
     }
   }
 
-  const upsertRows = [];
+  const upsertRows: Omit<IbcCrossingRow, 'pk'>[] = [];
   for (const [key, count] of quarterly) {
     if (count === 0) continue;
     const [route, nationality, year, quarter] = key.split('|');
@@ -128,6 +145,8 @@ function parseXlsx(filePath) {
       year,
       quarter,
       count,
+      count_southwest: null,
+      count_northern: null,
     });
   }
   return upsertRows;
@@ -137,20 +156,20 @@ function parseXlsx(filePath) {
  * Diff-based upsert for Frontex data.
  * Excludes Americas and English Channel routes (CBP/UK data).
  */
-async function upsertFrontexData(upsertRows) {
+export async function upsertFrontexData(upsertRows: Omit<IbcCrossingRow, 'pk'>[]): Promise<FrontexUpsertResult> {
   const NON_FRONTEX_ROUTES = ['Americas', 'English Channel'];
-  const existingRows = await db('ibc_crossings')
+  const existingRows = await db<IbcCrossingRow>('ibc_crossings')
     .whereNotIn('route', NON_FRONTEX_ROUTES)
     .select('*');
 
-  const existingMap = new Map();
+  const existingMap = new Map<string, IbcCrossingRow>();
   for (const row of existingRows) {
     const key = `${row.route}|${row.nationality_long}|${row.year}|${row.quarter}`;
     existingMap.set(key, row);
   }
 
-  const toInsert = [];
-  const toUpdate = [];
+  const toInsert: Omit<IbcCrossingRow, 'pk'>[] = [];
+  const toUpdate: Array<{ pk: number; count: number | null }> = [];
   let unchanged = 0;
 
   for (const row of upsertRows) {
@@ -188,9 +207,10 @@ async function upsertFrontexData(upsertRows) {
 /**
  * Main entry: scrape Frontex page for XLSX link, download, parse, upsert, log.
  */
-async function runFrontexIngestion() {
+export async function runFrontexIngestion(): Promise<IngestionResult> {
   const startedAt = new Date();
-  let tmpPath = null;
+  const start = Date.now();
+  let tmpPath: string | null = null;
   try {
     // Scrape page for XLSX link
     console.log('[Frontex] Fetching migratory map page...');
@@ -214,10 +234,10 @@ async function runFrontexIngestion() {
     console.log(`[Frontex] ${upsertRows.length} rows from XLSX`);
 
     // Validate rows — quarantine bad data, proceed with clean
-    let cleanRows = upsertRows;
+    let cleanRows = upsertRows as Record<string, unknown>[];
     let quarantineCount = 0;
     try {
-      const { clean, quarantined } = await validateRows('frontex', upsertRows);
+      const { clean, quarantined } = await validateRows('frontex', upsertRows as Record<string, unknown>[]);
       cleanRows = clean;
       quarantineCount = quarantined.length;
       if (quarantined.length > 0) {
@@ -226,10 +246,10 @@ async function runFrontexIngestion() {
         console.log(`[Frontex] ${quarantined.length} rows quarantined, ${clean.length} clean`);
       }
     } catch (valErr) {
-      console.error('[Frontex] Validation failed, proceeding with all rows:', valErr.message);
+      console.error('[Frontex] Validation failed, proceeding with all rows:', (valErr as Error).message);
     }
 
-    const result = await upsertFrontexData(cleanRows);
+    const result = await upsertFrontexData(cleanRows as Omit<IbcCrossingRow, 'pk'>[]);
     console.log(`[Frontex] Done: ${result.inserted} inserted, ${result.updated} updated, ${result.unchanged} unchanged, ${result.stale} stale`);
 
     await logIngestion({
@@ -239,17 +259,29 @@ async function runFrontexIngestion() {
       startedAt,
       quarantineCount,
     });
+
+    return {
+      source: 'frontex',
+      rowsAffected: result.inserted + result.updated,
+      quarantineCount,
+      duration: Date.now() - start,
+    };
   } catch (err) {
-    console.error('[Frontex] Error:', err.message);
+    console.error('[Frontex] Error:', (err as Error).message);
     await logIngestion({
       source: 'frontex',
       status: 'error',
-      errorMessage: err.message,
+      errorMessage: (err as Error).message,
       startedAt,
     });
+    return {
+      source: 'frontex',
+      rowsAffected: 0,
+      quarantineCount: 0,
+      duration: Date.now() - start,
+      error: (err as Error).message,
+    };
   } finally {
     if (tmpPath) try { fs.unlinkSync(tmpPath); } catch (e) { /* ignore */ }
   }
 }
-
-module.exports = { runFrontexIngestion, parseXlsx, upsertFrontexData, ROUTE_NAME_MAP };
