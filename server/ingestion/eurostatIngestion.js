@@ -4,6 +4,8 @@ const { XMLParser } = require('fast-xml-parser');
 const db = require('../database/connection');
 const { logIngestion, getLastSyncDate } = require('./ingestionLogger');
 const { normalizeCountryName } = require('./countryNormalizer');
+const { validateRows, quarantineRows } = require('./validator');
+const { sendQuarantineAlert } = require('./alerter');
 
 const EUROSTAT_BASE = 'https://ec.europa.eu/eurostat/api/dissemination/sdmx/2.1/data/migr_asyappctzm';
 const BATCH_SIZE = 500;
@@ -149,6 +151,7 @@ async function runEurostatIngestion() {
     const geoEntries = Object.entries(EU_GEO);
     const citizenEntries = Object.entries(CITIZEN_CODES);
     let totalRows = 0;
+    let totalQuarantineCount = 0;
 
     // Fetch per destination to keep requests manageable
     for (const [geoIso, destName] of geoEntries) {
@@ -183,15 +186,30 @@ async function runEurostatIngestion() {
       }
       const uniqueRows = Array.from(deduped.values());
 
+      // Validate rows — quarantine bad data, proceed with clean
+      let cleanRows = uniqueRows;
+      try {
+        const { clean, quarantined } = await validateRows('eurostat', uniqueRows);
+        cleanRows = clean;
+        totalQuarantineCount += quarantined.length;
+        if (quarantined.length > 0) {
+          await quarantineRows('eurostat', quarantined);
+          await sendQuarantineAlert('eurostat', quarantined);
+          console.log(`[Eurostat] ${quarantined.length} rows quarantined for ${destName}`);
+        }
+      } catch (valErr) {
+        console.error(`[Eurostat] Validation failed for ${destName}, proceeding with all rows:`, valErr.message);
+      }
+
       // Upsert this destination's rows in batches
-      for (let i = 0; i < uniqueRows.length; i += BATCH_SIZE) {
-        const batch = uniqueRows.slice(i, i + BATCH_SIZE);
+      for (let i = 0; i < cleanRows.length; i += BATCH_SIZE) {
+        const batch = cleanRows.slice(i, i + BATCH_SIZE);
         await db('asy_applications')
           .insert(batch)
           .onConflict(['year', 'quarter', 'origin', 'destination'])
           .merge();
       }
-      totalRows += uniqueRows.length;
+      totalRows += cleanRows.length;
     }
 
     await logIngestion({
@@ -199,6 +217,7 @@ async function runEurostatIngestion() {
       status: 'success',
       rowsAffected: totalRows,
       startedAt,
+      quarantineCount: totalQuarantineCount,
     });
   } catch (err) {
     await logIngestion({

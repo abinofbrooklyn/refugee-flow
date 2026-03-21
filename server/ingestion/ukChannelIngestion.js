@@ -4,6 +4,8 @@ const path = require('path');
 const XLSX = require('xlsx');
 const db = require('../database/connection');
 const { logIngestion } = require('./ingestionLogger');
+const { validateRows, quarantineRows } = require('./validator');
+const { sendQuarantineAlert } = require('./alerter');
 
 const ROUTE_NAME = 'English Channel';
 const BORDER_LOCATION = 'Sea';
@@ -100,6 +102,23 @@ async function ingestUkChannelData(xlsxPath) {
     });
   }
 
+  // Validate rows — quarantine bad data, proceed with clean
+  const allNewRows = Array.from(newData.values());
+  let cleanNewRows = allNewRows;
+  let quarantineCount = 0;
+  try {
+    const { clean, quarantined } = await validateRows('uk-channel', allNewRows);
+    cleanNewRows = clean;
+    quarantineCount = quarantined.length;
+    if (quarantined.length > 0) {
+      await quarantineRows('uk-channel', quarantined);
+      await sendQuarantineAlert('uk-channel', quarantined);
+      console.log(`[UK Channel] ${quarantined.length} rows quarantined, ${clean.length} clean`);
+    }
+  } catch (valErr) {
+    console.error('[UK Channel] Validation failed, proceeding with all rows:', valErr.message);
+  }
+
   const existingRows = await db('ibc_crossings').where('route', ROUTE_NAME).select('*');
   const existingMap = new Map();
   for (const row of existingRows) {
@@ -108,7 +127,8 @@ async function ingestUkChannelData(xlsxPath) {
 
   const toInsert = [];
   const toUpdate = [];
-  for (const [key, newRow] of newData) {
+  for (const newRow of cleanNewRows) {
+    const key = `${newRow.nationality_long}|${newRow.year}|${newRow.quarter}`;
     const existing = existingMap.get(key);
     if (!existing) {
       toInsert.push(newRow);
@@ -130,7 +150,7 @@ async function ingestUkChannelData(xlsxPath) {
   }
 
   // Update country_routes
-  const nationalities = [...new Set([...newData.values()].map(r => r.nationality_long))];
+  const nationalities = [...new Set(cleanNewRows.map(r => r.nationality_long))];
   const existingRoutes = await db('country_routes').select('*');
   const routesByCountry = new Map(existingRoutes.map(r => [r.country, r.routes || []]));
   for (const nat of nationalities) {
@@ -142,7 +162,7 @@ async function ingestUkChannelData(xlsxPath) {
     }
   }
 
-  return { inserted: toInsert.length, updated: toUpdate.length };
+  return { inserted: toInsert.length, updated: toUpdate.length, quarantineCount };
 }
 
 /**
@@ -168,6 +188,7 @@ async function runUkChannelIngestion() {
       status: 'success',
       rowsAffected: result.inserted + result.updated,
       startedAt,
+      quarantineCount: result.quarantineCount || 0,
     });
   } catch (err) {
     await logIngestion({

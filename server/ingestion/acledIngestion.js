@@ -3,6 +3,8 @@
 const db = require('../database/connection');
 const { logIngestion, getLastSyncDate } = require('./ingestionLogger');
 const { reduceGeoPercision } = require('../controllers/api/data/helpers/dataProcessors');
+const { validateRows, quarantineRows } = require('./validator');
+const { sendQuarantineAlert } = require('./alerter');
 
 const ACLED_TOKEN_URL = 'https://acleddata.com/oauth/token';
 const ACLED_DATA_URL = 'https://acleddata.com/api/acled/read';
@@ -130,23 +132,44 @@ async function runAcledIngestion() {
     const validWarRows = warRows.filter(r => !isNaN(r.lat) && !isNaN(r.lng));
     const validNoteRows = noteRows.filter((_, i) => !isNaN(warRows[i].lat) && !isNaN(warRows[i].lng));
 
+    // Validate rows — quarantine bad data, proceed with clean
+    let cleanWarRows = validWarRows;
+    let quarantineCount = 0;
+    try {
+      const { clean, quarantined } = await validateRows('acled', validWarRows);
+      cleanWarRows = clean;
+      quarantineCount = quarantined.length;
+      if (quarantined.length > 0) {
+        await quarantineRows('acled', quarantined);
+        await sendQuarantineAlert('acled', quarantined);
+        console.log(`[ACLED] ${quarantined.length} rows quarantined, ${clean.length} clean`);
+      }
+    } catch (valErr) {
+      console.error('[ACLED] Validation failed, proceeding with all rows:', valErr.message);
+    }
+
+    // Build a set of clean event_ids to filter notes accordingly
+    const cleanEventIds = new Set(cleanWarRows.map(r => r.event_id));
+    const cleanNoteRows = validNoteRows.filter(r => cleanEventIds.has(r.id));
+
     // Upsert war_events in batches of 500
-    for (let i = 0; i < validWarRows.length; i += BATCH_SIZE) {
-      const batch = validWarRows.slice(i, i + BATCH_SIZE);
+    for (let i = 0; i < cleanWarRows.length; i += BATCH_SIZE) {
+      const batch = cleanWarRows.slice(i, i + BATCH_SIZE);
       await db('war_events').insert(batch).onConflict('event_id').ignore();
     }
 
     // Upsert war_notes in batches of 500
-    for (let i = 0; i < validNoteRows.length; i += BATCH_SIZE) {
-      const batch = validNoteRows.slice(i, i + BATCH_SIZE);
+    for (let i = 0; i < cleanNoteRows.length; i += BATCH_SIZE) {
+      const batch = cleanNoteRows.slice(i, i + BATCH_SIZE);
       await db('war_notes').insert(batch).onConflict('id').merge();
     }
 
     await logIngestion({
       source: 'acled',
       status: 'success',
-      rowsAffected: validWarRows.length,
+      rowsAffected: cleanWarRows.length,
       startedAt,
+      quarantineCount,
     });
   } catch (err) {
     await logIngestion({

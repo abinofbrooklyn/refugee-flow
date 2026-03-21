@@ -3,6 +3,8 @@ const db = require('../database/connection');
 const { logIngestion } = require('./ingestionLogger');
 const { reduceGeoPercision } = require('../controllers/api/data/helpers/dataProcessors');
 const { normalizeRow, deduplicateRows } = require('./iomNormalizer');
+const { validateRows, quarantineRows } = require('./validator');
+const { sendQuarantineAlert } = require('./alerter');
 
 const IOM_CSV_URL =
   'https://missingmigrants.iom.int/sites/g/files/tmzbdl601/files/report-migrant-incident/Missing_Migrants_Global_Figures_allData.csv';
@@ -110,9 +112,25 @@ async function runIomIngestion() {
     // Log normalization summary
     console.log(`[IOM] ${csvRows.length} CSV rows -> ${rows.length} after normalization+dedup`);
 
+    // Validate rows — quarantine bad data, proceed with clean
+    let cleanRows = rows;
+    let quarantineCount = 0;
+    try {
+      const { clean, quarantined } = await validateRows('iom', rows);
+      cleanRows = clean;
+      quarantineCount = quarantined.length;
+      if (quarantined.length > 0) {
+        await quarantineRows('iom', quarantined);
+        await sendQuarantineAlert('iom', quarantined);
+        console.log(`[IOM] ${quarantined.length} rows quarantined, ${clean.length} clean`);
+      }
+    } catch (valErr) {
+      console.error('[IOM] Validation failed, proceeding with all rows:', valErr.message);
+    }
+
     let totalInserted = 0;
-    for (let i = 0; i < rows.length; i += BATCH_SIZE) {
-      const batch = rows.slice(i, i + BATCH_SIZE);
+    for (let i = 0; i < cleanRows.length; i += BATCH_SIZE) {
+      const batch = cleanRows.slice(i, i + BATCH_SIZE);
       await db('route_deaths').insert(batch).onConflict('id').ignore();
       totalInserted += batch.length;
     }
@@ -122,6 +140,7 @@ async function runIomIngestion() {
       status: 'success',
       rowsAffected: totalInserted,
       startedAt,
+      quarantineCount,
     });
   } catch (err) {
     await logIngestion({

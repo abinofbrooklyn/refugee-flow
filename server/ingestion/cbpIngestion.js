@@ -6,6 +6,8 @@ const { parse } = require('csv-parse/sync');
 const db = require('../database/connection');
 const { logIngestion } = require('./ingestionLogger');
 const { normalizeCbpNationality } = require('../../scripts/nationality-map.js');
+const { validateRows, quarantineRows } = require('./validator');
+const { sendQuarantineAlert } = require('./alerter');
 
 const ROUTE_NAME = 'Americas';
 const DOWNLOAD_DIR = path.join(__dirname, '../../tmp');
@@ -135,6 +137,23 @@ async function ingestCbpData(csvContent) {
     });
   }
 
+  // Validate rows — quarantine bad data, proceed with clean
+  const allNewRows = Array.from(newData.values());
+  let cleanNewRows = allNewRows;
+  let quarantineCount = 0;
+  try {
+    const { clean, quarantined } = await validateRows('cbp', allNewRows);
+    cleanNewRows = clean;
+    quarantineCount = quarantined.length;
+    if (quarantined.length > 0) {
+      await quarantineRows('cbp', quarantined);
+      await sendQuarantineAlert('cbp', quarantined);
+      console.log(`[CBP] ${quarantined.length} rows quarantined, ${clean.length} clean`);
+    }
+  } catch (valErr) {
+    console.error('[CBP] Validation failed, proceeding with all rows:', valErr.message);
+  }
+
   const existingRows = await db('ibc_crossings').where('route', ROUTE_NAME).select('*');
   const existingMap = new Map();
   for (const row of existingRows) {
@@ -143,7 +162,8 @@ async function ingestCbpData(csvContent) {
 
   const toInsert = [];
   const toUpdate = [];
-  for (const [key, newRow] of newData) {
+  for (const newRow of cleanNewRows) {
+    const key = `${newRow.border_location}|${newRow.nationality_long}|${newRow.year}|${newRow.quarter}`;
     const existing = existingMap.get(key);
     if (!existing) {
       toInsert.push(newRow);
@@ -165,7 +185,7 @@ async function ingestCbpData(csvContent) {
   }
 
   // Update country_routes
-  const nationalities = [...new Set([...newData.values()].map(r => r.nationality_long))];
+  const nationalities = [...new Set(cleanNewRows.map(r => r.nationality_long))];
   const existingRoutes = await db('country_routes').select('*');
   const routesByCountry = new Map(existingRoutes.map(r => [r.country, r.routes || []]));
   for (const nat of nationalities) {
@@ -177,7 +197,7 @@ async function ingestCbpData(csvContent) {
     }
   }
 
-  return { inserted: toInsert.length, updated: toUpdate.length };
+  return { inserted: toInsert.length, updated: toUpdate.length, quarantineCount };
 }
 
 /**
@@ -220,6 +240,7 @@ async function runCbpIngestion() {
       status: 'success',
       rowsAffected: result.inserted + result.updated,
       startedAt,
+      quarantineCount: result.quarantineCount || 0,
     });
   } catch (err) {
     await logIngestion({
