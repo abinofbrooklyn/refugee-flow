@@ -112,7 +112,8 @@ const geoFallback = (lat, lng) => {
   if (lat > 25 && lat <= 30 && lng > 37 && lng <= 48) return 'Horn of Africa'; // Red Sea, Saudi Arabia
   if (lat > 25 && lat <= 30 && lng > 48 && lng <= 55) return 'Iran-Afghanistan Corridor'; // Iranian coast, Persian Gulf
   if (lat > 15 && lat <= 25 && lng > 37 && lng <= 48) return 'Horn of Africa'; // Yemen, Gulf of Aden, Saudi south
-  if (lat > 15 && lat <= 25 && lng > 48 && lng <= 55) return 'Iran-Afghanistan Corridor'; // Persian Gulf (Qatar, UAE, Oman)
+  if (lat > 15 && lat <= 20 && lng > 48 && lng <= 55) return 'Horn of Africa'; // Yemen, Gulf of Aden
+  if (lat > 20 && lat <= 25 && lng > 48 && lng <= 55) return 'Iran-Afghanistan Corridor'; // Persian Gulf (Qatar, UAE, Oman)
   if (lat > 15 && lat <= 30 && lng > 55 && lng <= 70) return 'Iran-Afghanistan Corridor'; // Arabian Sea to Afghanistan
 
   // === Tropical Africa (lat -5 to 15) ===
