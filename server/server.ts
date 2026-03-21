@@ -1,14 +1,16 @@
-require('dotenv').config();
-const path = require('path');
-const express = require('express');
-const compression = require('compression');
-const helmet = require('helmet');
-const cors = require('cors');
-const rateLimit = require('express-rate-limit');
-const ENV_INFO = require('./helpers/envInfo');
-const dataRoutes = require('./routes/dataRoute');
+import dotenv from 'dotenv';
+dotenv.config();
 
-const app = express();
+import path from 'path';
+import express, { Express } from 'express';
+import compression from 'compression';
+import helmet from 'helmet';
+import cors from 'cors';
+import rateLimit from 'express-rate-limit';
+import ENV_INFO from './helpers/envInfo';
+import dataRoutes from './routes/dataRoute';
+
+const app: Express = express();
 
 // Printf env
 console.info(ENV_INFO);
@@ -37,14 +39,23 @@ app.use(express.static(path.join(__dirname, '../dist')));
 app.use((req, res) => { res.sendFile(path.join(__dirname, '../dist/index.html')); });
 
 if (require.main === module) {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
   const cron = require('node-cron');
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
   const { runAcledIngestion } = require('./ingestion/acledIngestion');
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
   const { runUnhcrIngestion } = require('./ingestion/unhcrIngestion');
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
   const { runIomIngestion } = require('./ingestion/iomIngestion');
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
   const { runEurostatIngestion } = require('./ingestion/eurostatIngestion');
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
   const { runFrontexIngestion } = require('./ingestion/frontexIngestion');
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
   const { runCbpIngestion } = require('./ingestion/cbpIngestion');
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
   const { runUkChannelIngestion } = require('./ingestion/ukChannelIngestion');
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
   const { runWithRetry } = require('./ingestion/retryRunner');
 
   // Staggered schedules — Eurostat before UNHCR so seasonal ratios are available
@@ -63,4 +74,5 @@ if (require.main === module) {
 
   app.listen(process.env.PORT);
 }
-module.exports = app;
+
+export = app;
