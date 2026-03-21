@@ -47,6 +47,19 @@ This does NOT change what data is ingested or from where — it adds quality gat
 - 15 IOM records remain unfixable in the database (source data errors: Iran coords at Hungary, Libya coords at India, etc.)
 - asy_applications duplicates were cleaned via migration 002
 - The geo fallback rerouting in dataController.js is a display-time band-aid — validation should catch these at ingestion time going forward
+- Record 2022.MMP0765 (lat 24.86, lng 51.51) labeled "Central Mediterranean" but is in Qatar/UAE — still in DB, needs cleanup
+
+### One-Time Retroactive Cleanup
+- **LOCKED:** Migration 004 must include a one-time re-validation pass over ALL existing route_deaths rows
+- Run every existing row through the validator's geo-label mismatch rules
+- Rows that fail: quarantine them (move to data_quarantine table with reason)
+- This catches the UAE record and any other unnoticed outliers already in the database
+- Also tighten Central Med bounds — current check allows lng up to 55, but Central Med corridor is Libya/Tunisia → Italy (lng should be capped around 37)
+
+### Bounds Fix Needed
+- **LOCKED:** Central Mediterranean upper lng bound must be tightened from 55 to ~37 in applyGeoBoundsCorrections
+- Current: `route === 'Central Mediterranean' && (lng > 55 || lng < -15)` — lets Qatar (lng 51) through
+- Fix: `route === 'Central Mediterranean' && (lng > 37 || lng < -15)` — matches actual Libya/Tunisia → Italy corridor
 
 ### Claude's Discretion
 - Exact validation thresholds per source and rule
