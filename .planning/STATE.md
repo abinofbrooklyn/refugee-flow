@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-stopped_at: Completed 07-09-PLAN.md (ingestion pipeline TypeScript conversion)
-last_updated: "2026-03-21T20:38:16.399Z"
+stopped_at: Completed 07-07-PLAN.md (globe family TSX conversion + withRouter6 elimination)
+last_updated: "2026-03-21T20:40:36.574Z"
 progress:
   total_phases: 7
   completed_phases: 5
   total_plans: 37
-  completed_plans: 38
+  completed_plans: 39
 ---
 
 # Project State
@@ -76,6 +76,7 @@ Plan: 8 of 10
 | Phase 07-start-v2-typescript-migration P04 | 19 | 2 tasks | 23 files |
 | Phase 07-start-v2-typescript-migration P06 | 22 | 2 tasks | 11 files |
 | Phase 07-start-v2-typescript-migration P09 | 13 | 2 tasks | 14 files |
+| Phase 07-start-v2-typescript-migration P07 | 16 | 2 tasks | 9 files |
 
 ## Accumulated Context
 
@@ -151,6 +152,9 @@ Recent decisions affecting current work:
 - [Phase 07-start-v2-typescript-migration]: Add src/types/assets.d.ts for declare module *.png/*.svg — fixes static asset TS2307 errors
 - [Phase 07-start-v2-typescript-migration]: Ingestion pipeline modules return Promise<IngestionResult> for uniform health reporting
 - [Phase 07-start-v2-typescript-migration]: Omit<RowType, 'pk'> pattern for pre-insert objects — pk is DB-generated serial not supplied by ingestion code
+- [Phase 07-start-v2-typescript-migration]: GlobeVisual uses forwardRef + useImperativeHandle exposing GlobeVisualHandle; GlobeContainer uses useRef<GlobeVisualHandle>
+- [Phase 07-start-v2-typescript-migration]: State refs pattern (warDataRef, etc.) prevents stale closures in GlobeContainer callbacks without bloating dependency arrays
+- [Phase 07-start-v2-typescript-migration]: Conflict.tsx withRouter6 removed — GlobeContainer uses useNavigate() directly; withRouter6 fully eliminated from all consumers
 
 ### Roadmap Evolution
 
@@ -166,6 +170,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-21T20:38:16.395Z
-Stopped at: Completed 07-09-PLAN.md (ingestion pipeline TypeScript conversion)
+Last session: 2026-03-21T20:40:36.569Z
+Stopped at: Completed 07-07-PLAN.md (globe family TSX conversion + withRouter6 elimination)
 Resume file: None
