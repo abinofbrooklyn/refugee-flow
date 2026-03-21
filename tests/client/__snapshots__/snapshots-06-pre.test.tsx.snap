@@ -29,9 +29,6 @@ exports[`Plan 06 pre-conversion snapshots AsyApplicationContainer renders with l
   </div>
   <div
     className="sc-eqUAAB hMcsTb"
-    leftPercentage="50%"
-    loading={true}
-    marginTop={-60}
   >
     <div
       className="sc-fqkvVO umDiU"

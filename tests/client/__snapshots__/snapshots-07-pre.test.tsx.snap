@@ -131,7 +131,6 @@ exports[`Plan 07 pre-conversion globe snapshots GlobeTimeline renders timeline w
 exports[`Plan 07 pre-conversion globe snapshots GlobeTooltips renders tooltip wrapper 1`] = `
 <div
   className="sc-dcJsrX fTsRrL"
-  expendornot={false}
   mv_position={
     [
       100,
@@ -139,7 +138,6 @@ exports[`Plan 07 pre-conversion globe snapshots GlobeTooltips renders tooltip wr
     ]
   }
   onClick={[Function]}
-  showornot={true}
 >
   <button
     className="sc-dhKdcy kgkuth"
@@ -164,7 +162,6 @@ exports[`Plan 07 pre-conversion globe snapshots GlobeTooltips renders tooltip wr
   </p>
   <p
     className="sc-kAycey eCCuUR"
-    expendornot={false}
   >
      
     Violence Against Civilians
@@ -178,7 +175,6 @@ exports[`Plan 07 pre-conversion globe snapshots GlobeTooltips renders tooltip wr
   </p>
   <p
     className="sc-jXbUNf eKugvY"
-    hideText={false}
   />
 </div>
 `;
