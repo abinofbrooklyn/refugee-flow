@@ -3,11 +3,11 @@ import styled from 'styled-components';
 import * as d3 from 'd3';
 
 interface AnimationProps {
-  animation?: boolean;
+  $animation?: boolean;
 }
 
 interface VideoLoopProps {
-  videoLoop?: boolean;
+  $videoLoop?: boolean;
 }
 
 const NavbarContainer = styled.div`
@@ -80,8 +80,8 @@ const Video = styled.video<AnimationProps & VideoLoopProps>`
     z-index: -1;
     background-size: cover;
     transition: opacity 5500ms, filter 1550ms;
-    opacity: ${props => (props.animation ? 1 : 0)};
-    filter: ${props => props.videoLoop
+    opacity: ${props => (props.$animation ? 1 : 0)};
+    filter: ${props => props.$videoLoop
       ? 'blur('+ Math.abs(d3.randomNormal(0,10)()) +'px'+') hue-rotate(0deg) contrast(1.2) saturate(0.8) brightness(0.5)'
       : 'blur(' + Math.abs(d3.randomNormal(0,10)()) + 'px'+ ') hue-rotate(0deg) contrast(1.2) saturate('+d3.randomUniform(1, 2.5)()+') brightness('+d3.randomUniform(0.4, 1.2)()+')'
     };
@@ -111,8 +111,8 @@ const Text = styled.p<AnimationProps>`
   font-family: 'Playfair Display',serif;
   width: 70%;
   text-align: center;
-  top: ${props => props.animation?'40%':'37%'};
-  opacity: ${props => props.animation?1:0};
+  top: ${props => props.$animation?'40%':'37%'};
+  opacity: ${props => props.$animation?1:0};
   left: 50%;
   transform: translate(-50%,-50%);
   font-size: 15px;
@@ -128,8 +128,8 @@ text-decoration: none;
 z-index: 100;
 position: absolute;
 left: 50%;
-bottom: ${props => props.animation?'70px':'200px'};
-opacity: ${props => props.animation?1:0};
+bottom: ${props => props.$animation?'70px':'200px'};
+opacity: ${props => props.$animation?1:0};
 transition: background 2000ms, bottom 3000ms,opacity cubic-bezier(1, 0.03, 0.48, 1.01) 3500ms;
 transform: translateX(-50%);
 font-family: 'Ubuntu';
@@ -168,11 +168,11 @@ const MobileLanding: React.FC = () => {
       <NavbarContainer>
         <a href='/' onMouseOver={() => setHovered(true)} onMouseOut={() => setHovered(false)}>Refugee Flow</a>
       </NavbarContainer>
-      <Video animation={animation} videoLoop={videoLoop} autoPlay muted loop style={{backgroundVideo: 'url(assets/img/hero.jpg)'} as React.CSSProperties}>
+      <Video $animation={animation} $videoLoop={videoLoop} autoPlay muted loop style={{backgroundVideo: 'url(assets/img/hero.jpg)'} as React.CSSProperties}>
         <source src="https://player.vimeo.com/external/278983563.hd.mp4?s=df2675a8395d48ad7b455f155ae148361121b298&profile_id=175" />
       </Video>
-      <Text animation={animation}>Thanks for your interest in learning more about the refugee crisis. We designed Refugee Flow as an exploratory experience.<br/><br/> Unfortunately mobile is not best suited for what we built. Instead, please bookmark the page and comeback and explore when you are on a laptop or desktop. </Text>
-      <LearnMore animation={animation} onClick={() => window.open('https://drive.google.com/drive/folders/1hR2JjaMN8DzXA8VyixHJ5zAiolnpoTSF?usp=sharing')}>Learn More...</LearnMore>
+      <Text $animation={animation}>Thanks for your interest in learning more about the refugee crisis. We designed Refugee Flow as an exploratory experience.<br/><br/> Unfortunately mobile is not best suited for what we built. Instead, please bookmark the page and comeback and explore when you are on a laptop or desktop. </Text>
+      <LearnMore $animation={animation} onClick={() => window.open('https://drive.google.com/drive/folders/1hR2JjaMN8DzXA8VyixHJ5zAiolnpoTSF?usp=sharing')}>Learn More...</LearnMore>
     </Wrapper>
   );
 };
