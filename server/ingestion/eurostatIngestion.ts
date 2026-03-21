@@ -1,17 +1,19 @@
 'use strict';
 
-const { XMLParser } = require('fast-xml-parser');
-const db = require('../database/connection');
-const { logIngestion, getLastSyncDate } = require('./ingestionLogger');
-const { normalizeCountryName } = require('./countryNormalizer');
-const { validateRows, quarantineRows } = require('./validator');
-const { sendQuarantineAlert } = require('./alerter');
+import { XMLParser } from 'fast-xml-parser';
+import db from '../database/connection';
+import { logIngestion, getLastSyncDate } from './ingestionLogger';
+import { normalizeCountryName } from './countryNormalizer';
+import { validateRows, quarantineRows } from './validator';
+import { sendQuarantineAlert } from './alerter';
+import { IngestionResult } from '../types/ingestion';
+import { AsyApplicationRow } from '../types/knex';
 
 const EUROSTAT_BASE = 'https://ec.europa.eu/eurostat/api/dissemination/sdmx/2.1/data/migr_asyappctzm';
 const BATCH_SIZE = 500;
 
 // EU/EEA Eurostat geo codes → full country names (matching asy_applications.destination)
-const EU_GEO = {
+export const EU_GEO: Record<string, string> = {
   AT: 'Austria', BE: 'Belgium', BG: 'Bulgaria', HR: 'Croatia', CY: 'Cyprus',
   CZ: 'Czech Rep.', DK: 'Denmark', EE: 'Estonia', FI: 'Finland', FR: 'France',
   DE: 'Germany', EL: 'Greece', HU: 'Hungary', IE: 'Ireland', IT: 'Italy',
@@ -24,7 +26,7 @@ const EU_GEO = {
 
 // Origin country ISO2 codes → full names (matching asy_applications.origin)
 // Covers the 64 origins in existing seed data
-const CITIZEN_CODES = {
+export const CITIZEN_CODES: Record<string, string> = {
   AF: 'Afghanistan', DZ: 'Algeria', AO: 'Angola', BH: 'Bahrain', BD: 'Bangladesh',
   BJ: 'Benin', BW: 'Botswana', BF: 'Burkina Faso', BI: 'Burundi', KH: 'Cambodia',
   CM: 'Cameroon', TD: 'Chad', DJ: 'Djibouti', EG: 'Egypt', GQ: 'Equatorial Guinea',
@@ -43,13 +45,50 @@ const CITIZEN_CODES = {
   NA: 'Namibia', SZ: 'Swaziland', QA: 'Qatar', LS: 'Lesotho',
 };
 
+interface EurostatObservation {
+  month: string;
+  value: number;
+}
+
+interface SdmxObsDimension {
+  '@_value'?: string;
+}
+
+interface SdmxObsValue {
+  '@_value'?: string | number;
+}
+
+interface SdmxObs {
+  'g:ObsDimension'?: SdmxObsDimension;
+  'g:ObsValue'?: SdmxObsValue;
+}
+
+interface SdmxSeries {
+  'g:Obs'?: SdmxObs | SdmxObs[];
+}
+
+interface SdmxDataSet {
+  'g:Series'?: SdmxSeries | SdmxSeries[];
+}
+
+interface SdmxParsed {
+  'm:GenericData'?: {
+    'm:DataSet'?: SdmxDataSet;
+  };
+}
+
 const xmlParser = new XMLParser({ ignoreAttributes: false, attributeNamePrefix: '@_' });
 
 /**
  * Fetch monthly asylum data from Eurostat for a single origin→destination pair.
  * Returns array of { month: '2023-01', value: 650 } objects.
  */
-async function fetchMonthlyData(citizenIso, geoIso, startPeriod, endPeriod) {
+export async function fetchMonthlyData(
+  citizenIso: string,
+  geoIso: string,
+  startPeriod: string,
+  endPeriod: string
+): Promise<EurostatObservation[]> {
   const url = `${EUROSTAT_BASE}/M.PER.${citizenIso}.T.TOTAL.TOTAL.${geoIso}?startPeriod=${startPeriod}&endPeriod=${endPeriod}&detail=dataonly`;
 
   const res = await fetch(url);
@@ -60,7 +99,7 @@ async function fetchMonthlyData(citizenIso, geoIso, startPeriod, endPeriod) {
   }
 
   const xml = await res.text();
-  const parsed = xmlParser.parse(xml);
+  const parsed = xmlParser.parse(xml) as SdmxParsed;
 
   // Navigate SDMX structure to extract observations
   const dataSet = parsed?.['m:GenericData']?.['m:DataSet'];
@@ -70,7 +109,7 @@ async function fetchMonthlyData(citizenIso, geoIso, startPeriod, endPeriod) {
   if (!series) return [];
   if (!Array.isArray(series)) series = [series];
 
-  const observations = [];
+  const observations: EurostatObservation[] = [];
   for (const s of series) {
     let obs = s['g:Obs'];
     if (!obs) continue;
@@ -80,7 +119,7 @@ async function fetchMonthlyData(citizenIso, geoIso, startPeriod, endPeriod) {
       const period = o['g:ObsDimension']?.['@_value'];
       const value = o['g:ObsValue']?.['@_value'];
       if (period && value != null) {
-        observations.push({ month: period, value: parseInt(value, 10) || 0 });
+        observations.push({ month: period, value: parseInt(String(value), 10) || 0 });
       }
     }
   }
@@ -90,14 +129,14 @@ async function fetchMonthlyData(citizenIso, geoIso, startPeriod, endPeriod) {
 
 /**
  * Sum monthly observations into quarterly rows for asy_applications.
- * @param {Array} monthlyData - [{ month: '2023-01', value: 650 }, ...]
- * @param {string} originName - Full country name
- * @param {string} destName - Full country name
- * @returns {Array} rows ready for asy_applications table
  */
-function sumToQuarters(monthlyData, originName, destName) {
+export function sumToQuarters(
+  monthlyData: EurostatObservation[],
+  originName: string,
+  destName: string
+): Omit<AsyApplicationRow, 'pk'>[] {
   // Group by year+quarter
-  const buckets = {};
+  const buckets: Record<string, { year: string; quarter: string; total: number }> = {};
 
   for (const { month, value } of monthlyData) {
     const [yearStr, monthStr] = month.split('-');
@@ -126,15 +165,16 @@ function sumToQuarters(monthlyData, originName, destName) {
  * Fetches monthly asylum data from Eurostat for all EU/EEA destination × origin pairs,
  * sums months into quarters, and upserts into asy_applications.
  */
-async function runEurostatIngestion() {
+export async function runEurostatIngestion(): Promise<IngestionResult> {
   const startedAt = new Date();
+  const start = Date.now();
 
   try {
     const lastSync = await getLastSyncDate('eurostat');
     const now = new Date();
 
     // Determine date range
-    let startYear, startMonth;
+    let startYear: number, startMonth: string;
     if (lastSync) {
       startYear = lastSync.getFullYear();
       startMonth = String(lastSync.getMonth() + 1).padStart(2, '0');
@@ -155,7 +195,7 @@ async function runEurostatIngestion() {
 
     // Fetch per destination to keep requests manageable
     for (const [geoIso, destName] of geoEntries) {
-      const allRows = [];
+      const allRows: Omit<AsyApplicationRow, 'pk'>[] = [];
 
       for (const [citizenIso, originName] of citizenEntries) {
         try {
@@ -166,7 +206,7 @@ async function runEurostatIngestion() {
           }
         } catch (err) {
           // Log per-pair errors but continue with other pairs
-          console.error(`Eurostat fetch failed for ${citizenIso}→${geoIso}: ${err.message}`);
+          console.error(`Eurostat fetch failed for ${citizenIso}→${geoIso}: ${(err as Error).message}`);
         }
 
         // Small delay to avoid hammering Eurostat (64 origins × 30 destinations = ~1920 requests)
@@ -174,17 +214,17 @@ async function runEurostatIngestion() {
       }
 
       // Deduplicate by conflict key within this destination's rows
-      const deduped = new Map();
+      const deduped = new Map<string, Omit<AsyApplicationRow, 'pk'>>();
       for (const row of allRows) {
         const key = `${row.year}|${row.quarter}|${row.origin}|${row.destination}`;
         const existing = deduped.get(key);
         if (existing) {
-          existing.value += row.value;
+          existing.value = (existing.value ?? 0) + (row.value ?? 0);
         } else {
           deduped.set(key, { ...row });
         }
       }
-      const uniqueRows = Array.from(deduped.values());
+      const uniqueRows = Array.from(deduped.values()) as Record<string, unknown>[];
 
       // Validate rows — quarantine bad data, proceed with clean
       let cleanRows = uniqueRows;
@@ -198,13 +238,13 @@ async function runEurostatIngestion() {
           console.log(`[Eurostat] ${quarantined.length} rows quarantined for ${destName}`);
         }
       } catch (valErr) {
-        console.error(`[Eurostat] Validation failed for ${destName}, proceeding with all rows:`, valErr.message);
+        console.error(`[Eurostat] Validation failed for ${destName}, proceeding with all rows:`, (valErr as Error).message);
       }
 
       // Upsert this destination's rows in batches
       for (let i = 0; i < cleanRows.length; i += BATCH_SIZE) {
         const batch = cleanRows.slice(i, i + BATCH_SIZE);
-        await db('asy_applications')
+        await db<AsyApplicationRow>('asy_applications')
           .insert(batch)
           .onConflict(['year', 'quarter', 'origin', 'destination'])
           .merge();
@@ -219,21 +259,20 @@ async function runEurostatIngestion() {
       startedAt,
       quarantineCount: totalQuarantineCount,
     });
+
+    return {
+      source: 'eurostat',
+      rowsAffected: totalRows,
+      quarantineCount: totalQuarantineCount,
+      duration: Date.now() - start,
+    };
   } catch (err) {
     await logIngestion({
       source: 'eurostat',
       status: 'error',
-      errorMessage: err.message,
+      errorMessage: (err as Error).message,
       startedAt,
     });
     throw err;
   }
 }
-
-module.exports = {
-  runEurostatIngestion,
-  fetchMonthlyData,
-  sumToQuarters,
-  EU_GEO,
-  CITIZEN_CODES,
-};

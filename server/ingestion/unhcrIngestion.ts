@@ -1,21 +1,41 @@
-const db = require('../database/connection');
-const { logIngestion, getLastSyncDate } = require('./ingestionLogger');
-const { normalizeCountryName, EU_DESTINATIONS } = require('./countryNormalizer');
-const { computeSeasonalRatios, distributeByQuarter } = require('./quarterlyEstimator');
-const { validateRows, quarantineRows } = require('./validator');
-const { sendQuarantineAlert } = require('./alerter');
+import db from '../database/connection';
+import { logIngestion, getLastSyncDate } from './ingestionLogger';
+import { normalizeCountryName, EU_DESTINATIONS } from './countryNormalizer';
+import { computeSeasonalRatios, distributeByQuarter } from './quarterlyEstimator';
+import { validateRows, quarantineRows } from './validator';
+import { sendQuarantineAlert } from './alerter';
+import { IngestionResult } from '../types/ingestion';
+import { AsyApplicationRow } from '../types/knex';
 
 const UNHCR_API_BASE = 'https://api.unhcr.org/population/v1/asylum-applications/';
 const PAGE_LIMIT = 100;
 const BATCH_SIZE = 500;
 
+interface UnhcrApiItem {
+  coa_name: string;
+  coo_name: string;
+  year: string | number;
+  applied: string | number;
+  [key: string]: unknown;
+}
+
+interface UnhcrApiResponse {
+  maxPages?: number;
+  items?: UnhcrApiItem[];
+  [key: string]: unknown;
+}
+
+interface EurostatAggRow {
+  origin: string;
+  quarter: string;
+  value: number;
+}
+
 /**
  * Fetch all UNHCR asylum application records, paginating through all pages.
- * @param {number|null} yearFrom - If provided, only fetch records from this year onward.
- * @returns {Promise<Array>} Flat array of all API items.
  */
-async function fetchAllUnhcrApplications(yearFrom) {
-  const items = [];
+export async function fetchAllUnhcrApplications(yearFrom: number | null): Promise<UnhcrApiItem[]> {
+  const items: UnhcrApiItem[] = [];
   let page = 1;
   let maxPages = 1;
 
@@ -29,7 +49,7 @@ async function fetchAllUnhcrApplications(yearFrom) {
     if (!response.ok) {
       throw new Error(`UNHCR API error: ${response.status} ${response.statusText}`);
     }
-    const data = await response.json();
+    const data = await response.json() as UnhcrApiResponse;
     maxPages = data.maxPages || 1;
     if (Array.isArray(data.items)) {
       items.push(...data.items);
@@ -44,11 +64,9 @@ async function fetchAllUnhcrApplications(yearFrom) {
  * Transform raw UNHCR API items into rows ready for asy_applications table.
  * Normalizes country names and skips EU/EEA destinations (Eurostat owns those).
  * UNHCR provides annual totals only — quarter is 'q1' (expanded later in runUnhcrIngestion).
- * @param {Array} items
- * @returns {Array}
  */
-function transformUnhcrItems(items) {
-  const rows = [];
+export function transformUnhcrItems(items: UnhcrApiItem[]): Omit<AsyApplicationRow, 'pk'>[] {
+  const rows: Omit<AsyApplicationRow, 'pk'>[] = [];
   for (const item of items) {
     const destination = normalizeCountryName(item.coa_name);
     if (EU_DESTINATIONS.has(destination)) continue; // Eurostat owns EU/EEA data
@@ -58,7 +76,7 @@ function transformUnhcrItems(items) {
       quarter: 'q1',
       origin: normalizeCountryName(item.coo_name),
       destination,
-      value: parseInt(item.applied, 10) || 0,
+      value: parseInt(String(item.applied), 10) || 0,
     });
   }
   return rows;
@@ -67,8 +85,9 @@ function transformUnhcrItems(items) {
 /**
  * Main entry: fetch UNHCR data, transform, upsert into asy_applications, log result.
  */
-async function runUnhcrIngestion() {
+export async function runUnhcrIngestion(): Promise<IngestionResult> {
   const startedAt = new Date();
+  const start = Date.now();
   try {
     const lastSync = await getLastSyncDate('unhcr');
     const yearFrom = lastSync ? lastSync.getFullYear() : null;
@@ -81,15 +100,15 @@ async function runUnhcrIngestion() {
       .select('origin', 'quarter')
       .sum('value as value')
       .whereIn('destination', Array.from(EU_DESTINATIONS))
-      .groupBy('origin', 'quarter');
+      .groupBy('origin', 'quarter') as EurostatAggRow[];
     const ratios = computeSeasonalRatios(eurostatRows);
 
     // Expand each annual row into 4 quarterly rows using seasonal ratios
-    const expandedRows = [];
+    const expandedRows: Omit<AsyApplicationRow, 'pk'>[] = [];
     for (const row of annualRows) {
-      const originRatios = ratios[row.origin] || null;
-      const quarterly = distributeByQuarter(row.value, originRatios);
-      for (const q of ['q1', 'q2', 'q3', 'q4']) {
+      const originRatios = ratios[row.origin!] || null;
+      const quarterly = distributeByQuarter(row.value ?? 0, originRatios);
+      for (const q of ['q1', 'q2', 'q3', 'q4'] as const) {
         expandedRows.push({
           ...row,
           quarter: q,
@@ -99,12 +118,12 @@ async function runUnhcrIngestion() {
     }
 
     // Deduplicate by conflict key — keep the last occurrence
-    const deduped = new Map();
+    const deduped = new Map<string, Omit<AsyApplicationRow, 'pk'>>();
     for (const row of expandedRows) {
       const key = `${row.year}|${row.quarter}|${row.origin}|${row.destination}`;
       deduped.set(key, row);
     }
-    const uniqueRows = Array.from(deduped.values());
+    const uniqueRows = Array.from(deduped.values()) as Record<string, unknown>[];
 
     // Validate rows — quarantine bad data, proceed with clean
     let cleanRows = uniqueRows;
@@ -119,13 +138,13 @@ async function runUnhcrIngestion() {
         console.log(`[UNHCR] ${quarantined.length} rows quarantined, ${clean.length} clean`);
       }
     } catch (valErr) {
-      console.error('[UNHCR] Validation failed, proceeding with all rows:', valErr.message);
+      console.error('[UNHCR] Validation failed, proceeding with all rows:', (valErr as Error).message);
     }
 
     let totalInserted = 0;
     for (let i = 0; i < cleanRows.length; i += BATCH_SIZE) {
       const batch = cleanRows.slice(i, i + BATCH_SIZE);
-      await db('asy_applications')
+      await db<AsyApplicationRow>('asy_applications')
         .insert(batch)
         .onConflict(['year', 'quarter', 'origin', 'destination'])
         .merge();
@@ -139,14 +158,26 @@ async function runUnhcrIngestion() {
       startedAt,
       quarantineCount,
     });
+
+    return {
+      source: 'unhcr',
+      rowsAffected: totalInserted,
+      quarantineCount,
+      duration: Date.now() - start,
+    };
   } catch (err) {
     await logIngestion({
       source: 'unhcr',
       status: 'error',
-      errorMessage: err.message,
+      errorMessage: (err as Error).message,
       startedAt,
     });
+    return {
+      source: 'unhcr',
+      rowsAffected: 0,
+      quarantineCount: 0,
+      duration: Date.now() - start,
+      error: (err as Error).message,
+    };
   }
 }
-
-module.exports = { runUnhcrIngestion, fetchAllUnhcrApplications, transformUnhcrItems };
