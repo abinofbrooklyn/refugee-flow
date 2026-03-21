@@ -51,10 +51,21 @@ export interface CountryRoute {
   route: string;
 }
 
-/** Crossing count by country (static JSON import) */
-export interface CrossingCountByCountry {
-  [country: string]: number;
+/** Route crossing count entry from IBC_crossingCountByCountry.json */
+export interface RouteCrossingCount {
+  route: string;
+  total_cross: number;
+  center_lng: number;
+  center_lat: number;
+  zoom: number;
 }
+
+/**
+ * Crossing count data — array of route crossing entries from static JSON.
+ * Named CrossingCountByCountry for historical reasons; the actual data is
+ * an array of RouteCrossingCount objects keyed by route name.
+ */
+export type CrossingCountByCountry = RouteCrossingCount[];
 
 /** War note as returned by /data/war_notes */
 export interface WarNote {
