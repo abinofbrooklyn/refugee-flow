@@ -164,4 +164,48 @@ async function sendIngestionAlert(source, errorMessage, attemptCount) {
   }
 }
 
-module.exports = { sendIngestionAlert };
+async function sendQuarantineAlert(source, quarantinedItems) {
+  if (!quarantinedItems.length) return;
+  const apiKey = process.env.RESEND_API_KEY;
+  if (!apiKey) {
+    console.error('[Alert] RESEND_API_KEY not set — cannot send quarantine alert for', source);
+    return;
+  }
+
+  const info = SOURCE_INFO[source] || { name: source };
+  const rowsHtml = quarantinedItems.map(item => `
+    <tr>
+      <td>${item.violations.map(v => v.rule).join(', ')}</td>
+      <td><pre style="margin:0; white-space:pre-wrap; max-width:400px;">${JSON.stringify(item.row, null, 2)}</pre></td>
+      <td>${item.violations.map(v => `<strong>${v.rule}:</strong> Expected: ${v.expected} / Found: ${v.found}${v.detail ? ' — ' + v.detail : ''}`).join('<br>')}</td>
+    </tr>
+  `).join('');
+
+  const html = `
+    <h2 style="color: #e67e22;">Data Quality Alert: ${info.name || source}</h2>
+    <p><strong>${quarantinedItems.length}</strong> row(s) quarantined during ingestion.</p>
+    <table border="1" cellpadding="6" style="border-collapse:collapse; font-family: monospace; font-size: 12px;">
+      <thead><tr><th>Rule Violated</th><th>Raw Row Data</th><th>Detail (Expected vs Found)</th></tr></thead>
+      <tbody>${rowsHtml}</tbody>
+    </table>
+    <p style="margin-top:16px;">Quarantined rows are in <code>data_quarantine</code> table with status='pending'.</p>
+    <p>Review: <code>SELECT * FROM data_quarantine WHERE source='${source}' AND status='pending' ORDER BY quarantined_at DESC;</code></p>
+    <hr>
+    <p style="color: #888; font-size: 12px;">Refugee Flow Data Quality Alert</p>
+  `;
+
+  try {
+    const resend = new Resend(apiKey);
+    await resend.emails.send({
+      from: FROM_EMAIL,
+      to: ALERT_EMAIL,
+      subject: `[Refugee Flow] Data Quality: ${quarantinedItems.length} rows quarantined from ${info.name || source}`,
+      html,
+    });
+    console.log(`[Alert] Quarantine email sent for ${source} (${quarantinedItems.length} rows)`);
+  } catch (err) {
+    console.error(`[Alert] Failed to send quarantine email for ${source}:`, err.message);
+  }
+}
+
+module.exports = { sendIngestionAlert, sendQuarantineAlert };
