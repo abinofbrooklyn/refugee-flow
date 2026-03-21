@@ -1,0 +1,198 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`Plan 07 pre-conversion globe snapshots GlobeTimeline renders timeline with fallback years 1`] = `
+<div
+  className="sc-aXZVf giSiPB TimelineWrapper"
+  data-annotation="Timeline|Select a year to view conflict data"
+>
+  <div
+    className="sc-gEvEes cWbbYB individualWrapper"
+  >
+    <button
+      className="sc-eqUAAB cEWRRn"
+      isSelected={true}
+      onClick={[Function]}
+      onMouseOver={[Function]}
+    >
+      2010
+    </button>
+    <button
+      className="sc-fqkvVO dTRyMr"
+      disabled={false}
+      onMouseOver={[Function]}
+    >
+      Quarter 1
+    </button>
+    <button
+      className="sc-fqkvVO dTRyMr"
+      disabled={false}
+      onMouseOver={[Function]}
+    >
+      Quarter 2
+    </button>
+    <button
+      className="sc-fqkvVO dTRyMr"
+      disabled={false}
+      onMouseOver={[Function]}
+    >
+      Quarter 3
+    </button>
+    <button
+      className="sc-fqkvVO dTRyMr"
+      disabled={false}
+      onMouseOver={[Function]}
+    >
+      Quarter 4
+    </button>
+  </div>
+  <div
+    className="sc-gEvEes cWbbYB individualWrapper"
+  >
+    <button
+      className="sc-eqUAAB fvxMrM"
+      isSelected={false}
+      onClick={[Function]}
+      onMouseOver={[Function]}
+    >
+      2011
+    </button>
+    <button
+      className="sc-fqkvVO iblTbE"
+      disabled={true}
+      onMouseOver={[Function]}
+    >
+      Quarter 1
+    </button>
+    <button
+      className="sc-fqkvVO iblTbE"
+      disabled={true}
+      onMouseOver={[Function]}
+    >
+      Quarter 2
+    </button>
+    <button
+      className="sc-fqkvVO iblTbE"
+      disabled={true}
+      onMouseOver={[Function]}
+    >
+      Quarter 3
+    </button>
+    <button
+      className="sc-fqkvVO iblTbE"
+      disabled={true}
+      onMouseOver={[Function]}
+    >
+      Quarter 4
+    </button>
+  </div>
+  <div
+    className="sc-gEvEes cWbbYB individualWrapper"
+  >
+    <button
+      className="sc-eqUAAB fvxMrM"
+      isSelected={false}
+      onClick={[Function]}
+      onMouseOver={[Function]}
+    >
+      2012
+    </button>
+    <button
+      className="sc-fqkvVO iblTbE"
+      disabled={true}
+      onMouseOver={[Function]}
+    >
+      Quarter 1
+    </button>
+    <button
+      className="sc-fqkvVO iblTbE"
+      disabled={true}
+      onMouseOver={[Function]}
+    >
+      Quarter 2
+    </button>
+    <button
+      className="sc-fqkvVO iblTbE"
+      disabled={true}
+      onMouseOver={[Function]}
+    >
+      Quarter 3
+    </button>
+    <button
+      className="sc-fqkvVO iblTbE"
+      disabled={true}
+      onMouseOver={[Function]}
+    >
+      Quarter 4
+    </button>
+  </div>
+</div>
+`;
+
+exports[`Plan 07 pre-conversion globe snapshots GlobeTooltips renders tooltip wrapper 1`] = `
+<div
+  className="sc-dcJsrX fTsRrL"
+  mv_position={
+    [
+      100,
+      200,
+    ]
+  }
+  onClick={[Function]}
+>
+  <button
+    className="sc-dhKdcy kgkuth"
+    onClick={[Function]}
+  >
+    x
+  </button>
+  <p
+    className="sc-gsFSXt MwVOF"
+    region="Afghanistan"
+  >
+     
+    AFG
+     
+  </p>
+  <p
+    className="sc-iGgWBk erMBMp"
+  >
+     
+    5
+     
+  </p>
+  <p
+    className="sc-kAycey eCCuUR"
+  >
+     
+    Violence Against Civilians
+     
+  </p>
+  <p
+    className="sc-imWYAH YugHA"
+  >
+     
+     
+  </p>
+  <p
+    className="sc-jXbUNf eKugvY"
+  />
+</div>
+`;
+
+exports[`Plan 07 pre-conversion globe snapshots GlobeVisual renders container div 1`] = `
+<div>
+  <div
+    data-testid="globe-tooltips"
+  />
+  <div
+    id="globev"
+    style={
+      {
+        "backgroundColor": "#111117",
+        "height": 708,
+        "width": "100%",
+      }
+    }
+  />
+</div>
+`;

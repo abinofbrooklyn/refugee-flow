@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-stopped_at: Completed 04-16-PLAN.md (validator wired into all 7 pipelines, quarantine alerts, quarantineCount in logs)
-last_updated: "2026-03-21T00:41:01.333Z"
+stopped_at: "Phase 7 shipped — PR #1"
+last_updated: "2026-03-21T23:50:38.445Z"
 progress:
-  total_phases: 6
-  completed_phases: 5
-  total_plans: 27
-  completed_plans: 30
+  total_phases: 7
+  completed_phases: 6
+  total_plans: 37
+  completed_plans: 40
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-11)
 
 **Core value:** Users can explore the human cost of conflict through an interactive, data-accurate visualization.
-**Current focus:** Phase 04 — data-ingestion-pipeline (Plan 07 blocked on ACLED API access)
+**Current focus:** Phase 07 — start-v2-typescript-migration
 
 ## Current Position
 
-Phase: 04 (data-ingestion-pipeline) — BLOCKED
-Plan: 7 of 14 (ACLED normalization — waiting on API access)
+Phase: 07 (start-v2-typescript-migration) — EXECUTING
+Plan: 8 of 10
 
 ## Performance Metrics
 
@@ -68,6 +68,17 @@ Plan: 7 of 14 (ACLED normalization — waiting on API access)
 | Phase 06-react-router-v6-migration P02 | 2 | 2 tasks | 3 files |
 | Phase 04 P15 | 219 | 1 tasks | 4 files |
 | Phase 04 P16 | 4 | 2 tasks | 10 files |
+| Phase 07-start-v2-typescript-migration P01 | 4 | 2 tasks | 7 files |
+| Phase 07-start-v2-typescript-migration P02 | 4 | 2 tasks | 12 files |
+| Phase 07-start-v2-typescript-migration P03 | 6 | 2 tasks | 8 files |
+| Phase 07-start-v2-typescript-migration P08 | 12 | 2 tasks | 11 files |
+| Phase 07-start-v2-typescript-migration P05 | 20 | 2 tasks | 20 files |
+| Phase 07-start-v2-typescript-migration P04 | 19 | 2 tasks | 23 files |
+| Phase 07-start-v2-typescript-migration P06 | 22 | 2 tasks | 11 files |
+| Phase 07-start-v2-typescript-migration P09 | 13 | 2 tasks | 14 files |
+| Phase 07-start-v2-typescript-migration P07 | 16 | 2 tasks | 9 files |
+| Phase 07-start-v2-typescript-migration PP10 | 14 | 1 tasks | 19 files |
+| Phase 07-start-v2-typescript-migration P10 | 45 | 2 tasks | 36 files |
 
 ## Accumulated Context
 
@@ -123,6 +134,37 @@ Recent decisions affecting current work:
 - [Phase 04]: Validator graceful fallback: DB failure never blocks ingestion, all rows pass through as clean
 - [Phase 04]: quarantineCount returned from ingestCbpData/ingestUkChannelData since validation is inside combined transform+upsert function
 - [Phase 04]: ACLED cleanNoteRows filtered by clean war event IDs to keep war_notes sync with quarantined war_events
+- [Phase 07-start-v2-typescript-migration]: Derive RootState/AppDispatch from store instance (ReturnType<typeof store.getState>) — store.js uses default export, named imports caused tsc errors before Plan 02 conversion
+- [Phase 07-start-v2-typescript-migration]: ts-jest + babel-jest coexist in transforms for incremental migration: .ts/.tsx via ts-jest, .js/.jsx via babel-jest
+- [Phase 07-start-v2-typescript-migration]: jest-environment-jsdom explicitly installed — Jest 28+ removed from default bundle, required by client test project
+- [Phase 07-start-v2-typescript-migration]: Cast window as any for Redux DevTools extension in store.ts — @ts-expect-error insufficient for multi-line ternary
+- [Phase 07-start-v2-typescript-migration]: CrossingCountByCountry type corrected to RouteCrossingCount[] — IBC_crossingCountByCountry.json is an array of route objects, not a string-keyed number map
+- [Phase 07-start-v2-typescript-migration]: Octree.ts created as typed stub — Octree.js never existed; disabled per browser crash issue with large BufferGeometry
+- [Phase 07-start-v2-typescript-migration]: Use export = pattern for CommonJS-interop TypeScript files (connection.ts, server.ts) — JS test files use require() via babel-jest, not ts-jest, so esModuleInterop doesn't apply; export = compiles to module.exports = x
+- [Phase 07-start-v2-typescript-migration]: WarNoteRow.id is string (text) after migration 002 — findWarNote converts numeric query param to String() before where clause
+- [Phase 07-start-v2-typescript-migration]: tsx installed as dev runtime transpiler for nodemon; noEmit tsconfig means no compiled output
+- [Phase 07-start-v2-typescript-migration]: D3 v5 mouse API preserved via (d3 as any).mouse(this) — project uses D3 v5.16.0 which has d3.mouse() removed from TypeScript types but present at runtime
+- [Phase 07-start-v2-typescript-migration]: MapLibre NavigationControl({}) — constructor requires NavigationOptions object; empty object equivalent to no-arg call
+- [Phase 07-start-v2-typescript-migration]: Mutable map instance variables migrated to useRef in RefugeeRoute_map — avoids stale closure issues while preserving direct mutation semantics for canvas rendering
+- [Phase 07-start-v2-typescript-migration]: Navbar uses useLocation hook directly instead of withRouter6 — functional components can consume hooks natively, withRouter6 bridging not needed
+- [Phase 07-start-v2-typescript-migration]: SVG imports cast through unknown for TypeScript 5.9 bundler mode — TS5 bundler moduleResolution does not resolve *.svg wildcards; cast through unknown is correct idiomatic pattern
+- [Phase 07-start-v2-typescript-migration]: styled.video.attrs() replaced with CSS template interpolation — styled-components v6 attrs only accepts valid HTML attributes; inline template interpolation used for dynamic opacity/filter
+- [Phase 07-start-v2-typescript-migration]: React.forwardRef + useImperativeHandle for AsyApplicationChart imperative D3 API
+- [Phase 07-start-v2-typescript-migration]: Upgrade react-redux 7.0.3 -> 7.2.9: hooks API required by types/redux.ts was missing in v7.0.3 ES module
+- [Phase 07-start-v2-typescript-migration]: Add src/types/assets.d.ts for declare module *.png/*.svg — fixes static asset TS2307 errors
+- [Phase 07-start-v2-typescript-migration]: Ingestion pipeline modules return Promise<IngestionResult> for uniform health reporting
+- [Phase 07-start-v2-typescript-migration]: Omit<RowType, 'pk'> pattern for pre-insert objects — pk is DB-generated serial not supplied by ingestion code
+- [Phase 07-start-v2-typescript-migration]: GlobeVisual uses forwardRef + useImperativeHandle exposing GlobeVisualHandle; GlobeContainer uses useRef<GlobeVisualHandle>
+- [Phase 07-start-v2-typescript-migration]: State refs pattern (warDataRef, etc.) prevents stale closures in GlobeContainer callbacks without bloating dependency arrays
+- [Phase 07-start-v2-typescript-migration]: Conflict.tsx withRouter6 removed — GlobeContainer uses useNavigate() directly; withRouter6 fully eliminated from all consumers
+- [Phase 07-start-v2-typescript-migration]: @types/jest and @types/supertest installed as devDependencies for ts-jest strict mode compliance
+- [Phase 07-start-v2-typescript-migration]: jest.Mock intersection type for mocks with extra properties (jest.fn() as jest.Mock & { destroy: jest.Mock })
+- [Phase 07-start-v2-typescript-migration]: Annotation overlay moved from render side-effect to useEffect with ref to prevent stale closure crash on initial navigation
+- [Phase 07-start-v2-typescript-migration]: Fuse 3.x search result shape is {item:{key}} not {key} — ibcCountry search destructuring fixed with .item unwrapping
+
+### Roadmap Evolution
+
+- Phase 7 added: Start v2 TypeScript migration
 
 ### Pending Todos
 
@@ -134,6 +176,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-21T00:41:01.311Z
-Stopped at: Completed 04-16-PLAN.md (validator wired into all 7 pipelines, quarantine alerts, quarantineCount in logs)
-Resume file: None
+Last session: 2026-03-21T23:50:38.433Z
+Stopped at: Phase 7 shipped — PR #1
+Resume file: .planning/phases/07-start-v2-typescript-migration/07-VERIFICATION.md

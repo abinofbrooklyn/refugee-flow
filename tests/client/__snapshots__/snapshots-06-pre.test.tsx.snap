@@ -1,0 +1,129 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`Plan 06 pre-conversion snapshots AsyApplicationContainer renders with loading state 1`] = `
+<div
+  className="sc-gsFSXt ksYyZQ"
+  data-annotation="Asylum Applications|Quarterly asylum application data by country"
+>
+  <p
+    className="sc-kAycey dDeJnR"
+    onClick={[Function]}
+  >
+    Total Asylum Application | Global
+  </p>
+  <div
+    className="sc-imWYAH dBMFCj"
+  >
+    <button
+      className="sc-jXbUNf eiFpXA"
+      onClick={[Function]}
+    >
+      SHOW CURRENT YEAR
+    </button>
+    <button
+      className="sc-dhKdcy feiOtV"
+      onClick={[Function]}
+    >
+      SHOW ALL YEARS
+    </button>
+  </div>
+  <div
+    className="sc-eqUAAB hMcsTb"
+  >
+    <div
+      className="sc-fqkvVO umDiU"
+    >
+      <div
+        data-testid="scale-loader"
+      />
+    </div>
+    <p
+      className="sc-dcJsrX dYkwOm"
+    >
+      Loading...
+    </p>
+  </div>
+</div>
+`;
+
+exports[`Plan 06 pre-conversion snapshots RegionModalCreator renders closed modal 1`] = `null`;
+
+exports[`Plan 06 pre-conversion snapshots RegionModalCreator renders open modal with children 1`] = `
+<div
+  data-testid="modal"
+>
+  <div
+    className="CloseButtonPostioning"
+  >
+    <span
+      className="CloseButton"
+      onClick={[MockFunction]}
+    >
+      ×
+    </span>
+  </div>
+  <div>
+    child content
+  </div>
+</div>
+`;
+
+exports[`Plan 06 pre-conversion snapshots RegionModalNav renders region list 1`] = `
+<div
+  className="sc-aXZVf jLZKEQ"
+>
+  <ul
+    className="sc-gEvEes isCGqT"
+  >
+    <li
+      onClick={[Function]}
+      style={
+        {
+          "borderBottomColor": "rgb(255, 0, 0)",
+          "borderStyle": "solid",
+          "borderWidth": "0px 0px 2px",
+          "height": "26px",
+          "width": "150px",
+        }
+      }
+    >
+      Middle Africa
+    </li>
+    <li
+      onClick={[Function]}
+    >
+      Southern Asia
+    </li>
+    <li
+      onClick={[Function]}
+    >
+      Western Africa
+    </li>
+    <li
+      onClick={[Function]}
+    >
+      Northern Africa
+    </li>
+    <li
+      onClick={[Function]}
+    >
+      Eastern Africa
+    </li>
+    <li
+      onClick={[Function]}
+    >
+      Middle East
+    </li>
+    <li
+      onClick={[Function]}
+    >
+      South-Eastern Asia
+    </li>
+    <li
+      onClick={[Function]}
+    >
+      Southern Africa
+    </li>
+  </ul>
+</div>
+`;
