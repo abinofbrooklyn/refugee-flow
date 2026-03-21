@@ -1,7 +1,8 @@
 import constants from '../actionConstants';
-import conflict from '../defaultStates/conflictDefaults';
+import conflict, { ConflictState } from '../defaultStates/conflictDefaults';
+import { ConflictAction } from '../actions/conflictActions';
 
-const conflictReducer = (state = conflict, action) => {
+const conflictReducer = (state: ConflictState = conflict, action: ConflictAction): ConflictState => {
   switch (action.type) {
     case constants.SET_SELECTED_YEAR:
       return {
@@ -13,7 +14,6 @@ const conflictReducer = (state = conflict, action) => {
         ...state,
         currentCountry: action.currentCountry,
       };
-
     default:
       return state;
   }

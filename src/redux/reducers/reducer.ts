@@ -1,7 +1,8 @@
 import { combineReducers } from 'redux';
-
 import conflictReducer from './conflictReducer';
 
-export default combineReducers({
+const rootReducer = combineReducers({
   conflictReducer,
 });
+
+export default rootReducer;
