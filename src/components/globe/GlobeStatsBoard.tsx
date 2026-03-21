@@ -36,6 +36,8 @@ const BoardItem = styled.div<{
   $_margin_end: number;
   $container_width: number;
   $order: number;
+  $name: string;
+  $fontSize: string;
 }>`
   width: ${props => props.$_width + 'px'};
   height: 40px;
@@ -74,6 +76,28 @@ const BoardItem = styled.div<{
     transform: translateY(-50%);
     top: 50%;
     transition: all 300ms;
+
+    &:after{
+      content: ${props => "'" + props.$name + "'"};
+      left: 38px;
+      font-weight: 500;
+      font-size: ${props => props.$fontSize};
+      position: absolute;
+      top: 47%;
+      transform: translateY(-50%);
+    }
+
+    &:before{
+      content: "";
+      width: 5px;
+      height: 5px;
+      left: 25px;
+      position: absolute;
+      border-radius: 50%;
+      background: #8383ab;
+      top: 50%;
+      transform: translateY(-50%);
+    }
   }
 `;
 
@@ -120,16 +144,13 @@ const GlobeStatsBoard: React.FC<GlobeStatsBoardProps> = ({ data }) => {
         $_width={container_width / 4}
         $_margin_end={container_width / 20}
         $container_width={container_width}
-        // name and fontSize as data attributes to avoid styled-components warning;
-        // kept as extra props to preserve original pattern
-        // @ts-expect-error -- styled-components transient prop pattern; extra props ignored by DOM
-        name={(() => {
+        $name={(() => {
           if (window.innerWidth < 1450) {
             return i === 2 ? 'Conflict Count' : key;
           }
           return key;
         })()}
-        fontSize={window.innerWidth < 1450 ? '9px' : '12px'}
+        $fontSize={window.innerWidth < 1450 ? '9px' : '12px'}
       >
         <span
           data-annotation={annotations[i]}
