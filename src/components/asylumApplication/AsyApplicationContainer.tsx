@@ -217,9 +217,9 @@ const AsyApplicationContainer: React.FC<AsyApplicationContainerProps> = ({ loadi
       </ButtonWrapper>
 
       <LoadingDivWrapper
-        loading={loadingStatus}
-        leftPercentage="50%"
-        marginTop={-60}
+        $loading={loadingStatus}
+        $leftPercentage="50%"
+        $marginTop={-60}
       >
         <LoaderGraphWrapper>
           <ScaleLoader color="#ffffff" loading={loadingStatus} />

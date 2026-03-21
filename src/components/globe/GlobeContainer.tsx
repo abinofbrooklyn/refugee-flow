@@ -847,7 +847,7 @@ const GlobeContainer: React.FC<GlobeContainerProps> = ({ loadingManager }) => {
 
     return (
       <div style={{ width: '75%' }}>
-        <LoadingDivWrapper loading={loadingStatus} leftPercentage='37.5%'>
+        <LoadingDivWrapper $loading={loadingStatus} $leftPercentage='37.5%'>
           <LoaderGraphWrapper>
             <ScaleLoader color={'#ffffff'} loading={loadingStatus} />
           </LoaderGraphWrapper>

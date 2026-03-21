@@ -35,9 +35,9 @@ const ExpandTooltipsAnimation = keyframes`
 `;
 
 const TooltipWarpper = styled.div<{
-  showornot?: boolean;
+  $showornot?: boolean;
   mv_position?: [number, number];
-  expendornot?: boolean;
+  $expendornot?: boolean;
 }>`
   z-index: 10;
   position: absolute;
@@ -48,10 +48,10 @@ const TooltipWarpper = styled.div<{
   height: 100px;
   color: white;
   overflow: hidden;
-  cursor: ${props => props.expendornot ? 'default' : 'pointer'};
+  cursor: ${props => props.$expendornot ? 'default' : 'pointer'};
   transition: all 300ms ease-in-out;
 
-  ${props => !props.showornot && css`
+  ${props => !props.$showornot && css`
     animation: ${keyframes`
       100% {
         filter: blur(5px);
@@ -67,7 +67,7 @@ const TooltipWarpper = styled.div<{
     top:  ${ props.mv_position[1] + 30 + 'px'};
   `}
 
-  ${props => props.expendornot && css`
+  ${props => props.$expendornot && css`
     animation: ${ExpandTooltipsAnimation} .4s;
     animation-fill-mode: forwards;
   `}
@@ -122,7 +122,7 @@ const Country = styled.p<{ region?: string }>`
   }
 `;
 
-const Event = styled.p<{ expendornot?: boolean }>`
+const Event = styled.p<{ $expendornot?: boolean }>`
   font-family: 'Roboto';
   font-size: 18px;
   font-weight: 900;
@@ -134,7 +134,7 @@ const Event = styled.p<{ expendornot?: boolean }>`
   width: 95%;
 
   &:after{
-    content: ${props => !props.expendornot ? "'Click to expand'" : '""'};
+    content: ${props => !props.$expendornot ? "'Click to expand'" : '""'};
     text-decoration: underline;
     color: #b6b7ca;
     font-size: 9px;
@@ -156,7 +156,7 @@ const ExpandNotes = styled.p`
   line-height: 1.8;
 `;
 
-const ExpandSource = styled.p<{ hideText?: boolean }>`
+const ExpandSource = styled.p<{ $hideText?: boolean }>`
   font-family: 'Roboto';
   font-size: 12px;
   font-weight: 500;
@@ -164,7 +164,7 @@ const ExpandSource = styled.p<{ hideText?: boolean }>`
   position: absolute;
   bottom: 0;
   right: 10px;
-  ${props => !props.hideText && css`
+  ${props => !props.$hideText && css`
     display: none;
   `}
 `;
@@ -235,17 +235,17 @@ const GlobeTooltips: React.FC<GlobeTooltipsProps> = (props) => {
 
   return (
     <TooltipWarpper
-      showornot={mv_show}
+      $showornot={mv_show}
       mv_position={mv_position}
-      expendornot={tooltips_clicked}
+      $expendornot={tooltips_clicked}
       onClick={() => !tooltips_clicked && tooltips_onclick()}
     >
       <ExitButton onClick={() => tooltips_onexit()}>x</ExitButton>
       <Country region={cot && cot[1]}> {cot && cot[0]} </Country>
       <Fatality> {fat} </Fatality>
-      <Event expendornot={tooltips_clicked}> {evt !== undefined && warDict.eventDict[evt] ? toUpper(warDict.eventDict[evt]) : ''} </Event>
+      <Event $expendornot={tooltips_clicked}> {evt !== undefined && warDict.eventDict[evt] ? toUpper(warDict.eventDict[evt]) : ''} </Event>
       <ExpandNotes> {expandNoteText} </ExpandNotes>
-      <ExpandSource hideText={tooltips_clicked}>{expend_source_text}</ExpandSource>
+      <ExpandSource $hideText={tooltips_clicked}>{expend_source_text}</ExpandSource>
     </TooltipWarpper>
   );
 };
