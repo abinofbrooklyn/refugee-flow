@@ -141,7 +141,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 4. Data Ingestion Pipeline | 15/12 | Complete   | 2026-03-21 |
 | 5. Data Coverage | 0/TBD | Not started | - |
 | 6. React Router v6 Migration | 3/3 | Complete | 2026-03-20 |
-| 7. Start v2 TypeScript Migration | 1/10 | In Progress|  |
+| 7. Start v2 TypeScript Migration | 2/10 | In Progress|  |
 
 ### Phase 7: Start v2 TypeScript Migration
 
