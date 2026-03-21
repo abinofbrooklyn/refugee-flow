@@ -1,6 +1,12 @@
 import styled, { css } from 'styled-components';
 
-const LoadingDivWrapper = styled.div`
+interface LoadingDivWrapperProps {
+  leftPercentage?: string;
+  loading?: boolean;
+  marginTop?: number;
+}
+
+const LoadingDivWrapper = styled.div<LoadingDivWrapperProps>`
   position: absolute;
   top: 50%;
   left: ${props => props.leftPercentage};

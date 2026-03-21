@@ -1,6 +1,13 @@
 import React from 'react';
-import PropTypes from 'prop-types';
 import styled from 'styled-components';
+
+interface AccordionProps {
+  isClosed: boolean;
+  animate: boolean;
+  title: string;
+  onToggle: () => void;
+  children?: React.ReactNode;
+}
 
 const Wrapper = styled.div`
   width: 100%;
@@ -22,7 +29,7 @@ const Header = styled.div`
   }
 `;
 
-const Title = styled.p`
+const Title = styled.p<{ animate: boolean }>`
   transition: font-size 800ms, color 800ms, filter 500ms;
   color: #8BDEFF;
   font-family: 'Tajawal';
@@ -45,7 +52,7 @@ const Toggle = styled.p`
   padding-left: 20px;
 `;
 
-const Accordion = ({ isClosed, animate, title, onToggle, children }) => (
+const Accordion: React.FC<AccordionProps> = ({ isClosed, animate, title, onToggle, children = null }) => (
   <Wrapper>
     <Header onClick={onToggle}>
       <Title animate={animate}>{title}</Title>
@@ -54,17 +61,5 @@ const Accordion = ({ isClosed, animate, title, onToggle, children }) => (
     {children}
   </Wrapper>
 );
-
-Accordion.defaultProps = {
-  children: null,
-};
-
-Accordion.propTypes = {
-  isClosed: PropTypes.bool.isRequired,
-  animate: PropTypes.bool.isRequired,
-  title: PropTypes.string.isRequired,
-  onToggle: PropTypes.func.isRequired,
-  children: PropTypes.node,
-};
 
 export default Accordion;

@@ -1,7 +1,12 @@
 import React from 'react';
 import styled from 'styled-components';
 
-import DownloadIcon from './icon_download.svg';
+// SVG imported as React component via vite-plugin-svgr (exportType: 'default')
+// TypeScript 5.9 bundler mode doesn't resolve *.svg wildcards without allowArbitraryExtensions;
+// cast through unknown to satisfy strict type checking.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+import DownloadIconRaw from './icon_download.svg';
+const DownloadIcon = DownloadIconRaw as unknown as React.FC<React.SVGProps<SVGSVGElement>>;
 
 const Wrapper = styled.div`
   display: flex;
@@ -28,7 +33,7 @@ const Label = styled.span`
 
 const MEDIA_KIT_LINK = 'https://drive.google.com/drive/folders/1hR2JjaMN8DzXA8VyixHJ5zAiolnpoTSF?usp=sharing';
 
-const DownloadLink = () => (
+const DownloadLink: React.FC = () => (
   <Wrapper onClick={() => window.open(MEDIA_KIT_LINK, '_blank')}>
     <DownloadIcon width="16" height="16" />
     <Label>Download Press Kit</Label>

@@ -1,15 +1,30 @@
-import React, { Component } from 'react';
+import React, { useState, useEffect } from 'react';
 import styled, { css } from 'styled-components';
 import * as d3 from 'd3';
 import { Link } from 'react-router-dom';
-import HamburgerIcon from './icon_hamburger.svg';
+// SVG imported as React component via vite-plugin-svgr (exportType: 'default')
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+import HamburgerIconRaw from './icon_hamburger.svg';
+const HamburgerIcon = HamburgerIconRaw as unknown as React.FC<React.SVGProps<SVGSVGElement>>;
 
 /* TODO
   Remove window.setInterval(),
-  use keyframes instead to achieve animation loop 
+  use keyframes instead to achieve animation loop
 */
 
-const Wrapper = styled.div`
+interface AnimationProps {
+  animation?: boolean;
+}
+
+interface VideoLoopProps {
+  videoLoop?: boolean;
+}
+
+interface WikiProps {
+  wikiOn?: boolean;
+}
+
+const Wrapper = styled.div<AnimationProps>`
   & ::selection {
     text-shadow: 0 0 0.8rem #de2279;
     background: rgba(54, 56, 126, 0.1);
@@ -50,7 +65,7 @@ const Wrapper = styled.div`
   }
 `;
 
-const Intro = styled.div`
+const Intro = styled.div<AnimationProps & VideoLoopProps & WikiProps>`
   color: white;
   position: absolute;
   width: 30px;
@@ -103,7 +118,7 @@ const Intro = styled.div`
     width: 20px;
   }
 `;
-const IntroPage = styled.div`
+const IntroPage = styled.div<WikiProps>`
   width: 100%;
   transform: ${props => props.wikiOn ? 'translateX(0%)' : 'translateX(100%)'};
   height: 100%;
@@ -130,7 +145,7 @@ const Exit = styled.div`
     filter:drop-shadow(0px 2px 8px #bebee4);
   }
 `;
-const IntroWrapper = styled.div`
+const IntroWrapper = styled.div<WikiProps>`
   position: relative;
   bottom: -120px;
   width: 40%;
@@ -212,7 +227,7 @@ const Copyright = styled.p`
     color: #1e1e2f;
   }
 `;
-const Quote = styled.p`
+const Quote = styled.p<AnimationProps & VideoLoopProps>`
   position: absolute;
   font-family: 'Playfair Display', serif;
   width: 60%;
@@ -265,21 +280,18 @@ const Quote = styled.p`
 const Section = styled.section`
   height: 100vh;
 `;
-const Video = styled.video.attrs({
-  opacity: props => props.animation?1:0,
-  filter: props => props.videoLoop
-    ? 'blur('+ Math.abs(d3.randomNormal(0,10)()) +'px'+') hue-rotate(0deg) contrast(1.2) saturate(0.8) brightness(0.5);'
-
-    : 'blur(' + Math.abs(d3.randomNormal(0,10)()) + 'px'+ ') hue-rotate(0deg) contrast(1.2) saturate('+d3.randomUniform(1, 2.5)()+') brightness('+d3.randomUniform(0.4, 1.2)()+');'
-})`
+const Video = styled.video<AnimationProps & VideoLoopProps>`
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
     background-size: cover;
     transition: opacity 5500ms, filter 1550ms;
-    opacity: ${props => props.opacity};
-    filter: ${props => props.filter};
+    opacity: ${props => (props.animation ? 1 : 0)};
+    filter: ${props => props.videoLoop
+      ? 'blur('+ Math.abs(d3.randomNormal(0,10)()) +'px'+') hue-rotate(0deg) contrast(1.2) saturate(0.8) brightness(0.5)'
+      : 'blur(' + Math.abs(d3.randomNormal(0,10)()) + 'px'+ ') hue-rotate(0deg) contrast(1.2) saturate('+d3.randomUniform(1, 2.5)()+') brightness('+d3.randomUniform(0.4, 1.2)()+')'
+    };
 
     @media (max-width:1590px) and (min-width: 1270px) {
       width: 140%;
@@ -307,7 +319,7 @@ const BoxShadow = styled.div`
   z-index: 1;
   box-shadow: 1px 10px 950px 230px rgba(1, 14, 23, 0.9);
 `;
-const Launch = styled.a`
+const Launch = styled.a<AnimationProps>`
   text-align: center;
   text-decoration: none;
   z-index: 100;
@@ -332,106 +344,103 @@ const Launch = styled.a`
   }
 `;
 
-export default class DesktopLanding extends Component {
-  state = {
-    animation: false,
-    videoLoop: false,
-    wikiOn: false,
-  };
+const DesktopLanding: React.FC = () => {
+  const [animation, setAnimation] = useState(false);
+  const [videoLoop, setVideoLoop] = useState(false);
+  const [wikiOn, setWikiOn] = useState(false);
 
-  componentDidMount() {
-    const { videoLoop } = this.state;
+  useEffect(() => {
     d3.select('#nav-show').style('display', 'none');
-    window.setTimeout(() => this.setState({ animation: true }), 1000);
-    this.videoLoopInterval = window.setInterval(() => this.setState({ videoLoop: !videoLoop }), 1650);
-  }
+    const animTimer = window.setTimeout(() => setAnimation(true), 1000);
+    const videoInterval = window.setInterval(() => setVideoLoop(prev => !prev), 1650);
 
-  componentWillUnmount() {
-    clearInterval(this.videoLoopInterval);
-  }
+    return () => {
+      clearTimeout(animTimer);
+      clearInterval(videoInterval);
+    };
+  }, []);
 
-  render() {
-    const { videoLoop, animation, wikiOn } = this.state;
-    return (
-      <Wrapper animation={animation}>
-        <Link to="/">Refugee Flow</Link>
-        <Intro
-          videoLoop={videoLoop}
-          wikiOn ={wikiOn}
-          animation={animation}
-          onClick={() => this.setState({ wikiOn: !wikiOn })}
-        >
-          INFO
-          <HamburgerIcon />
-        </Intro>
-        <IntroPage wikiOn={wikiOn}>
-          <Exit onClick={() => this.setState({ wikiOn: !wikiOn })}>x</Exit>
-          <IntroWrapper wikiOn={wikiOn}>
-            <Introtitle>Introduction</Introtitle>
-            <IntroInnerWrapper>
-              <IntroParagraph>
-                To leave one’s home country, community, and loved ones is a difficult prospect
-                even in times of peace. As violence, persecution, and terror surge the only option for
-                survival and security is to flee one's home.
-              </IntroParagraph>
-              <IntroParagraph>
-                The United Nations High Commissioner for Refugees reports that as of 2017, 68.5 million
-                people were forcibly displaced worldwide due to persecution, conflict, violence, and human
-                rights violations.
-              </IntroParagraph>
-              <IntroParagraph>
-                To become a refugee is to subject a person to the most pervasive form of cruelty by removing
-                their basic need to lead a normal life. All aspects that make human life tolerable and meaningful
-                are lost to the refugee. Refugees are placed in inhospitable host countries that do not want them.
-                They face the brute indifference of the walls that people build between nations and cultures. Yet
-                each refugee surrenders to the hardship of leaving their old lives and the lives they could have
-                lived to find peace and safety elsewhere.
-              </IntroParagraph>
-              <IntroParagraph>
-                Every refugee is an example of a world that failed to use its common strength for the common good.
-              </IntroParagraph>
-            </IntroInnerWrapper>
-          </IntroWrapper>
+  return (
+    <Wrapper animation={animation}>
+      <Link to="/">Refugee Flow</Link>
+      <Intro
+        videoLoop={videoLoop}
+        wikiOn={wikiOn}
+        animation={animation}
+        onClick={() => setWikiOn(prev => !prev)}
+      >
+        INFO
+        <HamburgerIcon />
+      </Intro>
+      <IntroPage wikiOn={wikiOn}>
+        <Exit onClick={() => setWikiOn(prev => !prev)}>x</Exit>
+        <IntroWrapper wikiOn={wikiOn}>
+          <Introtitle>Introduction</Introtitle>
+          <IntroInnerWrapper>
+            <IntroParagraph>
+              To leave one's home country, community, and loved ones is a difficult prospect
+              even in times of peace. As violence, persecution, and terror surge the only option for
+              survival and security is to flee one's home.
+            </IntroParagraph>
+            <IntroParagraph>
+              The United Nations High Commissioner for Refugees reports that as of 2017, 68.5 million
+              people were forcibly displaced worldwide due to persecution, conflict, violence, and human
+              rights violations.
+            </IntroParagraph>
+            <IntroParagraph>
+              To become a refugee is to subject a person to the most pervasive form of cruelty by removing
+              their basic need to lead a normal life. All aspects that make human life tolerable and meaningful
+              are lost to the refugee. Refugees are placed in inhospitable host countries that do not want them.
+              They face the brute indifference of the walls that people build between nations and cultures. Yet
+              each refugee surrenders to the hardship of leaving their old lives and the lives they could have
+              lived to find peace and safety elsewhere.
+            </IntroParagraph>
+            <IntroParagraph>
+              Every refugee is an example of a world that failed to use its common strength for the common good.
+            </IntroParagraph>
+          </IntroInnerWrapper>
+        </IntroWrapper>
 
-          <IntroWrapper wikiOn={wikiOn}>
-            <Introtitle>The Approach</Introtitle>
-            <IntroInnerWrapper>
-              <IntroParagraph>
-                Refugee Flow gathers data from multiple reliable sources to construct a compelling account
-                on how persons become refugees. This project examines one of the direct fundamental causes
-                of the global refugee crisis, the collapse of order and stability in todays international
-                landscape.
-              </IntroParagraph>
-              <IntroParagraph>
-                This visualization examines the impact conflict, persecution and violence has on the lives of
-                persons in their home countries and communities. The dataset delves into exploring what drives
-                people to flee their homes and bear the burden of a life as a refugee.
-              </IntroParagraph>
-              <IntroParagraph>
-                The project further explores the possible routes taken by refugees. The dataset examines the
-                dangers those forcibly displaced face in their search for safety. Many refugees who depart
-                on their journey never make it to their intended destination. The data collected presents the
-                cause of these deaths along their chosen routes.
-              </IntroParagraph>
-            </IntroInnerWrapper>
-          </IntroWrapper>
+        <IntroWrapper wikiOn={wikiOn}>
+          <Introtitle>The Approach</Introtitle>
+          <IntroInnerWrapper>
+            <IntroParagraph>
+              Refugee Flow gathers data from multiple reliable sources to construct a compelling account
+              on how persons become refugees. This project examines one of the direct fundamental causes
+              of the global refugee crisis, the collapse of order and stability in todays international
+              landscape.
+            </IntroParagraph>
+            <IntroParagraph>
+              This visualization examines the impact conflict, persecution and violence has on the lives of
+              persons in their home countries and communities. The dataset delves into exploring what drives
+              people to flee their homes and bear the burden of a life as a refugee.
+            </IntroParagraph>
+            <IntroParagraph>
+              The project further explores the possible routes taken by refugees. The dataset examines the
+              dangers those forcibly displaced face in their search for safety. Many refugees who depart
+              on their journey never make it to their intended destination. The data collected presents the
+              cause of these deaths along their chosen routes.
+            </IntroParagraph>
+          </IntroInnerWrapper>
+        </IntroWrapper>
 
 
-          <Copyright>Built by: <a href='https://willsu.io'>Will Su</a>, <a href="https://github.com/abinofbrooklyn">Abin Abraham</a></Copyright>
-        </IntroPage>
-        <div id="video">
-          <BoxShadow />
-          <Section>
-            <Video animation={animation} videoLoop={videoLoop} autoPlay muted loop style={{ backgroundVideo: 'url(assets/img/hero.jpg)' }}>
-              <source src="https://player.vimeo.com/external/278983563.hd.mp4?s=df2675a8395d48ad7b455f155ae148361121b298&profile_id=175" />
-            </Video>
-            <Quote videoLoop={videoLoop} animation={animation}>
-              "At <i>sea</i>, a frightening number of refugees and migrants are dying each year. On <i>land</i>, people fleeing war are finding their way blocked by closed <i>borders</i>. Closing borders does not solve the problem"
-            </Quote>
-          </Section>
-        </div>
-        <Launch animation={animation} href="/conflict">Launch Visualization</Launch>
-      </Wrapper>
-    );
-  }
+        <Copyright>Built by: <a href='https://willsu.io'>Will Su</a>, <a href="https://github.com/abinofbrooklyn">Abin Abraham</a></Copyright>
+      </IntroPage>
+      <div id="video">
+        <BoxShadow />
+        <Section>
+          <Video animation={animation} videoLoop={videoLoop} autoPlay muted loop style={{ backgroundVideo: 'url(assets/img/hero.jpg)' } as React.CSSProperties}>
+            <source src="https://player.vimeo.com/external/278983563.hd.mp4?s=df2675a8395d48ad7b455f155ae148361121b298&profile_id=175" />
+          </Video>
+          <Quote videoLoop={videoLoop} animation={animation}>
+            "At <i>sea</i>, a frightening number of refugees and migrants are dying each year. On <i>land</i>, people fleeing war are finding their way blocked by closed <i>borders</i>. Closing borders does not solve the problem"
+          </Quote>
+        </Section>
+      </div>
+      <Launch animation={animation} href="/conflict">Launch Visualization</Launch>
+    </Wrapper>
+  );
 };
+
+export default DesktopLanding;
