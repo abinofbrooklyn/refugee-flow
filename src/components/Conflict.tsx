@@ -1,5 +1,4 @@
-import React, { useState, useCallback } from 'react';
-import _ from 'lodash';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import * as d3 from 'd3';
 
 import GlobeContainer from './globe/GlobeContainer';
@@ -8,25 +7,27 @@ import Annotation from './Annotation';
 
 const Conflict: React.FC = () => {
   const [stillLoading, setStillLoading] = useState(true);
-
-  // evokePrompt is called at most once (_.once) after loading completes
-  // Called only when !stillLoading (line 30), so no need to re-check inside
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const evokePrompt = useCallback(_.once(() => {
-    const fromLanding = sessionStorage.getItem('lastPage') === '/landing' ||
-      !sessionStorage.getItem('lastPage');
-    if (!fromLanding) return;
-    _.delay(() => {
-      d3.select('.annotation-wrapper').style('display', 'block').style('opacity', '1');
-    }, 2000);
-  }), []);
+  const promptShownRef = useRef(false);
 
   const loadingManager = useCallback((boolean: boolean) => {
     setStillLoading(boolean);
   }, []);
 
-  // Trigger annotation overlay once loading completes (side-effect in render)
-  if (!stillLoading) evokePrompt();
+  // Show annotation overlay once after loading completes (replaces render-time side effect)
+  useEffect(() => {
+    if (stillLoading || promptShownRef.current) return;
+    promptShownRef.current = true;
+
+    const fromLanding = sessionStorage.getItem('lastPage') === '/landing' ||
+      !sessionStorage.getItem('lastPage');
+    if (!fromLanding) return;
+
+    const timer = window.setTimeout(() => {
+      d3.select('.annotation-wrapper').style('display', 'block').style('opacity', '1');
+    }, 2000);
+
+    return () => clearTimeout(timer);
+  }, [stillLoading]);
 
   return (
     <div>
