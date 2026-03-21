@@ -89,7 +89,7 @@ const geoFallback = (lat, lng) => {
   // === Central/Eastern Europe (lat 40-55) ===
   if (lat > 48 && lng >= -10 && lng <= 10) return 'English Channel'; // NW Europe
   if (lat > 40 && lng >= -10 && lng <= 5) return 'Western Mediterranean';
-  if (lat > 40 && lng > 5 && lng <= 10) return 'Western Mediterranean'; // Italy/France/Switzerland
+  if (lat > 40 && lng > 5 && lng <= 10) return 'Central Mediterranean'; // Italy (CM destination)
   if (lat > 40 && lat <= 50 && lng > 10 && lng <= 30) return 'Western Balkans';
   if (lat > 50 && lat <= 55 && lng > 10 && lng <= 20) return 'Western Balkans'; // Germany, Czechia, Austria — WB destination
   if (lat > 50 && lat <= 55 && lng > 20 && lng <= 30) return 'Eastern Land Borders'; // Poland, Belarus border
@@ -100,8 +100,8 @@ const geoFallback = (lat, lng) => {
   // Falls through to catch-all at bottom (Western African) which will fail geo bounds → quarantine
 
   // === Mediterranean belt (lat 30-40) ===
-  if (lat > 30 && lng >= -10 && lng <= 15) return 'Western Mediterranean';
-  if (lat > 30 && lat <= 40 && lng > 15 && lng <= 21) return 'Central Mediterranean'; // Libya/Tunisia coast
+  if (lat > 30 && lng >= -10 && lng <= 5) return 'Western Mediterranean';
+  if (lat > 30 && lat <= 40 && lng > 5 && lng <= 21) return 'Central Mediterranean'; // Tunisia, Libya coast, Sicily, Malta
   if (lat > 30 && lat <= 40 && lng > 21 && lng <= 42) return 'Eastern Mediterranean'; // Greece, Turkey, Levant, N. Syria
   if (lat > 30 && lat <= 40 && lng > 42 && lng <= 70) return 'Iran-Afghanistan Corridor';
 
@@ -184,8 +184,8 @@ function applyGeoBoundsCorrections(route, lat, lng) {
   // Every route has a bounds check to catch IOM source data errors (fat-fingered coords)
   if (route === 'Central Mediterranean' && (lng > 21 || lng < -15 || lat < 5 || lat > 48)) return geoFallback(lat, lng);
   if (route === 'Central Mediterranean' && lat < 10 && lng > 15) return geoFallback(lat, lng); // Equatorial Africa — not CM transit
-  if (route === 'Eastern Mediterranean' && (lng < 15 || lng > 45 || lat < 30 || lat > 45)) return geoFallback(lat, lng);
-  if (route === 'Western Mediterranean' && (lng > 15 || lng < -25 || lat < 25 || lat > 48)) return geoFallback(lat, lng);
+  if (route === 'Eastern Mediterranean' && (lng < 21 || lng > 45 || lat < 15 || lat > 45)) return geoFallback(lat, lng);
+  if (route === 'Western Mediterranean' && (lng > 5 || lng < -25 || lat < 25 || lat > 48)) return geoFallback(lat, lng);
   if (route === 'English Channel' && (lng < -10 || lng > 10 || lat < 48 || lat > 60)) return geoFallback(lat, lng);
   if (route === 'Western Balkans' && (lng < 10 || lng > 35 || lat > 50 || lat < 35)) return geoFallback(lat, lng);
   if (route === 'Eastern Land Borders' && (lng > 35 || lng < 20 || lat < 45 || lat > 70)) return geoFallback(lat, lng);
