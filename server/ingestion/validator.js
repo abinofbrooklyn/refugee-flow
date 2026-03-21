@@ -120,6 +120,13 @@ function runRules(source, row, config, acceptedIds) {
         found: 'lat=0, lng=0 (null island)',
         detail: 'Coordinates (0, 0) are the null island — not a valid incident location',
       });
+    } else if (row.lat === row.lng && row.lat !== 0) {
+      violations.push({
+        rule: 'outlier-coordinates',
+        expected: 'distinct lat and lng values',
+        found: `lat=${row.lat}, lng=${row.lng} (identical)`,
+        detail: 'Lat and lng are identical — likely a data entry error (value copied to both fields)',
+      });
     } else if (row.lat < -90 || row.lat > 90 || row.lng < -180 || row.lng > 180) {
       violations.push({
         rule: 'outlier-coordinates',
