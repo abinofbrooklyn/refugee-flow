@@ -1,19 +1,19 @@
 /**
  * Unit tests for asylum data normalization modules (04-08)
  *
- * Tests countryNormalizer.js and quarterlyEstimator.js — pure functions,
+ * Tests countryNormalizer.ts and quarterlyEstimator.ts — pure functions,
  * no database dependency.
  */
-const {
+import {
   normalizeCountryName,
   CANONICAL_NAMES,
   EU_DESTINATIONS,
-} = require('../../server/ingestion/countryNormalizer');
+} from '../../server/ingestion/countryNormalizer';
 
-const {
+import {
   computeSeasonalRatios,
   distributeByQuarter,
-} = require('../../server/ingestion/quarterlyEstimator');
+} from '../../server/ingestion/quarterlyEstimator';
 
 // --- countryNormalizer ---
 

@@ -8,8 +8,8 @@ jest.mock('resend', () => {
   };
 });
 
-const { sendIngestionAlert, sendQuarantineAlert } = require('../../server/ingestion/alerter');
-const { Resend, _sendMock: sendMock } = require('resend');
+import { sendIngestionAlert, sendQuarantineAlert } from '../../server/ingestion/alerter';
+const { Resend, _sendMock: sendMock } = require('resend') as { Resend: jest.Mock; _sendMock: jest.Mock };
 
 beforeEach(() => {
   jest.clearAllMocks();

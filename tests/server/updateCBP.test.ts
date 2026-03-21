@@ -1,6 +1,7 @@
 /**
  * Unit tests for CBP auto-update URL construction and date logic
  */
+import { execSync } from 'child_process';
 
 // Extract and test the pure functions by reimplementing them here
 // (updateCBP.js is a script, not a module — we test the logic, not the I/O)
@@ -8,7 +9,14 @@
 const MONTH_ABBRS = ['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
 const MONTH_NAMES = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
-function getExpectedFileParams(now) {
+interface FileParams {
+  dataMonth: string;
+  startFY: number;
+  endFY: number;
+  now: Date;
+}
+
+function getExpectedFileParams(now: Date): FileParams {
   const dataDate = new Date(now.getFullYear(), now.getMonth() - 2, 1);
   const dataMonth = MONTH_ABBRS[dataDate.getMonth()];
   const currentFY = now.getMonth() >= 9 ? now.getFullYear() + 1 : now.getFullYear();
@@ -16,11 +24,11 @@ function getExpectedFileParams(now) {
   return { dataMonth, startFY, endFY: currentFY, now };
 }
 
-function fy(y) { return String(y).slice(2); }
-function pad(n) { return String(n).padStart(2, '0'); }
+function fy(y: number): string { return String(y).slice(2); }
+function pad(n: number): string { return String(n).padStart(2, '0'); }
 
-function buildCandidateUrls({ dataMonth, startFY, endFY, now }) {
-  const urls = [];
+function buildCandidateUrls({ dataMonth, startFY, endFY, now }: FileParams): string[] {
+  const urls: string[] = [];
   const filename = `nationwide-encounters-fy${fy(startFY)}-fy${fy(endFY)}-${dataMonth}-aor.csv`;
 
   for (let offset = 0; offset <= 2; offset++) {
@@ -127,13 +135,13 @@ describe('buildCandidateUrls', () => {
 
 describe('CBP ingestion script (no stale removal)', () => {
   test('script exits with usage message when no args', () => {
-    const { execSync } = require('child_process');
     try {
       execSync('node scripts/ingestCBP.js 2>&1', { encoding: 'utf-8' });
       fail('Should have exited with code 1');
-    } catch (e) {
-      expect(e.stdout || e.stderr).toContain('Usage:');
-      expect(e.status).toBe(1);
+    } catch (e: unknown) {
+      const err = e as { stdout?: string; stderr?: string; status?: number };
+      expect(err.stdout || err.stderr).toContain('Usage:');
+      expect(err.status).toBe(1);
     }
   });
 });

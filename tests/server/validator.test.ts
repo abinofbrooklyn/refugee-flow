@@ -1,13 +1,13 @@
 /**
- * Unit tests for validator.js
+ * Unit tests for validator.ts
  * Tests all 3 rule types: geo-label mismatch, outlier coordinates, value anomalies
  * Plus: known-bad suppression, quarantineRows, graceful fallback, non-geo source skip
  */
 
 // Mock the database connection
 jest.mock('../../server/database/connection', () => {
-  const mockDb = jest.fn();
-  mockDb.destroy = jest.fn().mockResolvedValue();
+  const mockDb = jest.fn() as jest.Mock & { destroy: jest.Mock };
+  mockDb.destroy = jest.fn().mockResolvedValue(undefined);
   return mockDb;
 });
 
@@ -16,21 +16,24 @@ jest.mock('../../server/ingestion/iomNormalizer', () => ({
   applyGeoBoundsCorrections: jest.fn(),
 }));
 
-const db = require('../../server/database/connection');
-const { applyGeoBoundsCorrections } = require('../../server/ingestion/iomNormalizer');
-const { validateRows, quarantineRows, SOURCE_CONFIG } = require('../../server/ingestion/validator');
+import db from '../../server/database/connection';
+import { applyGeoBoundsCorrections } from '../../server/ingestion/iomNormalizer';
+import { validateRows, quarantineRows, SOURCE_CONFIG } from '../../server/ingestion/validator';
+
+const mockDb = db as jest.MockedFunction<typeof db>;
+const mockApplyGeoBoundsCorrections = applyGeoBoundsCorrections as jest.MockedFunction<typeof applyGeoBoundsCorrections>;
 
 beforeEach(() => {
   jest.clearAllMocks();
   // Default: applyGeoBoundsCorrections returns the route unchanged (no mismatch)
-  applyGeoBoundsCorrections.mockImplementation((route) => route);
+  mockApplyGeoBoundsCorrections.mockImplementation((route: string) => route);
 });
 
 // Helper to set up a chainable db mock that returns empty accepted IDs
 function setupEmptyAcceptedIds() {
   const selectMock = jest.fn().mockResolvedValue([]);
   const whereMock = jest.fn().mockReturnValue({ select: selectMock });
-  db.mockReturnValue({ where: whereMock });
+  mockDb.mockReturnValue({ where: whereMock } as unknown as ReturnType<typeof db>);
   return { whereMock, selectMock };
 }
 
@@ -70,7 +73,7 @@ describe('SOURCE_CONFIG', () => {
 describe('geo-label mismatch', () => {
   test('row with route=Central Mediterranean, coords falling in Horn of Africa => quarantined with geo-label-mismatch', async () => {
     // lat=5, lng=40 — applyGeoBoundsCorrections would return 'Horn of Africa'
-    applyGeoBoundsCorrections.mockReturnValue('Horn of Africa');
+    mockApplyGeoBoundsCorrections.mockReturnValue('Horn of Africa');
     setupEmptyAcceptedIds();
 
     const rows = [{ id: 'ROW1', route: 'Central Mediterranean', lat: 5, lng: 40 }];
@@ -85,7 +88,7 @@ describe('geo-label mismatch', () => {
 
   test('row with route=Central Mediterranean, coords in Central Med => clean', async () => {
     // lat=35, lng=15 — applyGeoBoundsCorrections returns 'Central Mediterranean' (no change)
-    applyGeoBoundsCorrections.mockReturnValue('Central Mediterranean');
+    mockApplyGeoBoundsCorrections.mockReturnValue('Central Mediterranean');
     setupEmptyAcceptedIds();
 
     const rows = [{ id: 'ROW2', route: 'Central Mediterranean', lat: 35, lng: 15 }];
@@ -104,7 +107,7 @@ describe('geo-label mismatch', () => {
     expect(clean).toHaveLength(1);
     expect(quarantined).toHaveLength(0);
     // applyGeoBoundsCorrections should NOT have been called
-    expect(applyGeoBoundsCorrections).not.toHaveBeenCalled();
+    expect(mockApplyGeoBoundsCorrections).not.toHaveBeenCalled();
   });
 });
 
@@ -179,7 +182,7 @@ describe('value-anomaly', () => {
   test('validateRows("iom", [{dead_and_missing: "-3"}]) => quarantined (negative after parseInt)', async () => {
     setupEmptyAcceptedIds();
     const rows = [{ id: 'ROW7', dead_and_missing: '-3', route: 'Central Mediterranean', lat: 35, lng: 15 }];
-    applyGeoBoundsCorrections.mockReturnValue('Central Mediterranean');
+    mockApplyGeoBoundsCorrections.mockReturnValue('Central Mediterranean');
     const { clean, quarantined } = await validateRows('iom', rows);
 
     expect(quarantined).toHaveLength(1);
@@ -189,7 +192,7 @@ describe('value-anomaly', () => {
   test('validateRows("iom", [{dead_and_missing: "15000"}]) => quarantined (exceeds 10000 max)', async () => {
     setupEmptyAcceptedIds();
     const rows = [{ id: 'ROW8', dead_and_missing: '15000', route: 'Central Mediterranean', lat: 35, lng: 15 }];
-    applyGeoBoundsCorrections.mockReturnValue('Central Mediterranean');
+    mockApplyGeoBoundsCorrections.mockReturnValue('Central Mediterranean');
     const { clean, quarantined } = await validateRows('iom', rows);
 
     expect(quarantined).toHaveLength(1);
@@ -199,7 +202,7 @@ describe('value-anomaly', () => {
   // --- ACLED fat ---
   test('validateRows("acled", [{fat: -1}]) => quarantined', async () => {
     const rows = [{ event_id: 'E1', fat: -1, route: 'Central Mediterranean', lat: 35, lng: 15 }];
-    applyGeoBoundsCorrections.mockReturnValue('Central Mediterranean');
+    mockApplyGeoBoundsCorrections.mockReturnValue('Central Mediterranean');
     const { clean, quarantined } = await validateRows('acled', rows);
 
     expect(quarantined).toHaveLength(1);
@@ -208,7 +211,7 @@ describe('value-anomaly', () => {
 
   test('validateRows("acled", [{fat: 60000}]) => quarantined (exceeds 50000)', async () => {
     const rows = [{ event_id: 'E2', fat: 60000, route: 'Central Mediterranean', lat: 35, lng: 15 }];
-    applyGeoBoundsCorrections.mockReturnValue('Central Mediterranean');
+    mockApplyGeoBoundsCorrections.mockReturnValue('Central Mediterranean');
     const { clean, quarantined } = await validateRows('acled', rows);
 
     expect(quarantined).toHaveLength(1);
@@ -263,10 +266,10 @@ describe('known-bad suppression', () => {
       { raw_data: JSON.stringify({ id: 'ACCEPTED-123' }) },
     ]);
     const whereMock = jest.fn().mockReturnValue({ select: selectMock });
-    db.mockReturnValue({ where: whereMock });
+    mockDb.mockReturnValue({ where: whereMock } as unknown as ReturnType<typeof db>);
 
     // Even with bad geo, the accepted row should come through as clean
-    applyGeoBoundsCorrections.mockReturnValue('Horn of Africa'); // would normally fail
+    mockApplyGeoBoundsCorrections.mockReturnValue('Horn of Africa'); // would normally fail
     const rows = [{ id: 'ACCEPTED-123', route: 'Central Mediterranean', lat: 5, lng: 40, dead_and_missing: '3' }];
     const { clean, quarantined } = await validateRows('iom', rows);
 
@@ -276,7 +279,7 @@ describe('known-bad suppression', () => {
 
   test('IOM row with unknown ID and bad geo => quarantined normally', async () => {
     setupEmptyAcceptedIds();
-    applyGeoBoundsCorrections.mockReturnValue('Horn of Africa');
+    mockApplyGeoBoundsCorrections.mockReturnValue('Horn of Africa');
     const rows = [{ id: 'UNKNOWN-999', route: 'Central Mediterranean', lat: 5, lng: 40 }];
     const { clean, quarantined } = await validateRows('iom', rows);
 
@@ -289,7 +292,7 @@ describe('known-bad suppression', () => {
       { raw_data: JSON.stringify({ id: 'ACCEPTED-123' }) },
     ]);
     const whereMock = jest.fn().mockReturnValue({ select: selectMock });
-    db.mockReturnValue({ where: whereMock });
+    mockDb.mockReturnValue({ where: whereMock } as unknown as ReturnType<typeof db>);
 
     await validateRows('iom', [{ id: 'ACCEPTED-123', route: 'Central Mediterranean', lat: 5, lng: 40 }]);
 
@@ -303,8 +306,8 @@ describe('known-bad suppression', () => {
 
 describe('quarantineRows', () => {
   test('quarantineRows inserts into data_quarantine with source, status=pending, raw_data as JSON string', async () => {
-    const insertMock = jest.fn().mockResolvedValue();
-    db.mockReturnValue({ insert: insertMock });
+    const insertMock = jest.fn().mockResolvedValue(undefined);
+    mockDb.mockReturnValue({ insert: insertMock } as unknown as ReturnType<typeof db>);
 
     const quarantinedItems = [
       {
@@ -315,7 +318,7 @@ describe('quarantineRows', () => {
 
     await quarantineRows('iom', quarantinedItems);
 
-    expect(db).toHaveBeenCalledWith('data_quarantine');
+    expect(mockDb).toHaveBeenCalledWith('data_quarantine');
     expect(insertMock).toHaveBeenCalledWith(expect.arrayContaining([
       expect.objectContaining({
         source: 'iom',
@@ -332,8 +335,8 @@ describe('quarantineRows', () => {
   });
 
   test('quarantineRows includes violation_detail as JSON string', async () => {
-    const insertMock = jest.fn().mockResolvedValue();
-    db.mockReturnValue({ insert: insertMock });
+    const insertMock = jest.fn().mockResolvedValue(undefined);
+    mockDb.mockReturnValue({ insert: insertMock } as unknown as ReturnType<typeof db>);
 
     const quarantinedItems = [
       {
@@ -351,8 +354,8 @@ describe('quarantineRows', () => {
   });
 
   test('quarantineRows with multiple violations: rule_violated is comma-separated', async () => {
-    const insertMock = jest.fn().mockResolvedValue();
-    db.mockReturnValue({ insert: insertMock });
+    const insertMock = jest.fn().mockResolvedValue(undefined);
+    mockDb.mockReturnValue({ insert: insertMock } as unknown as ReturnType<typeof db>);
 
     const quarantinedItems = [
       {
@@ -380,13 +383,13 @@ describe('graceful fallback', () => {
     // Simulate DB failure during accepted IDs loading
     const selectMock = jest.fn().mockRejectedValue(new Error('DB connection failed'));
     const whereMock = jest.fn().mockReturnValue({ select: selectMock });
-    db.mockReturnValue({ where: whereMock });
+    mockDb.mockReturnValue({ where: whereMock } as unknown as ReturnType<typeof db>);
 
     const rows = [
       { id: 'ROW1', route: 'Central Mediterranean', lat: 35, lng: 15 },
       { id: 'ROW2', route: 'Central Mediterranean', lat: 36, lng: 14 },
     ];
-    applyGeoBoundsCorrections.mockReturnValue('Central Mediterranean');
+    mockApplyGeoBoundsCorrections.mockReturnValue('Central Mediterranean');
 
     const { clean, quarantined } = await validateRows('iom', rows);
 
@@ -398,7 +401,7 @@ describe('graceful fallback', () => {
   test('graceful fallback does not throw on DB failure', async () => {
     const selectMock = jest.fn().mockRejectedValue(new Error('Network timeout'));
     const whereMock = jest.fn().mockReturnValue({ select: selectMock });
-    db.mockReturnValue({ where: whereMock });
+    mockDb.mockReturnValue({ where: whereMock } as unknown as ReturnType<typeof db>);
 
     const rows = [{ id: 'ROW1', route: 'Eastern Mediterranean', lat: 37, lng: 25 }];
 
@@ -418,7 +421,7 @@ describe('non-geo sources skip geo rules', () => {
     expect(clean).toHaveLength(1);
     expect(quarantined).toHaveLength(0);
     // applyGeoBoundsCorrections should NOT be called for non-geo sources
-    expect(applyGeoBoundsCorrections).not.toHaveBeenCalled();
+    expect(mockApplyGeoBoundsCorrections).not.toHaveBeenCalled();
   });
 
   test('validateRows("unhcr", [{value: 100, lat: 0, lng: 0}]) => clean', async () => {

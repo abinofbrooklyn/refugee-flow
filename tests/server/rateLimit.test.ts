@@ -1,8 +1,9 @@
-const express = require('express');
-const rateLimit = require('express-rate-limit');
-const request = require('supertest');
+import express from 'express';
+import rateLimit from 'express-rate-limit';
+import request from 'supertest';
+import type { Express } from 'express';
 
-function buildTestApp() {
+function buildTestApp(): Express {
   const app = express();
 
   const testLimiter = rateLimit({
@@ -14,13 +15,13 @@ function buildTestApp() {
   });
 
   app.use('/data', testLimiter);
-  app.get('/data/reduced_war_data', (req, res) => res.json({ ok: true }));
+  app.get('/data/reduced_war_data', (_req, res) => res.json({ ok: true }));
 
   return app;
 }
 
 describe('Rate limiting on /data routes', () => {
-  let app;
+  let app: Express;
 
   beforeEach(() => {
     app = buildTestApp();

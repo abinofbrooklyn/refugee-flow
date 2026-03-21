@@ -2,25 +2,28 @@
  * Unit tests for UNHCR asylum application ingestion module (04-03)
  */
 jest.mock('../../server/database/connection', () => {
-  const mockDb = jest.fn();
-  mockDb.destroy = jest.fn().mockResolvedValue();
+  const mockDb = jest.fn() as jest.Mock & { destroy: jest.Mock };
+  mockDb.destroy = jest.fn().mockResolvedValue(undefined);
   return mockDb;
 });
 
 jest.mock('../../server/ingestion/ingestionLogger', () => ({
-  logIngestion: jest.fn().mockResolvedValue(),
+  logIngestion: jest.fn().mockResolvedValue(undefined),
   getLastSyncDate: jest.fn().mockResolvedValue(null),
 }));
 
 // We mock fetch globally for node environment
-global.fetch = jest.fn();
+global.fetch = jest.fn() as typeof fetch;
 
-const { logIngestion, getLastSyncDate } = require('../../server/ingestion/ingestionLogger');
-const {
+import { logIngestion, getLastSyncDate } from '../../server/ingestion/ingestionLogger';
+import {
   fetchAllUnhcrApplications,
   transformUnhcrItems,
   runUnhcrIngestion,
-} = require('../../server/ingestion/unhcrIngestion');
+} from '../../server/ingestion/unhcrIngestion';
+
+const mockLogIngestion = logIngestion as jest.MockedFunction<typeof logIngestion>;
+const mockGetLastSyncDate = getLastSyncDate as jest.MockedFunction<typeof getLastSyncDate>;
 
 beforeEach(() => {
   jest.clearAllMocks();
@@ -33,7 +36,7 @@ describe('fetchAllUnhcrApplications()', () => {
     const page1 = { page: 1, maxPages: 2, items: [{ year: 2022, coo_name: 'Syria', coa_name: 'Germany', applied: '500' }] };
     const page2 = { page: 2, maxPages: 2, items: [{ year: 2022, coo_name: 'Iraq', coa_name: 'Sweden', applied: '200' }] };
 
-    global.fetch
+    (global.fetch as jest.Mock)
       .mockResolvedValueOnce({ ok: true, json: async () => page1 })
       .mockResolvedValueOnce({ ok: true, json: async () => page2 });
 
@@ -47,11 +50,11 @@ describe('fetchAllUnhcrApplications()', () => {
 
   test('Test 2: passes yearFrom param when lastSync provided', async () => {
     const page1 = { page: 1, maxPages: 1, items: [] };
-    global.fetch.mockResolvedValueOnce({ ok: true, json: async () => page1 });
+    (global.fetch as jest.Mock).mockResolvedValueOnce({ ok: true, json: async () => page1 });
 
     await fetchAllUnhcrApplications(2021);
 
-    const calledUrl = global.fetch.mock.calls[0][0];
+    const calledUrl = (global.fetch as jest.Mock).mock.calls[0][0];
     expect(calledUrl).toContain('yearFrom=2021');
   });
 });
@@ -104,7 +107,7 @@ describe('transformUnhcrItems()', () => {
 
 describe('runUnhcrIngestion()', () => {
   function setupDbMock(rowCount = 1) {
-    const db = require('../../server/database/connection');
+    const db = require('../../server/database/connection') as jest.MockedFunction<() => Record<string, jest.Mock>>;
     const mergeResult = { rowCount };
     const mergeMock = jest.fn().mockResolvedValue(mergeResult);
     const onConflictMock = jest.fn().mockReturnValue({ merge: mergeMock });
@@ -114,21 +117,21 @@ describe('runUnhcrIngestion()', () => {
     const whereInMock = jest.fn().mockReturnValue({ groupBy: groupByMock });
     const sumMock = jest.fn().mockReturnValue({ whereIn: whereInMock });
     const selectMock = jest.fn().mockReturnValue({ sum: sumMock });
-    db.mockReturnValue({ insert: insertMock, select: selectMock });
+    db.mockReturnValue({ insert: insertMock, select: selectMock } as unknown as ReturnType<typeof db>);
     return { db, insertMock, onConflictMock, mergeMock };
   }
 
   test('Test 6: logs success to ingestion_log', async () => {
     setupDbMock();
-    getLastSyncDate.mockResolvedValue(null);
+    mockGetLastSyncDate.mockResolvedValue(null);
 
     // Use non-EU destination so record is not filtered out
     const page1 = { page: 1, maxPages: 1, items: [{ year: 2022, coo_name: 'Syria', coa_name: 'Turkey', applied: '100' }] };
-    global.fetch.mockResolvedValueOnce({ ok: true, json: async () => page1 });
+    (global.fetch as jest.Mock).mockResolvedValueOnce({ ok: true, json: async () => page1 });
 
     await runUnhcrIngestion();
 
-    expect(logIngestion).toHaveBeenCalledWith(expect.objectContaining({
+    expect(mockLogIngestion).toHaveBeenCalledWith(expect.objectContaining({
       source: 'unhcr',
       status: 'success',
     }));
@@ -136,13 +139,13 @@ describe('runUnhcrIngestion()', () => {
 
   test('Test 7: logs error with message on failure', async () => {
     setupDbMock();
-    getLastSyncDate.mockResolvedValue(null);
+    mockGetLastSyncDate.mockResolvedValue(null);
 
-    global.fetch.mockRejectedValueOnce(new Error('Network failure'));
+    (global.fetch as jest.Mock).mockRejectedValueOnce(new Error('Network failure'));
 
     await runUnhcrIngestion();
 
-    expect(logIngestion).toHaveBeenCalledWith(expect.objectContaining({
+    expect(mockLogIngestion).toHaveBeenCalledWith(expect.objectContaining({
       source: 'unhcr',
       status: 'error',
       errorMessage: 'Network failure',

@@ -1,7 +1,7 @@
-require('dotenv').config();
-const request = require('supertest');
-const app = require('../../server/server');
-const db = require('../../server/database/connection');
+import 'dotenv/config';
+import request from 'supertest';
+import app from '../../server/server';
+import db from '../../server/database/connection';
 
 afterAll(async () => {
   await db.destroy();
@@ -118,8 +118,8 @@ describe('Endpoint response shapes (DB-02)', () => {
     expect(firstRecord).toHaveProperty('BorderLocation');
     expect(firstRecord).toHaveProperty('NationalityLong');
     // Should have at least one year key with quarter values
-    const yearKey = Object.keys(firstRecord).find(k => /^\d{4}$/.test(k));
+    const yearKey = Object.keys(firstRecord).find((k: string) => /^\d{4}$/.test(k));
     expect(yearKey).toBeDefined();
-    expect(firstRecord[yearKey]).toHaveProperty('q1');
+    expect(firstRecord[yearKey!]).toHaveProperty('q1');
   });
 });

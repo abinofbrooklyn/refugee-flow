@@ -18,19 +18,23 @@ jest.mock('../../server/ingestion/ingestionLogger', () => ({
   getLastSyncDate: jest.fn().mockResolvedValue(null),
 }));
 
-const {
+import {
   getAcledToken,
   fetchAcledEvents,
   transformAcledEvents,
   monthToQuarter,
   runAcledIngestion,
-} = require('../../server/ingestion/acledIngestion');
+} from '../../server/ingestion/acledIngestion';
 
-const { logIngestion, getLastSyncDate } = require('../../server/ingestion/ingestionLogger');
-const db = require('../../server/database/connection');
+import { logIngestion, getLastSyncDate } from '../../server/ingestion/ingestionLogger';
+import db from '../../server/database/connection';
+
+const mockDb = db as jest.MockedFunction<typeof db>;
+const mockLogIngestion = logIngestion as jest.MockedFunction<typeof logIngestion>;
+const mockGetLastSyncDate = getLastSyncDate as jest.MockedFunction<typeof getLastSyncDate>;
 
 // Helper to create a mock fetch response
-function mockFetchResponse(data, ok = true, status = 200) {
+function mockFetchResponse(data: unknown, ok = true, status = 200) {
   return Promise.resolve({
     ok,
     status,
@@ -41,11 +45,11 @@ function mockFetchResponse(data, ok = true, status = 200) {
 describe('getAcledToken()', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    global.fetch = jest.fn();
+    global.fetch = jest.fn() as typeof fetch;
   });
 
   test('Test 1: calls fetch with correct OAuth params and returns access_token', async () => {
-    global.fetch = jest.fn().mockReturnValue(
+    (global.fetch as jest.Mock).mockReturnValue(
       mockFetchResponse({ access_token: 'tok_abc123' })
     );
 
@@ -55,7 +59,7 @@ describe('getAcledToken()', () => {
     const token = await getAcledToken();
 
     expect(global.fetch).toHaveBeenCalledTimes(1);
-    const [url, opts] = global.fetch.mock.calls[0];
+    const [url, opts] = (global.fetch as jest.Mock).mock.calls[0];
     expect(url).toBe('https://acleddata.com/oauth/token');
     expect(opts.method).toBe('POST');
     expect(opts.headers['Content-Type']).toBe('application/x-www-form-urlencoded');
@@ -68,7 +72,7 @@ describe('getAcledToken()', () => {
   });
 
   test('Test 2: throws on auth failure with descriptive message', async () => {
-    global.fetch = jest.fn().mockReturnValue(
+    (global.fetch as jest.Mock).mockReturnValue(
       mockFetchResponse({ error: 'invalid_credentials' })
     );
 
@@ -85,7 +89,7 @@ describe('fetchAcledEvents()', () => {
     const page1 = Array.from({ length: 5000 }, (_, i) => ({ event_id_cnty: `E${i}` }));
     const page2 = Array.from({ length: 3 }, (_, i) => ({ event_id_cnty: `F${i}` }));
 
-    global.fetch = jest.fn()
+    (global.fetch as jest.Mock) = jest.fn()
       .mockReturnValueOnce(mockFetchResponse({ data: page1 }))
       .mockReturnValueOnce(mockFetchResponse({ data: page2 }));
 
@@ -94,21 +98,21 @@ describe('fetchAcledEvents()', () => {
     expect(global.fetch).toHaveBeenCalledTimes(2);
     expect(events).toHaveLength(5003);
 
-    const [url1] = global.fetch.mock.calls[0];
+    const [url1] = (global.fetch as jest.Mock).mock.calls[0];
     expect(url1).toContain('page=1');
-    const [url2] = global.fetch.mock.calls[1];
+    const [url2] = (global.fetch as jest.Mock).mock.calls[1];
     expect(url2).toContain('page=2');
   });
 
   test('Test 4: uses event_date filter when lastSync date provided', async () => {
-    global.fetch = jest.fn().mockReturnValue(
+    (global.fetch as jest.Mock) = jest.fn().mockReturnValue(
       mockFetchResponse({ data: [] })
     );
 
     const lastSync = new Date('2024-01-15');
     await fetchAcledEvents('tok_abc', lastSync);
 
-    const [url] = global.fetch.mock.calls[0];
+    const [url] = (global.fetch as jest.Mock).mock.calls[0];
     expect(url).toContain('event_date=');
     expect(url).toContain('event_date_where=BETWEEN');
     expect(url).toContain('2024-01-15');
@@ -163,7 +167,7 @@ describe('runAcledIngestion()', () => {
     jest.clearAllMocks();
 
     // Mock fetch: OAuth token + one page of events
-    global.fetch = jest.fn()
+    (global.fetch as jest.Mock) = jest.fn()
       .mockReturnValueOnce(mockFetchResponse({ access_token: 'tok_test' }))
       .mockReturnValueOnce(mockFetchResponse({
         data: [
@@ -179,8 +183,8 @@ describe('runAcledIngestion()', () => {
         ],
       }));
 
-    getLastSyncDate.mockResolvedValue(null);
-    logIngestion.mockResolvedValue(undefined);
+    mockGetLastSyncDate.mockResolvedValue(null);
+    mockLogIngestion.mockResolvedValue(undefined);
 
     // Reset db mock
     const insertMock = jest.fn().mockReturnThis();
@@ -188,18 +192,18 @@ describe('runAcledIngestion()', () => {
     const ignoreMock = jest.fn().mockResolvedValue([]);
     const mergeMock = jest.fn().mockResolvedValue([]);
 
-    db.mockReturnValue({
+    mockDb.mockReturnValue({
       insert: insertMock,
       onConflict: onConflictMock,
       ignore: ignoreMock,
       merge: mergeMock,
-    });
+    } as unknown as ReturnType<typeof db>);
   });
 
   test('Test 8: logs success with rowsAffected to ingestion_log', async () => {
     await runAcledIngestion();
 
-    expect(logIngestion).toHaveBeenCalledWith(
+    expect(mockLogIngestion).toHaveBeenCalledWith(
       expect.objectContaining({
         source: 'acled',
         status: 'success',
@@ -210,11 +214,11 @@ describe('runAcledIngestion()', () => {
   });
 
   test('Test 9: logs error with error message when fetch fails', async () => {
-    global.fetch = jest.fn().mockRejectedValue(new Error('Network error'));
+    (global.fetch as jest.Mock) = jest.fn().mockRejectedValue(new Error('Network error'));
 
     await expect(runAcledIngestion()).rejects.toThrow('Network error');
 
-    expect(logIngestion).toHaveBeenCalledWith(
+    expect(mockLogIngestion).toHaveBeenCalledWith(
       expect.objectContaining({
         source: 'acled',
         status: 'error',
@@ -228,7 +232,7 @@ describe('runAcledIngestion()', () => {
     await runAcledIngestion();
 
     // Check db was called with 'war_notes'
-    const warNotesCalls = db.mock.calls.filter(c => c[0] === 'war_notes');
+    const warNotesCalls = mockDb.mock.calls.filter((c: unknown[]) => c[0] === 'war_notes');
     expect(warNotesCalls.length).toBeGreaterThan(0);
   });
 });
