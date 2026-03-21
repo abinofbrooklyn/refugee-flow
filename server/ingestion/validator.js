@@ -130,7 +130,14 @@ function runRules(source, row, config, acceptedIds) {
     } else if (row.route) {
       // Rule 1: Geo-label mismatch — check whether bounds correction would reassign route
       const corrected = applyGeoBoundsCorrections(row.route, row.lat, row.lng);
-      if (corrected !== row.route) {
+      if (corrected === 'UNRESOLVED') {
+        violations.push({
+          rule: 'geo-label-mismatch',
+          expected: 'valid route',
+          found: row.route,
+          detail: `coordinates (${row.lat}, ${row.lng}) do not match any known migration route region`,
+        });
+      } else if (corrected !== row.route) {
         violations.push({
           rule: 'geo-label-mismatch',
           expected: corrected,

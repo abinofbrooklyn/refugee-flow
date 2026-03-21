@@ -92,8 +92,10 @@ const geoFallback = (lat, lng) => {
   if (lat > 40 && lng > 5 && lng <= 10) return 'Western Mediterranean'; // Italy/France/Switzerland
   if (lat > 40 && lat <= 50 && lng > 10 && lng <= 30) return 'Western Balkans';
   if (lat > 50 && lat <= 55 && lng > 10 && lng <= 30) return 'Eastern Land Borders'; // Poland, Germany, Czechia
-  if (lat > 40 && lat <= 55 && lng > 30 && lng <= 40) return 'Eastern Land Borders'; // Ukraine, Black Sea region
-  if (lat > 40 && lat <= 55 && lng > 40 && lng <= 50) return 'Eastern Mediterranean'; // Caucasus, eastern Turkey
+  if (lat > 40 && lat <= 55 && lng > 30 && lng <= 35) return 'Eastern Land Borders'; // Ukraine, western Black Sea
+  if (lat > 40 && lat <= 45 && lng > 35 && lng <= 45) return 'Eastern Mediterranean'; // eastern Turkey, Caucasus transit
+  // lat > 45, lng > 35: deep Russia/Caucasus — no valid migration route
+  // Falls through to catch-all at bottom (Western African) which will fail geo bounds → quarantine
 
   // === Mediterranean belt (lat 30-40) ===
   if (lat > 30 && lng >= -10 && lng <= 15) return 'Western Mediterranean';
@@ -120,7 +122,7 @@ const geoFallback = (lat, lng) => {
   // === Remaining catch-all ===
   if (lng >= -15 && lng <= 15) return 'Western African'; // West/Central Africa remaining
   if (lng > 55 && lng <= 70) return 'Iran-Afghanistan Corridor';
-  return 'Western African';
+  return 'UNRESOLVED'; // No valid route — validator will quarantine this
 };
 
 /**
