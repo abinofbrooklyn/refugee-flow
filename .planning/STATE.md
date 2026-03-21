@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-stopped_at: Completed 04-15-PLAN.md (validator module + migration 004 + bounds fixes)
-last_updated: "2026-03-21T00:34:43.919Z"
+stopped_at: Completed 04-16-PLAN.md (validator wired into all 7 pipelines, quarantine alerts, quarantineCount in logs)
+last_updated: "2026-03-21T00:41:01.333Z"
 progress:
   total_phases: 6
   completed_phases: 5
   total_plans: 27
-  completed_plans: 29
+  completed_plans: 30
 ---
 
 # Project State
@@ -67,6 +67,7 @@ Plan: 7 of 14 (ACLED normalization — waiting on API access)
 | Phase 06-react-router-v6-migration P01 | 2 | 2 tasks | 4 files |
 | Phase 06-react-router-v6-migration P02 | 2 | 2 tasks | 3 files |
 | Phase 04 P15 | 219 | 1 tasks | 4 files |
+| Phase 04 P16 | 4 | 2 tasks | 10 files |
 
 ## Accumulated Context
 
@@ -120,6 +121,8 @@ Recent decisions affecting current work:
 - [Phase 04]: Türkiye-Europe land route remapped to Eastern Mediterranean (not Western Balkans) in ROUTE_MAP
 - [Phase 04]: Central Med bounds: lng cap tightened 55→37, Western Balkans lng cap 50→35 and lat cap 55→50
 - [Phase 04]: Validator graceful fallback: DB failure never blocks ingestion, all rows pass through as clean
+- [Phase 04]: quarantineCount returned from ingestCbpData/ingestUkChannelData since validation is inside combined transform+upsert function
+- [Phase 04]: ACLED cleanNoteRows filtered by clean war event IDs to keep war_notes sync with quarantined war_events
 
 ### Pending Todos
 
@@ -131,6 +134,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-21T00:34:43.913Z
-Stopped at: Completed 04-15-PLAN.md (validator module + migration 004 + bounds fixes)
+Last session: 2026-03-21T00:41:01.311Z
+Stopped at: Completed 04-16-PLAN.md (validator wired into all 7 pipelines, quarantine alerts, quarantineCount in logs)
 Resume file: None

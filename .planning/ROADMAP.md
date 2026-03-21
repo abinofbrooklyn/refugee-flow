@@ -138,6 +138,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 1. Stabilize | 4/4 | Complete | 2026-03-12 |
 | 2. Modernize Stack | 4/4 | Complete | 2026-03-12 |
 | 3. Database Migration | 4/4 | Complete   | 2026-03-17 |
-| 4. Data Ingestion Pipeline | 14/12 | Complete   | 2026-03-21 |
+| 4. Data Ingestion Pipeline | 15/12 | Complete   | 2026-03-21 |
 | 5. Data Coverage | 0/TBD | Not started | - |
 | 6. React Router v6 Migration | 3/3 | Complete | 2026-03-20 |
