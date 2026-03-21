@@ -179,6 +179,7 @@ function applyGeoBoundsCorrections(route, lat, lng) {
   // and upper lat from 55 to 50 (excludes Russia at lat 53-54).
   if (route === 'Western Balkans' && (lng < 10 || lng > 35 || lat > 50 || lat < 35)) return geoFallback(lat, lng);
   if (route === 'Eastern Land Borders' && (lng > 40 || lng < 10)) return geoFallback(lat, lng);
+  if (route === 'East & Southern Africa' && (lat > 15 || lng < 15 || lng > 55)) return geoFallback(lat, lng);
   if (route === 'Horn of Africa' && (lng < 15 || lat > 30 || lng > 55)) return geoFallback(lat, lng);
   if (route === 'Iran-Afghanistan Corridor' && (lng < 42 || lng > 70 || lat > 40)) return geoFallback(lat, lng);
   if (route === 'Americas' && lng > -15) return geoFallback(lat, lng);
