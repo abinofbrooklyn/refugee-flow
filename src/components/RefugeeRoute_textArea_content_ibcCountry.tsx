@@ -519,9 +519,11 @@ const RefugeeRoute_textArea_content_ibcCountry: React.FC<Props> = ({ IBC_data, c
         onInput={() => {
           if (!fuseRef.current || !searchBarRef.current) return;
           setCurrentPage(1);
-          // Fuse 3.x returns plain objects [{key: "..."}], not wrapped FuseResult
+          // Fuse 3.x returns [{key: "..."}] — plain objects with the matched item's fields
+          const results = fuseRef.current.search(searchBarRef.current.value);
           setDropDownItem(
-            fuseRef.current.search(searchBarRef.current.value)
+            results
+              .filter((d: unknown) => d != null)
               .map((d: unknown) => (d as { key: string }).key)
               .slice(0, 10)
           );
