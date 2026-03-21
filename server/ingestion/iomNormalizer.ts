@@ -10,7 +10,7 @@
  */
 
 // Map IOM route names to display categories
-const ROUTE_MAP = {
+export const ROUTE_MAP: Record<string, string> = {
   // === Central Mediterranean (Libya/Tunisia -> Italy via Sahara) ===
   'Central Mediterranean': 'Central Mediterranean',
   'Central Mediterranean,Sahara Desert crossing': 'Central Mediterranean',
@@ -73,7 +73,7 @@ const ROUTE_MAP = {
 
 // Geographic fallback for null/unmapped/Others routes
 // Regions are ordered north-to-south, west-to-east with no gaps
-const geoFallback = (lat, lng) => {
+export const geoFallback = (lat: number, lng: number): string => {
   // === Western Hemisphere ===
   if (lng >= -35 && lng < -15 && lat > 5 && lat < 36) return 'Western African'; // Atlantic (Canary Is, Cabo Verde)
   if (lng < -15) return 'Americas';
@@ -136,26 +136,28 @@ const geoFallback = (lat, lng) => {
 /**
  * Fix swapped lat/lng values.
  * Latitude must be in [-90, 90]; if outside that range, swap with longitude.
- * @param {number|null} lat
- * @param {number|null} lng
- * @returns {{ lat: number|null, lng: number|null }}
  */
-function fixSwappedLatLng(lat, lng) {
+export function fixSwappedLatLng(
+  lat: number | null,
+  lng: number | null
+): { lat: number | null; lng: number | null } {
   if (lat !== null && lng !== null && (lat < -90 || lat > 90)) {
     return { lat: lng, lng: lat };
   }
   return { lat, lng };
 }
 
+export interface ResolvedRoute {
+  route: string;
+  wasFallback: boolean;
+  rawRoute: string | null;
+}
+
 /**
  * Resolve a raw IOM route name to a display category.
  * Returns { route, wasFallback, rawRoute } for unknown-route alerting.
- * @param {string|null} rawRoute
- * @param {number} lat
- * @param {number} lng
- * @returns {{ route: string, wasFallback: boolean, rawRoute: string|null }}
  */
-function resolveRoute(rawRoute, lat, lng) {
+export function resolveRoute(rawRoute: string | null, lat: number, lng: number): ResolvedRoute {
   if (!rawRoute || rawRoute.trim() === '') {
     return { route: geoFallback(lat, lng), wasFallback: true, rawRoute };
   }
@@ -169,21 +171,16 @@ function resolveRoute(rawRoute, lat, lng) {
 /**
  * Apply geographic bounds corrections.
  * Overrides source route when coordinates are clearly in the wrong region.
- * @param {string} route
- * @param {number} lat
- * @param {number} lng
- * @returns {string}
  */
-function applyGeoBoundsCorrections(route, lat, lng) {
+export function applyGeoBoundsCorrections(route: string, lat: number, lng: number): string {
   // Hard geographic limits — these always win regardless of source route
   if (lng > 70 && route !== 'South & East Asia' && route !== 'Americas') return 'South & East Asia';
   if (lng < -35 && route !== 'Americas') return 'Americas';
   if (lat > 55 && !['English Channel', 'Eastern Land Borders'].includes(route)) return geoFallback(lat, lng);
 
   // Route-specific geographic bounds — reroute if record is far from its assigned region
-  // Every route has a bounds check to catch IOM source data errors (fat-fingered coords)
   if (route === 'Central Mediterranean' && (lng > 21 || lng < -15 || lat < 5 || lat > 48)) return geoFallback(lat, lng);
-  if (route === 'Central Mediterranean' && lat < 10 && lng > 15) return geoFallback(lat, lng); // Equatorial Africa — not CM transit
+  if (route === 'Central Mediterranean' && lat < 10 && lng > 15) return geoFallback(lat, lng);
   if (route === 'Eastern Mediterranean' && (lng < 21 || lng > 45 || lat < 15 || lat > 45)) return geoFallback(lat, lng);
   if (route === 'Western Mediterranean' && (lng > 5 || lng < -25 || lat < 25 || lat > 48)) return geoFallback(lat, lng);
   if (route === 'English Channel' && (lng < -5 || lng > 10 || lat < 44 || lat > 55)) return geoFallback(lat, lng);
@@ -199,19 +196,30 @@ function applyGeoBoundsCorrections(route, lat, lng) {
   return route;
 }
 
+export interface NormalizedRow {
+  lat: number | null;
+  lng: number | null;
+  route?: string | null;
+  route_display_text?: string | null;
+  _wasFallback: boolean;
+  _rawRoute: string | null;
+  [key: string]: unknown;
+}
+
 /**
  * Full normalization pipeline for a single row.
  * Fixes swapped coords, resolves route, applies geographic bounds corrections.
  * Adds _wasFallback and _rawRoute tracking fields (strip before DB insert).
- * @param {Object} row
- * @returns {Object}
  */
-function normalizeRow(row) {
-  const { lat, lng } = fixSwappedLatLng(row.lat, row.lng);
+export function normalizeRow(row: Record<string, unknown>): NormalizedRow {
+  const { lat, lng } = fixSwappedLatLng(
+    row.lat as number | null,
+    row.lng as number | null
+  );
   if (lat === null || lng === null) {
-    return { ...row, lat, lng, _wasFallback: false, _rawRoute: row.route };
+    return { ...row, lat, lng, _wasFallback: false, _rawRoute: (row.route as string | null) ?? null };
   }
-  const resolved = resolveRoute(row.route, lat, lng);
+  const resolved = resolveRoute((row.route as string | null) ?? null, lat, lng);
   const corrected = applyGeoBoundsCorrections(resolved.route, lat, lng);
   return {
     ...row,
@@ -227,11 +235,9 @@ function normalizeRow(row) {
 /**
  * Remove duplicate rows by lat|lng|date|dead_and_missing composite key.
  * Keeps first occurrence.
- * @param {Array<Object>} rows
- * @returns {Array<Object>}
  */
-function deduplicateRows(rows) {
-  const seen = new Set();
+export function deduplicateRows(rows: Record<string, unknown>[]): Record<string, unknown>[] {
+  const seen = new Set<string>();
   return rows.filter(row => {
     const key = `${row.lat}|${row.lng}|${row.date}|${row.dead_and_missing}`;
     if (seen.has(key)) return false;
@@ -239,13 +245,3 @@ function deduplicateRows(rows) {
     return true;
   });
 }
-
-module.exports = {
-  normalizeRow,
-  deduplicateRows,
-  ROUTE_MAP,
-  geoFallback,
-  fixSwappedLatLng,
-  resolveRoute,
-  applyGeoBoundsCorrections,
-};

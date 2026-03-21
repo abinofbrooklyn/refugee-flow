@@ -15,14 +15,45 @@
  * Exports: validateRows, quarantineRows, SOURCE_CONFIG
  */
 
-const { applyGeoBoundsCorrections } = require('./iomNormalizer');
-const db = require('../database/connection');
+import { applyGeoBoundsCorrections } from './iomNormalizer';
+import db from '../database/connection';
+
+// ---------------------------------------------------------------------------
+// Types
+// ---------------------------------------------------------------------------
+
+export interface ValidationViolation {
+  rule: string;
+  expected: string;
+  found: string;
+  detail?: string;
+}
+
+export interface QuarantinedItem<T extends Record<string, unknown> = Record<string, unknown>> {
+  row: T;
+  violations: ValidationViolation[];
+}
+
+export interface ValidationResult<T extends Record<string, unknown> = Record<string, unknown>> {
+  clean: T[];
+  quarantined: QuarantinedItem<T>[];
+}
+
+interface SourceConfig {
+  hasGeo: boolean;
+  countField: string | null;
+  maxCount: number | null;
+  fatField: string | null;
+  maxFat: number | null;
+  dmField: string | null;
+  maxDm: number | null;
+}
 
 // ---------------------------------------------------------------------------
 // Source configuration: which rules to apply per data source
 // ---------------------------------------------------------------------------
 
-const SOURCE_CONFIG = {
+export const SOURCE_CONFIG: Record<string, SourceConfig> = {
   iom: {
     hasGeo: true,
     countField: null,
@@ -95,61 +126,63 @@ const SOURCE_CONFIG = {
 /**
  * Apply all validation rules to a single row.
  * Returns an array of violations (empty = row is clean).
- *
- * @param {string} source - Source key from SOURCE_CONFIG
- * @param {Object} row    - Transformed row object
- * @param {Object} config - SOURCE_CONFIG entry for this source
- * @param {Set}    acceptedIds - Set of string IDs pre-accepted in data_quarantine
- * @returns {Array<{rule: string, expected: string, found: string, detail?: string}>}
  */
-function runRules(source, row, config, acceptedIds) {
+function runRules(
+  source: string,
+  row: Record<string, unknown>,
+  config: SourceConfig,
+  acceptedIds: Set<string>
+): ValidationViolation[] {
   // Suppress known-accepted IOM records — pass them through without validation
   if (source === 'iom' && row.id && acceptedIds.has(String(row.id))) {
     return [];
   }
 
-  const violations = [];
+  const violations: ValidationViolation[] = [];
 
   // ---- Rules 1 + 2: Geo rules (IOM and ACLED only) ----
   if (config.hasGeo && row.lat != null && row.lng != null) {
+    const lat = row.lat as number;
+    const lng = row.lng as number;
+
     // Rule 2: Outlier coordinates — null island and out-of-range values
-    if (row.lat === 0 && row.lng === 0) {
+    if (lat === 0 && lng === 0) {
       violations.push({
         rule: 'outlier-coordinates',
         expected: 'non-null-island coordinates',
         found: 'lat=0, lng=0 (null island)',
         detail: 'Coordinates (0, 0) are the null island — not a valid incident location',
       });
-    } else if (row.lat === row.lng && row.lat !== 0) {
+    } else if (lat === lng && lat !== 0) {
       violations.push({
         rule: 'outlier-coordinates',
         expected: 'distinct lat and lng values',
-        found: `lat=${row.lat}, lng=${row.lng} (identical)`,
+        found: `lat=${lat}, lng=${lng} (identical)`,
         detail: 'Lat and lng are identical — likely a data entry error (value copied to both fields)',
       });
-    } else if (row.lat < -90 || row.lat > 90 || row.lng < -180 || row.lng > 180) {
+    } else if (lat < -90 || lat > 90 || lng < -180 || lng > 180) {
       violations.push({
         rule: 'outlier-coordinates',
         expected: 'lat in [-90,90], lng in [-180,180]',
-        found: `lat=${row.lat}, lng=${row.lng}`,
+        found: `lat=${lat}, lng=${lng}`,
         detail: 'Coordinates are outside the valid geographic range',
       });
     } else if (row.route) {
       // Rule 1: Geo-label mismatch — check whether bounds correction would reassign route
-      const corrected = applyGeoBoundsCorrections(row.route, row.lat, row.lng);
+      const corrected = applyGeoBoundsCorrections(row.route as string, lat, lng);
       if (corrected === 'UNRESOLVED') {
         violations.push({
           rule: 'geo-label-mismatch',
           expected: 'valid route',
-          found: row.route,
-          detail: `coordinates (${row.lat}, ${row.lng}) do not match any known migration route region`,
+          found: row.route as string,
+          detail: `coordinates (${lat}, ${lng}) do not match any known migration route region`,
         });
       } else if (corrected !== row.route) {
         violations.push({
           rule: 'geo-label-mismatch',
           expected: corrected,
-          found: row.route,
-          detail: `coordinates (${row.lat}, ${row.lng}) fall in ${corrected} region`,
+          found: row.route as string,
+          detail: `coordinates (${lat}, ${lng}) fall in ${corrected} region`,
         });
       }
     }
@@ -159,7 +192,7 @@ function runRules(source, row, config, acceptedIds) {
 
   // Count-based sources (CBP, Frontex, UK Channel, UNHCR, Eurostat)
   if (config.countField) {
-    const val = parseInt(row[config.countField], 10);
+    const val = parseInt(String(row[config.countField]), 10);
     if (!isNaN(val)) {
       if (val < 0) {
         violations.push({
@@ -181,7 +214,7 @@ function runRules(source, row, config, acceptedIds) {
 
   // ACLED fatalities field
   if (config.fatField && row[config.fatField] != null) {
-    const fat = parseInt(row[config.fatField], 10);
+    const fat = parseInt(String(row[config.fatField]), 10);
     if (!isNaN(fat)) {
       if (fat < 0) {
         violations.push({
@@ -203,7 +236,7 @@ function runRules(source, row, config, acceptedIds) {
 
   // IOM dead_and_missing field
   if (config.dmField && row[config.dmField] != null) {
-    const dm = parseInt(row[config.dmField], 10);
+    const dm = parseInt(String(row[config.dmField]), 10);
     if (!isNaN(dm)) {
       if (dm < 0) {
         violations.push({
@@ -236,15 +269,14 @@ function runRules(source, row, config, acceptedIds) {
  *
  * On any DB or unexpected error, returns all rows as clean (graceful fallback)
  * so the ingestion pipeline is never blocked by the validation layer.
- *
- * @param {string} source - One of the SOURCE_CONFIG keys
- * @param {Array}  rows   - Array of transformed row objects
- * @returns {Promise<{ clean: Array, quarantined: Array<{row, violations}> }>}
  */
-async function validateRows(source, rows) {
+export async function validateRows<T extends Record<string, unknown>>(
+  source: string,
+  rows: T[]
+): Promise<ValidationResult<T>> {
   try {
-    const config = SOURCE_CONFIG[source] || { hasGeo: false, countField: null };
-    const acceptedIds = new Set();
+    const config = SOURCE_CONFIG[source] || { hasGeo: false, countField: null, maxCount: null, fatField: null, maxFat: null, dmField: null, maxDm: null };
+    const acceptedIds = new Set<string>();
 
     // Load known-accepted IOM records to suppress them from re-flagging
     if (source === 'iom') {
@@ -264,15 +296,15 @@ async function validateRows(source, rows) {
         }
       } catch (dbErr) {
         // DB failure loading accepted IDs — log warning but continue with empty set
-        console.warn('[Validator] Could not load accepted IOM IDs, proceeding without suppression:', dbErr.message);
+        console.warn('[Validator] Could not load accepted IOM IDs, proceeding without suppression:', (dbErr as Error).message);
       }
     }
 
-    const clean = [];
-    const quarantined = [];
+    const clean: T[] = [];
+    const quarantined: QuarantinedItem<T>[] = [];
 
     for (const row of rows) {
-      const violations = runRules(source, row, config, acceptedIds);
+      const violations = runRules(source, row as Record<string, unknown>, config, acceptedIds);
       if (violations.length > 0) {
         quarantined.push({ row, violations });
       } else {
@@ -283,7 +315,7 @@ async function validateRows(source, rows) {
     return { clean, quarantined };
   } catch (err) {
     // Graceful fallback: validation failure must never block ingestion
-    console.error('[Validator] Unexpected error in validateRows, returning all rows as clean:', err.message);
+    console.error('[Validator] Unexpected error in validateRows, returning all rows as clean:', (err as Error).message);
     return { clean: rows, quarantined: [] };
   }
 }
@@ -294,12 +326,11 @@ async function validateRows(source, rows) {
 
 /**
  * Insert quarantined items into the data_quarantine table.
- *
- * @param {string} source           - Source key (e.g. 'iom', 'cbp')
- * @param {Array}  quarantinedItems - Array of { row, violations } from validateRows
- * @returns {Promise<void>}
  */
-async function quarantineRows(source, quarantinedItems) {
+export async function quarantineRows<T extends Record<string, unknown>>(
+  source: string,
+  quarantinedItems: QuarantinedItem<T>[]
+): Promise<void> {
   if (!quarantinedItems || quarantinedItems.length === 0) return;
 
   const rows = quarantinedItems.map(item => ({
@@ -313,5 +344,3 @@ async function quarantineRows(source, quarantinedItems) {
 
   await db('data_quarantine').insert(rows);
 }
-
-module.exports = { validateRows, quarantineRows, SOURCE_CONFIG };

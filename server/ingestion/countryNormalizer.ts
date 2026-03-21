@@ -9,7 +9,7 @@
  */
 
 // Variant name → canonical name mappings
-const CANONICAL_NAMES = {
+export const CANONICAL_NAMES: Record<string, string> = {
   'USA (EOIR)': 'United States',
   'USA (INS/DHS)': 'United States',
   'United States of America': 'United States',
@@ -30,10 +30,10 @@ const CANONICAL_NAMES = {
 /**
  * Normalize a country name to its canonical form.
  * Returns the input unchanged if no mapping exists (passthrough).
- * @param {string} name - Raw country name from data source
- * @returns {string} Canonical country name
+ * @param name - Raw country name from data source
+ * @returns Canonical country name
  */
-function normalizeCountryName(name) {
+export function normalizeCountryName(name: string): string {
   return CANONICAL_NAMES[name] || name;
 }
 
@@ -41,7 +41,7 @@ function normalizeCountryName(name) {
  * Set of 31 canonical EU/EEA destination country names.
  * Uses canonical forms (e.g. 'Czechia' not 'Czech Rep.').
  */
-const EU_DESTINATIONS = new Set([
+export const EU_DESTINATIONS = new Set<string>([
   'Austria', 'Belgium', 'Bulgaria', 'Croatia', 'Cyprus',
   'Czechia', 'Denmark', 'Estonia', 'Finland', 'France',
   'Germany', 'Greece', 'Hungary', 'Ireland', 'Italy',
@@ -51,5 +51,3 @@ const EU_DESTINATIONS = new Set([
   // EEA + associated
   'Iceland', 'Liechtenstein', 'Norway', 'Switzerland',
 ]);
-
-module.exports = { normalizeCountryName, CANONICAL_NAMES, EU_DESTINATIONS };

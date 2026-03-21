@@ -1,4 +1,4 @@
-const { sendIngestionAlert } = require('./alerter');
+import { sendIngestionAlert } from './alerter';
 
 const MAX_RETRIES = 3;
 const BASE_DELAY_MS = process.env.NODE_ENV === 'test' ? 0 : 30000;
@@ -7,22 +7,25 @@ const BASE_DELAY_MS = process.env.NODE_ENV === 'test' ? 0 : 30000;
  * Run an ingestion function with retry logic and alerting on final failure.
  * Exponential backoff: 30s, 60s, 120s between attempts (0 in test).
  *
- * @param {string} source - Source name (for logging and alerts)
- * @param {Function} fn - Async ingestion function to run
+ * @param source - Source name (for logging and alerts)
+ * @param fn - Async ingestion function to run
  */
-async function runWithRetry(source, fn) {
-  let lastError;
+export async function runWithRetry<T>(
+  source: string,
+  fn: () => Promise<T>
+): Promise<T | undefined> {
+  let lastError: Error | undefined;
 
   for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
     try {
-      await fn();
+      const result = await fn();
       if (attempt > 1) {
         console.log(`[${source}] Succeeded on attempt ${attempt}/${MAX_RETRIES}`);
       }
-      return; // success
+      return result;
     } catch (err) {
-      lastError = err;
-      console.error(`[${source}] Attempt ${attempt}/${MAX_RETRIES} failed:`, err.message);
+      lastError = err as Error;
+      console.error(`[${source}] Attempt ${attempt}/${MAX_RETRIES} failed:`, lastError.message);
 
       if (attempt < MAX_RETRIES) {
         const delay = BASE_DELAY_MS * Math.pow(2, attempt - 1);
@@ -34,7 +37,6 @@ async function runWithRetry(source, fn) {
 
   // All retries exhausted — send alert
   console.error(`[${source}] All ${MAX_RETRIES} attempts failed. Sending alert.`);
-  await sendIngestionAlert(source, lastError.message, MAX_RETRIES);
+  await sendIngestionAlert(source, lastError!.message, MAX_RETRIES);
+  return undefined;
 }
-
-module.exports = { runWithRetry };

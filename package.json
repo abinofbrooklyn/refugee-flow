@@ -78,6 +78,7 @@
     "@types/express": "^5.0.6",
     "@types/helmet": "^0.0.48",
     "@types/lodash": "^4.17.24",
+    "@types/mousetrap": "^1.6.15",
     "@types/node": "^25.5.0",
     "@types/pg": "^8.20.0",
     "@types/react": "^19.2.14",
