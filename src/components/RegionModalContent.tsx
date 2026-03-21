@@ -25,7 +25,7 @@ const SectionContainer = styled.div`
 `;
 
 interface FadeProps {
-  fade?: boolean;
+  $fade?: boolean;
 }
 
 const SectionItemWrapper = styled.div<FadeProps>`
@@ -47,7 +47,7 @@ const SectionItemWrapper = styled.div<FadeProps>`
     -webkit-border-radius: 4px;
   }
 
-  ${props => props.fade && css`
+  ${props => props.$fade && css`
     filter: brightness(0.3);
   `}
 `;
@@ -270,13 +270,13 @@ const RegionModalContent: React.FC<RegionModalContentProps> = ({ data, clickHand
   return (
     <RegionContainer>
       <SectionContainer>
-        <LoadingDivWrapper loading={loadingStatus} leftPercentage="50%" marginTop={-60}>
+        <LoadingDivWrapper $loading={loadingStatus} $leftPercentage="50%" $marginTop={-60}>
           <LoaderGraphWrapper>
             <ScaleLoader color="#ffffff" loading={loadingStatus} />
           </LoaderGraphWrapper>
           <LoadingIndicator>{loadingText}</LoadingIndicator>
         </LoadingDivWrapper>
-        <SectionItemWrapper className="sectionItemWrapper" fade={fadeOutModal}>
+        <SectionItemWrapper className="sectionItemWrapper" $fade={fadeOutModal}>
           {visualization(data)}
         </SectionItemWrapper>
       </SectionContainer>

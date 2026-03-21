@@ -1,25 +1,25 @@
 import styled, { css } from 'styled-components';
 
 interface LoadingDivWrapperProps {
-  leftPercentage?: string;
-  loading?: boolean;
-  marginTop?: number;
+  $leftPercentage?: string;
+  $loading?: boolean;
+  $marginTop?: number;
 }
 
 const LoadingDivWrapper = styled.div<LoadingDivWrapperProps>`
   position: absolute;
   top: 50%;
-  left: ${props => props.leftPercentage};
+  left: ${props => props.$leftPercentage};
   display: block;
   transform: translate(-50%,-50%);
   z-index: 10000000;
   width: 100px;
-  ${props => !props.loading && css`
+  ${props => !props.$loading && css`
     display: none;
   `}
 
-  ${props => props.marginTop && css`
-    margin-top: ${props.marginTop + 'px'};
+  ${props => props.$marginTop && css`
+    margin-top: ${props.$marginTop + 'px'};
   `}
 `
 const LoaderGraphWrapper = styled.div`
