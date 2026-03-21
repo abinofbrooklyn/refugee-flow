@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-stopped_at: Completed 07-06-PLAN.md (asylum application, region modal, Conflict, and entry point to TSX)
-last_updated: "2026-03-21T20:22:23.017Z"
+stopped_at: Completed 07-09-PLAN.md (ingestion pipeline TypeScript conversion)
+last_updated: "2026-03-21T20:38:16.399Z"
 progress:
   total_phases: 7
   completed_phases: 5
   total_plans: 37
-  completed_plans: 37
+  completed_plans: 38
 ---
 
 # Project State
@@ -75,6 +75,7 @@ Plan: 8 of 10
 | Phase 07-start-v2-typescript-migration P05 | 20 | 2 tasks | 20 files |
 | Phase 07-start-v2-typescript-migration P04 | 19 | 2 tasks | 23 files |
 | Phase 07-start-v2-typescript-migration P06 | 22 | 2 tasks | 11 files |
+| Phase 07-start-v2-typescript-migration P09 | 13 | 2 tasks | 14 files |
 
 ## Accumulated Context
 
@@ -148,6 +149,8 @@ Recent decisions affecting current work:
 - [Phase 07-start-v2-typescript-migration]: React.forwardRef + useImperativeHandle for AsyApplicationChart imperative D3 API
 - [Phase 07-start-v2-typescript-migration]: Upgrade react-redux 7.0.3 -> 7.2.9: hooks API required by types/redux.ts was missing in v7.0.3 ES module
 - [Phase 07-start-v2-typescript-migration]: Add src/types/assets.d.ts for declare module *.png/*.svg — fixes static asset TS2307 errors
+- [Phase 07-start-v2-typescript-migration]: Ingestion pipeline modules return Promise<IngestionResult> for uniform health reporting
+- [Phase 07-start-v2-typescript-migration]: Omit<RowType, 'pk'> pattern for pre-insert objects — pk is DB-generated serial not supplied by ingestion code
 
 ### Roadmap Evolution
 
@@ -163,6 +166,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-21T20:22:23.013Z
-Stopped at: Completed 07-06-PLAN.md (asylum application, region modal, Conflict, and entry point to TSX)
+Last session: 2026-03-21T20:38:16.395Z
+Stopped at: Completed 07-09-PLAN.md (ingestion pipeline TypeScript conversion)
 Resume file: None
