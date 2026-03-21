@@ -13,15 +13,15 @@ const HamburgerIcon = HamburgerIconRaw as unknown as React.FC<React.SVGProps<SVG
 */
 
 interface AnimationProps {
-  animation?: boolean;
+  $animation?: boolean;
 }
 
 interface VideoLoopProps {
-  videoLoop?: boolean;
+  $videoLoop?: boolean;
 }
 
 interface WikiProps {
-  wikiOn?: boolean;
+  $wikiOn?: boolean;
 }
 
 const Wrapper = styled.div<AnimationProps>`
@@ -42,8 +42,8 @@ const Wrapper = styled.div<AnimationProps>`
     position: fixed;
     z-index: 999;
     transition: top 1200ms, opacity 2500ms, filter 200ms;
-    top: ${props => (props.animation ? '9px' : '-300px')};
-    opacity: ${props => (props.animation ? 1 : 0)};
+    top: ${props => (props.$animation ? '9px' : '-300px')};
+    opacity: ${props => (props.$animation ? 1 : 0)};
     &:hover{
       filter:drop-shadow(0px 2px 8px #bebee4);
     }
@@ -54,11 +54,11 @@ const Wrapper = styled.div<AnimationProps>`
     font-family: 'Ubuntu';
     font-weight: 100;
     color: white;
-    opacity: ${props => (props.animation ? 0.4 : 0)};
+    opacity: ${props => (props.$animation ? 0.4 : 0)};
     transition: 2400ms all;
     font-size: 11px;
     position: relative;
-    left: ${props => (props.animation ? '20px' : '-20px')};
+    left: ${props => (props.$animation ? '20px' : '-20px')};
     bottom: 1px;
     width: 300px;
     word-spacing: 3px;
@@ -72,9 +72,9 @@ const Intro = styled.div<AnimationProps & VideoLoopProps & WikiProps>`
   font-family: 'Ubuntu',sans-serif;
   cursor: pointer;
   z-index: 1000;
-  top: ${props => props.animation?'14px':'-300px'};
-  opacity: ${props => props.animation?1:0};
-  ${props => !props.wikiOn
+  top: ${props => props.$animation?'14px':'-300px'};
+  opacity: ${props => props.$animation?1:0};
+  ${props => !props.$wikiOn
   ? css`
     transition: top 1200ms, opacity 2500ms, filter 1500ms, right 400ms;
     right: 50px;
@@ -90,8 +90,8 @@ const Intro = styled.div<AnimationProps & VideoLoopProps & WikiProps>`
   `}
 
   filter: ${props =>{
-    if(!props.wikiOn){
-      return props.videoLoop
+    if(!props.$wikiOn){
+      return props.$videoLoop
         ? 'drop-shadow(0px 2px 11px #ff8b38) contrast(700%)'
         : 'drop-shadow(0px 2px 30px #08081b)'
     }else{
@@ -104,7 +104,7 @@ const Intro = styled.div<AnimationProps & VideoLoopProps & WikiProps>`
     filter: drop-shadow(0px 2px 8px #bebee4);
   }
   &>svg{
-    ${props => !props.wikiOn
+    ${props => !props.$wikiOn
     ? css`
       top: -4px;
       left: 30px;
@@ -120,12 +120,12 @@ const Intro = styled.div<AnimationProps & VideoLoopProps & WikiProps>`
 `;
 const IntroPage = styled.div<WikiProps>`
   width: 100%;
-  transform: ${props => props.wikiOn ? 'translateX(0%)' : 'translateX(100%)'};
+  transform: ${props => props.$wikiOn ? 'translateX(0%)' : 'translateX(100%)'};
   height: 100%;
   bottom: 0;
   right: 0;
   z-index: 998;
-  opacity: ${props => props.wikiOn ? '0.98' : '0'};
+  opacity: ${props => props.$wikiOn ? '0.98' : '0'};
   transition: transform cubic-bezier(0.73, 0.02, 0.58, 0.78) 400ms, opacity 400ms, background 1600ms;
   position: absolute;
   background: rgba(30, 30, 47, 0.98);
@@ -153,7 +153,7 @@ const IntroWrapper = styled.div<WikiProps>`
   float: left;
   margin: 0px 5%;
   overflow-y: hidden;
-  opacity: ${props => props.wikiOn ? '0.98' : '0'};
+  opacity: ${props => props.$wikiOn ? '0.98' : '0'};
   transition: opacity cubic-bezier(0.96, 0.03, 0.4, 1.3) 2000ms;
   &::after{
     content: '';
@@ -232,8 +232,8 @@ const Quote = styled.p<AnimationProps & VideoLoopProps>`
   font-family: 'Playfair Display', serif;
   width: 60%;
   text-align: justify;
-  top: ${props => props.animation?'40%':'37%'};
-  opacity: ${props => props.animation?1:0};
+  top: ${props => props.$animation?'40%':'37%'};
+  opacity: ${props => props.$animation?1:0};
   left: 50%;
   transform: translate(-50%,-50%);
   font-size: 30px;
@@ -252,14 +252,14 @@ const Quote = styled.p<AnimationProps & VideoLoopProps>`
     letter-spacing: 0.5px;
     color: #ffffff;
     left: 0;
-    bottom: ${props => props.animation?'-50px':'-150px'};
-    opacity: ${props => props.animation?1:0};
+    bottom: ${props => props.$animation?'-50px':'-150px'};
+    opacity: ${props => props.$animation?1:0};
     transition: bottom 2100ms,opacity 4300ms;
   }
 
   &>i{
     filter: ${props =>
-      props.videoLoop
+      props.$videoLoop
         ? 'blur('+ Math.abs(d3.randomNormal(0,1)()) +'px'+')'
         : 'blur(' + Math.abs(d3.randomNormal(0,1)()) + 'px'+ ')'
     };
@@ -267,7 +267,7 @@ const Quote = styled.p<AnimationProps & VideoLoopProps>`
     color:
     ${props =>{
       const colorArr = ['pink','#cf2d13','#424866','#42664bb0']
-      if(props.videoLoop){
+      if(props.$videoLoop){
         const index = Math.floor(Math.random()*3);
         return colorArr[index];
       }else{
@@ -287,8 +287,8 @@ const Video = styled.video<AnimationProps & VideoLoopProps>`
     width: 100%;
     background-size: cover;
     transition: opacity 5500ms, filter 1550ms;
-    opacity: ${props => (props.animation ? 1 : 0)};
-    filter: ${props => props.videoLoop
+    opacity: ${props => (props.$animation ? 1 : 0)};
+    filter: ${props => props.$videoLoop
       ? 'blur('+ Math.abs(d3.randomNormal(0,10)()) +'px'+') hue-rotate(0deg) contrast(1.2) saturate(0.8) brightness(0.5)'
       : 'blur(' + Math.abs(d3.randomNormal(0,10)()) + 'px'+ ') hue-rotate(0deg) contrast(1.2) saturate('+d3.randomUniform(1, 2.5)()+') brightness('+d3.randomUniform(0.4, 1.2)()+')'
     };
@@ -325,8 +325,8 @@ const Launch = styled.a<AnimationProps>`
   z-index: 100;
   position: absolute;
   left: 50%;
-  bottom: ${props => props.animation?'70px':'200px'};
-  opacity: ${props => props.animation?1:0};
+  bottom: ${props => props.$animation?'70px':'200px'};
+  opacity: ${props => props.$animation?1:0};
   transition: background 2000ms, bottom 3000ms,opacity cubic-bezier(1, 0.03, 0.48, 1.01) 3500ms;
   transform: translateX(-50%);
   font-family: 'Ubuntu';
@@ -361,20 +361,20 @@ const DesktopLanding: React.FC = () => {
   }, []);
 
   return (
-    <Wrapper animation={animation}>
+    <Wrapper $animation={animation}>
       <Link to="/">Refugee Flow</Link>
       <Intro
-        videoLoop={videoLoop}
-        wikiOn={wikiOn}
-        animation={animation}
+        $videoLoop={videoLoop}
+        $wikiOn={wikiOn}
+        $animation={animation}
         onClick={() => setWikiOn(prev => !prev)}
       >
         INFO
         <HamburgerIcon />
       </Intro>
-      <IntroPage wikiOn={wikiOn}>
+      <IntroPage $wikiOn={wikiOn}>
         <Exit onClick={() => setWikiOn(prev => !prev)}>x</Exit>
-        <IntroWrapper wikiOn={wikiOn}>
+        <IntroWrapper $wikiOn={wikiOn}>
           <Introtitle>Introduction</Introtitle>
           <IntroInnerWrapper>
             <IntroParagraph>
@@ -401,7 +401,7 @@ const DesktopLanding: React.FC = () => {
           </IntroInnerWrapper>
         </IntroWrapper>
 
-        <IntroWrapper wikiOn={wikiOn}>
+        <IntroWrapper $wikiOn={wikiOn}>
           <Introtitle>The Approach</Introtitle>
           <IntroInnerWrapper>
             <IntroParagraph>
@@ -430,15 +430,15 @@ const DesktopLanding: React.FC = () => {
       <div id="video">
         <BoxShadow />
         <Section>
-          <Video animation={animation} videoLoop={videoLoop} autoPlay muted loop style={{ backgroundVideo: 'url(assets/img/hero.jpg)' } as React.CSSProperties}>
+          <Video $animation={animation} $videoLoop={videoLoop} autoPlay muted loop style={{ backgroundVideo: 'url(assets/img/hero.jpg)' } as React.CSSProperties}>
             <source src="https://player.vimeo.com/external/278983563.hd.mp4?s=df2675a8395d48ad7b455f155ae148361121b298&profile_id=175" />
           </Video>
-          <Quote videoLoop={videoLoop} animation={animation}>
+          <Quote $videoLoop={videoLoop} $animation={animation}>
             "At <i>sea</i>, a frightening number of refugees and migrants are dying each year. On <i>land</i>, people fleeing war are finding their way blocked by closed <i>borders</i>. Closing borders does not solve the problem"
           </Quote>
         </Section>
       </div>
-      <Launch animation={animation} href="/conflict">Launch Visualization</Launch>
+      <Launch $animation={animation} href="/conflict">Launch Visualization</Launch>
     </Wrapper>
   );
 };
