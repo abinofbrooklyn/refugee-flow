@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-stopped_at: Phase 7 UI-SPEC approved
-last_updated: "2026-03-21T18:47:47.382Z"
+stopped_at: Completed 07-01-PLAN.md (TypeScript toolchain setup)
+last_updated: "2026-03-21T19:46:46.759Z"
 progress:
   total_phases: 7
   completed_phases: 5
-  total_plans: 27
-  completed_plans: 30
+  total_plans: 37
+  completed_plans: 31
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-11)
 
 **Core value:** Users can explore the human cost of conflict through an interactive, data-accurate visualization.
-**Current focus:** Phase 04 — data-ingestion-pipeline (Plan 07 blocked on ACLED API access)
+**Current focus:** Phase 07 — start-v2-typescript-migration
 
 ## Current Position
 
-Phase: 04 (data-ingestion-pipeline) — BLOCKED
-Plan: 7 of 14 (ACLED normalization — waiting on API access)
+Phase: 07 (start-v2-typescript-migration) — EXECUTING
+Plan: 1 of 10
 
 ## Performance Metrics
 
@@ -68,6 +68,7 @@ Plan: 7 of 14 (ACLED normalization — waiting on API access)
 | Phase 06-react-router-v6-migration P02 | 2 | 2 tasks | 3 files |
 | Phase 04 P15 | 219 | 1 tasks | 4 files |
 | Phase 04 P16 | 4 | 2 tasks | 10 files |
+| Phase 07-start-v2-typescript-migration P01 | 4 | 2 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -123,6 +124,9 @@ Recent decisions affecting current work:
 - [Phase 04]: Validator graceful fallback: DB failure never blocks ingestion, all rows pass through as clean
 - [Phase 04]: quarantineCount returned from ingestCbpData/ingestUkChannelData since validation is inside combined transform+upsert function
 - [Phase 04]: ACLED cleanNoteRows filtered by clean war event IDs to keep war_notes sync with quarantined war_events
+- [Phase 07-start-v2-typescript-migration]: Derive RootState/AppDispatch from store instance (ReturnType<typeof store.getState>) — store.js uses default export, named imports caused tsc errors before Plan 02 conversion
+- [Phase 07-start-v2-typescript-migration]: ts-jest + babel-jest coexist in transforms for incremental migration: .ts/.tsx via ts-jest, .js/.jsx via babel-jest
+- [Phase 07-start-v2-typescript-migration]: jest-environment-jsdom explicitly installed — Jest 28+ removed from default bundle, required by client test project
 
 ### Roadmap Evolution
 
@@ -138,6 +142,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-21T18:47:47.378Z
-Stopped at: Phase 7 UI-SPEC approved
-Resume file: .planning/phases/07-start-v2-typescript-migration/07-UI-SPEC.md
+Last session: 2026-03-21T19:46:46.755Z
+Stopped at: Completed 07-01-PLAN.md (TypeScript toolchain setup)
+Resume file: None
