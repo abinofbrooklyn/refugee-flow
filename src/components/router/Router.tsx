@@ -6,16 +6,14 @@ import LandingResolver from './LandingResolver';
 
 import routeRegistry from './config/routeRegistry';
 
-function NavbarLayout() {
-  return (
-    <>
-      <Navbar />
-      <Outlet />
-    </>
-  );
-}
+const NavbarLayout: React.FC = () => (
+  <>
+    <Navbar />
+    <Outlet />
+  </>
+);
 
-const Router = () => (
+const Router: React.FC = () => (
   <BrowserRouter>
     <Routes>
       <Route element={<NavbarLayout />}>
@@ -23,7 +21,7 @@ const Router = () => (
           <Route key={r.path} path={r.path} element={r.element} />
         ))}
       </Route>
-      <Route path="/landing" element={routeRegistry.find(r => r.path === '/landing').element} />
+      <Route path="/landing" element={routeRegistry.find(r => r.path === '/landing')!.element} />
       <Route path="*" element={<Navigate to="/landing" replace />} />
     </Routes>
   </BrowserRouter>
