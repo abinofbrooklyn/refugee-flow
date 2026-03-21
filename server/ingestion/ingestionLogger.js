@@ -1,6 +1,6 @@
 const db = require('../database/connection');
 
-async function logIngestion({ source, status, rowsAffected = 0, errorMessage = null, startedAt }) {
+async function logIngestion({ source, status, rowsAffected = 0, errorMessage = null, startedAt, quarantineCount = 0 }) {
   await db('ingestion_log').insert({
     source,
     status,
@@ -8,6 +8,7 @@ async function logIngestion({ source, status, rowsAffected = 0, errorMessage = n
     error_message: errorMessage,
     started_at: startedAt.toISOString(),
     completed_at: new Date().toISOString(),
+    quarantine_count: quarantineCount,
   });
 }
 
