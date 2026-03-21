@@ -1,10 +1,28 @@
-const { Resend } = require('resend');
+import { Resend } from 'resend';
 
 const ALERT_EMAIL = 'abin.abraham4@gmail.com';
 const FROM_EMAIL = 'onboarding@resend.dev';
 
+interface SourceInfo {
+  name: string;
+  url?: string;
+  dataType?: string;
+  commonCauses?: string[];
+  fixes?: string[];
+}
+
+interface QuarantinedItem {
+  row: Record<string, unknown>;
+  violations: Array<{
+    rule: string;
+    expected: string;
+    found: string;
+    detail?: string;
+  }>;
+}
+
 // Source descriptions for diagnostic context
-const SOURCE_INFO = {
+const SOURCE_INFO: Record<string, SourceInfo> = {
   acled: {
     name: 'ACLED (War/Conflict)',
     url: 'https://acleddata.com',
@@ -114,14 +132,14 @@ const SOURCE_INFO = {
 /**
  * Send an alert email when an ingestion pipeline fails after all retries.
  */
-async function sendIngestionAlert(source, errorMessage, attemptCount) {
+export async function sendIngestionAlert(source: string, errorMessage: string, attemptCount: number): Promise<void> {
   const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey) {
     console.error('[Alert] RESEND_API_KEY not set — cannot send failure alert for', source);
     return;
   }
 
-  const info = SOURCE_INFO[source] || { name: source, commonCauses: [], fixes: [] };
+  const info: SourceInfo = SOURCE_INFO[source] || { name: source, commonCauses: [], fixes: [] };
   const timestamp = new Date().toISOString();
 
   const html = `
@@ -160,11 +178,11 @@ async function sendIngestionAlert(source, errorMessage, attemptCount) {
     });
     console.log(`[Alert] Failure email sent for ${source}`);
   } catch (err) {
-    console.error(`[Alert] Failed to send email for ${source}:`, err.message);
+    console.error(`[Alert] Failed to send email for ${source}:`, (err as Error).message);
   }
 }
 
-async function sendQuarantineAlert(source, quarantinedItems) {
+export async function sendQuarantineAlert(source: string, quarantinedItems: QuarantinedItem[]): Promise<void> {
   if (!quarantinedItems.length) return;
   const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey) {
@@ -172,7 +190,7 @@ async function sendQuarantineAlert(source, quarantinedItems) {
     return;
   }
 
-  const info = SOURCE_INFO[source] || { name: source };
+  const info: SourceInfo = SOURCE_INFO[source] || { name: source };
   const rowsHtml = quarantinedItems.map(item => `
     <tr>
       <td>${item.violations.map(v => v.rule).join(', ')}</td>
@@ -204,8 +222,6 @@ async function sendQuarantineAlert(source, quarantinedItems) {
     });
     console.log(`[Alert] Quarantine email sent for ${source} (${quarantinedItems.length} rows)`);
   } catch (err) {
-    console.error(`[Alert] Failed to send quarantine email for ${source}:`, err.message);
+    console.error(`[Alert] Failed to send quarantine email for ${source}:`, (err as Error).message);
   }
 }
-
-module.exports = { sendIngestionAlert, sendQuarantineAlert };
