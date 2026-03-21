@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-stopped_at: Completed 07-03-PLAN.md (utilities, data dictionaries, and vendored THREE.js scripts to TypeScript)
-last_updated: "2026-03-21T19:54:52.000Z"
+stopped_at: Completed 07-05-PLAN.md (RefugeeRoute component family to TSX functional components)
+last_updated: "2026-03-21T20:18:04.563Z"
 progress:
   total_phases: 7
   completed_phases: 5
   total_plans: 37
-  completed_plans: 33
+  completed_plans: 35
 ---
 
 # Project State
@@ -24,7 +24,7 @@ See: .planning/PROJECT.md (updated 2026-03-11)
 ## Current Position
 
 Phase: 07 (start-v2-typescript-migration) — EXECUTING
-Plan: 3 of 10
+Plan: 8 of 10
 
 ## Performance Metrics
 
@@ -71,6 +71,8 @@ Plan: 3 of 10
 | Phase 07-start-v2-typescript-migration P01 | 4 | 2 tasks | 7 files |
 | Phase 07-start-v2-typescript-migration P02 | 4 | 2 tasks | 12 files |
 | Phase 07-start-v2-typescript-migration P03 | 6 | 2 tasks | 8 files |
+| Phase 07-start-v2-typescript-migration P08 | 12 | 2 tasks | 11 files |
+| Phase 07-start-v2-typescript-migration P05 | 20 | 2 tasks | 20 files |
 
 ## Accumulated Context
 
@@ -132,6 +134,12 @@ Recent decisions affecting current work:
 - [Phase 07-start-v2-typescript-migration]: Cast window as any for Redux DevTools extension in store.ts — @ts-expect-error insufficient for multi-line ternary
 - [Phase 07-start-v2-typescript-migration]: CrossingCountByCountry type corrected to RouteCrossingCount[] — IBC_crossingCountByCountry.json is an array of route objects, not a string-keyed number map
 - [Phase 07-start-v2-typescript-migration]: Octree.ts created as typed stub — Octree.js never existed; disabled per browser crash issue with large BufferGeometry
+- [Phase 07-start-v2-typescript-migration]: Use export = pattern for CommonJS-interop TypeScript files (connection.ts, server.ts) — JS test files use require() via babel-jest, not ts-jest, so esModuleInterop doesn't apply; export = compiles to module.exports = x
+- [Phase 07-start-v2-typescript-migration]: WarNoteRow.id is string (text) after migration 002 — findWarNote converts numeric query param to String() before where clause
+- [Phase 07-start-v2-typescript-migration]: tsx installed as dev runtime transpiler for nodemon; noEmit tsconfig means no compiled output
+- [Phase 07-start-v2-typescript-migration]: D3 v5 mouse API preserved via (d3 as any).mouse(this) — project uses D3 v5.16.0 which has d3.mouse() removed from TypeScript types but present at runtime
+- [Phase 07-start-v2-typescript-migration]: MapLibre NavigationControl({}) — constructor requires NavigationOptions object; empty object equivalent to no-arg call
+- [Phase 07-start-v2-typescript-migration]: Mutable map instance variables migrated to useRef in RefugeeRoute_map — avoids stale closure issues while preserving direct mutation semantics for canvas rendering
 
 ### Roadmap Evolution
 
@@ -147,6 +155,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-21T19:54:52.000Z
-Stopped at: Completed 07-03-PLAN.md (utilities, data dictionaries, and vendored THREE.js scripts to TypeScript)
+Last session: 2026-03-21T20:18:04.560Z
+Stopped at: Completed 07-05-PLAN.md (RefugeeRoute component family to TSX functional components)
 Resume file: None
