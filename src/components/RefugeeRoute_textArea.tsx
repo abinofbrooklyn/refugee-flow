@@ -82,17 +82,17 @@ const TabWrapper = styled.div`
   left: 41%;
   transform: translateX(-50%);
 `;
-const TabItem = styled.div<{ tabIndex: number; currentTab: number; clickedPointRemoved?: boolean }>`
+const TabItem = styled.div<{ $tabIndex: number; $currentTab: number; $clickedPointRemoved?: boolean }>`
   height: 100%;
-  background: ${props => props.tabIndex === props.currentTab? '#2D2D3F' : '#2d2d3f00'};
+  background: ${props => props.$tabIndex === props.$currentTab? '#2D2D3F' : '#2d2d3f00'};
   position: relative;
   float: left;
   width: 30%;
   margin: 0 5px;
   text-align: center;
-  cursor: ${props => props.tabIndex === 3 ? 'default':'pointer'};
+  cursor: ${props => props.$tabIndex === 3 ? 'default':'pointer'};
   opacity: ${props => {
-    if(props.clickedPointRemoved && props.tabIndex === 3){
+    if(props.$clickedPointRemoved && props.$tabIndex === 3){
       return 0
     }else{
       return 1
@@ -103,8 +103,8 @@ const TabItem = styled.div<{ tabIndex: number; currentTab: number; clickedPointR
   &::before{
     content: '';
     transition: all 400ms;
-    width: ${props => props.tabIndex === props.currentTab? '98%' : '0%'};
-    ${props => props.tabIndex === props.currentTab && css`
+    width: ${props => props.$tabIndex === props.$currentTab? '98%' : '0%'};
+    ${props => props.$tabIndex === props.$currentTab && css`
       position: absolute;
       height: 4px;
       border-radius: 1px;
@@ -178,15 +178,15 @@ const RefugeeRoute_textArea: React.FC<Props> = ({
       <CollapseButton onClick={onCollapseToggle}><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path d="M190.4 354.1L91.9 256l98.4-98.1-30-29.9L32 256l128.4 128 30-29.9zm131.2 0L420 256l-98.4-98.1 30-29.9L480 256 351.6 384l-30-29.9z"/></svg></CollapseButton>
       {/* tab nav */}
       <TabWrapper>
-        <TabItem onClick={() => handleTabClick(1)} tabIndex={1} currentTab={currentTab}><TabText>Basic Info</TabText></TabItem>
+        <TabItem onClick={() => handleTabClick(1)} $tabIndex={1} $currentTab={currentTab}><TabText>Basic Info</TabText></TabItem>
         {ibcKey && route_IBC[ibcKey] && (
-          <TabItem onClick={() => handleTabClick(2)} tabIndex={2} currentTab={currentTab}><TabText>IBC Involved Country</TabText></TabItem>
+          <TabItem onClick={() => handleTabClick(2)} $tabIndex={2} $currentTab={currentTab}><TabText>IBC Involved Country</TabText></TabItem>
         )}
         <TabItem
           onClick={() => !clickedPointRemoved && selected_data && handleTabClick(3)}
-          tabIndex={3}
-          clickedPointRemoved={clickedPointRemoved}
-          currentTab={currentTab}
+          $tabIndex={3}
+          $clickedPointRemoved={clickedPointRemoved}
+          $currentTab={currentTab}
         ><TabText>Current Select Point</TabText></TabItem>
       </TabWrapper>
       <RefugeeRoute_textArea_contentManager

@@ -23,8 +23,8 @@ interface GlobeStatsBoardProps {
 
 const container_width = (window.innerWidth * 0.75) - 165 - 90;
 
-const BoardWrapper = styled.div<{ container_width: number }>`
-  width: ${props => props.container_width + 'px'};
+const BoardWrapper = styled.div<{ $container_width: number }>`
+  width: ${props => props.$container_width + 'px'};
   height: 40px;
   position: absolute;
   bottom: 50px;
@@ -32,12 +32,12 @@ const BoardWrapper = styled.div<{ container_width: number }>`
 `;
 
 const BoardItem = styled.div<{
-  _width: number;
-  _margin_end: number;
-  container_width: number;
-  order: number;
+  $_width: number;
+  $_margin_end: number;
+  $container_width: number;
+  $order: number;
 }>`
-  width: ${props => props._width + 'px'};
+  width: ${props => props.$_width + 'px'};
   height: 40px;
   background: #2f2f4ab3;
   border-radius: 4px;
@@ -45,16 +45,16 @@ const BoardItem = styled.div<{
   float: left;
   transition: all 300ms;
 
-  ${props => props.order === 0 && css`
-    margin-left: ${props._margin_end + 'px'};
+  ${props => props.$order === 0 && css`
+    margin-left: ${props.$_margin_end + 'px'};
   `}
 
-  ${props => props.order === 1 && css`
-    margin: ${'0 ' + ((props.container_width - (props._width * 3 + props._margin_end * 2)) / 2 + 'px')};
+  ${props => props.$order === 1 && css`
+    margin: ${'0 ' + ((props.$container_width - (props.$_width * 3 + props.$_margin_end * 2)) / 2 + 'px')};
   `}
 
-  ${props => props.order === 2 && css`
-    margin-right: ${props._margin_end + 'px'};
+  ${props => props.$order === 2 && css`
+    margin-right: ${props.$_margin_end + 'px'};
   `}
 
   &:hover{
@@ -116,10 +116,10 @@ const GlobeStatsBoard: React.FC<GlobeStatsBoardProps> = ({ data }) => {
     return keys.map((key, i) => (
       <BoardItem
         key={key}
-        order={i}
-        _width={container_width / 4}
-        _margin_end={container_width / 20}
-        container_width={container_width}
+        $order={i}
+        $_width={container_width / 4}
+        $_margin_end={container_width / 20}
+        $container_width={container_width}
         // name and fontSize as data attributes to avoid styled-components warning;
         // kept as extra props to preserve original pattern
         // @ts-expect-error -- styled-components transient prop pattern; extra props ignored by DOM
@@ -141,7 +141,7 @@ const GlobeStatsBoard: React.FC<GlobeStatsBoardProps> = ({ data }) => {
   }
 
   return (
-    <BoardWrapper container_width={container_width}>
+    <BoardWrapper $container_width={container_width}>
       {data ? drawBoard(data as StatsData) : null}
     </BoardWrapper>
   );
