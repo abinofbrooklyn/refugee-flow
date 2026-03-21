@@ -91,7 +91,8 @@ const geoFallback = (lat, lng) => {
   if (lat > 40 && lng >= -10 && lng <= 5) return 'Western Mediterranean';
   if (lat > 40 && lng > 5 && lng <= 10) return 'Western Mediterranean'; // Italy/France/Switzerland
   if (lat > 40 && lat <= 50 && lng > 10 && lng <= 30) return 'Western Balkans';
-  if (lat > 50 && lat <= 55 && lng > 10 && lng <= 30) return 'Eastern Land Borders'; // Poland, Germany, Czechia
+  if (lat > 50 && lat <= 55 && lng > 10 && lng <= 20) return 'Western Balkans'; // Germany, Czechia, Austria — WB destination
+  if (lat > 50 && lat <= 55 && lng > 20 && lng <= 30) return 'Eastern Land Borders'; // Poland, Belarus border
   if (lat > 45 && lat <= 55 && lng > 30 && lng <= 35) return 'Eastern Land Borders'; // Ukraine
   if (lat > 40 && lat <= 45 && lng > 30 && lng <= 35) return 'Eastern Mediterranean'; // Black Sea coast Turkey
   if (lat > 40 && lat <= 45 && lng > 35 && lng <= 45) return 'Eastern Mediterranean'; // eastern Turkey, Caucasus transit
@@ -185,7 +186,7 @@ function applyGeoBoundsCorrections(route, lat, lng) {
   if (route === 'Western Mediterranean' && (lng > 15 || lng < -25 || lat < 25 || lat > 48)) return geoFallback(lat, lng);
   if (route === 'English Channel' && (lng < -10 || lng > 10 || lat < 48 || lat > 60)) return geoFallback(lat, lng);
   if (route === 'Western Balkans' && (lng < 10 || lng > 35 || lat > 50 || lat < 35)) return geoFallback(lat, lng);
-  if (route === 'Eastern Land Borders' && (lng > 40 || lng < 10 || lat < 45 || lat > 70)) return geoFallback(lat, lng);
+  if (route === 'Eastern Land Borders' && (lng > 35 || lng < 20 || lat < 45 || lat > 70)) return geoFallback(lat, lng);
   if (route === 'Western African' && (lng > 15 || lng < -35 || lat < -17 || lat > 28)) return geoFallback(lat, lng);
   if (route === 'East & Southern Africa' && (lat > 15 || lng < 15 || lng > 55)) return geoFallback(lat, lng);
   if (route === 'Horn of Africa' && (lng < 30 || lng > 55 || lat < -5 || lat > 30 || (lat > 20 && lng > 48))) return geoFallback(lat, lng);
