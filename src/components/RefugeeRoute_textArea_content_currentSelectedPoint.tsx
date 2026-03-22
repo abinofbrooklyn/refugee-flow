@@ -358,7 +358,7 @@ const RefugeeRoute_textArea_content_currentSelectedPoint: React.FC<Props> = ({ s
           </g>
           </svg></DataSource>
         <DateStyled>{parsedPoint && moment(parsedPoint.date as string).format('dddd, MMM Do, YYYY')}</DateStyled>
-        <UrlLink onClick={() => window.open(parsedPoint?.source_url, '_blank')}>
+        <UrlLink onClick={() => parsedPoint?.source_url && window.open(parsedPoint.source_url, '_blank')}>
           <svg x="0px" y="0px" width="21.258px" height="21.272px" viewBox="0 0 21.258 21.272">
           <g>
           	<path d="M0,16.316c0.009-0.131,0.016-0.263,0.026-0.394c0.051-0.631,0.217-1.233,0.482-1.807
@@ -410,7 +410,7 @@ const RefugeeRoute_textArea_content_currentSelectedPoint: React.FC<Props> = ({ s
           <MediaSectionWrapper>
             <MediaCoverage>Media coverage</MediaCoverage>
             <MediaCoverageDesc><em>"</em>{parsedPoint.description as string}<em>"</em></MediaCoverageDesc>
-            <Source onClick={() => window.open(parsedPoint.source_url, '_blank')}>Source: <em>{parsedPoint.source as string}</em></Source>
+            <Source onClick={() => parsedPoint.source_url && window.open(parsedPoint.source_url, '_blank')}>Source: <em>{parsedPoint.source as string}</em></Source>
           </MediaSectionWrapper>
         </>
       )}
