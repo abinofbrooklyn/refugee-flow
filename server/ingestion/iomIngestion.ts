@@ -1,8 +1,7 @@
 import { parse } from 'csv-parse/sync';
 import db from '../database/connection';
 import { logIngestion } from './ingestionLogger';
-import { reduceGeoPercision } from '../controllers/api/data/helpers/dataProcessors';
-import { normalizeRow, deduplicateRows } from './iomNormalizer';
+import { normalizeRow } from './iomNormalizer';
 import { validateRows, quarantineRows } from './validator';
 import { sendQuarantineAlert } from './alerter';
 import { IngestionResult } from '../types/ingestion';
@@ -39,10 +38,7 @@ export function parseCoordinates(coordStr: string | null | undefined): { lat: nu
   const lat = parseFloat(parts[0].trim());
   const lng = parseFloat(parts[1].trim());
   if (isNaN(lat) || isNaN(lng)) return { lat: null, lng: null };
-  return {
-    lat: reduceGeoPercision(lat, 2),
-    lng: reduceGeoPercision(lng, 2),
-  };
+  return { lat, lng };
 }
 
 /**
@@ -93,8 +89,8 @@ export function transformIomRows(csvRows: IomCsvRow[]): RouteDeathRow[] {
   // Strip internal tracking flags before returning DB-ready rows
   const cleaned = normalized.map(({ _wasFallback, _rawRoute, ...rest }) => rest as Record<string, unknown>);
 
-  // Deduplicate by lat|lng|date|dead_and_missing composite key
-  return deduplicateRows(cleaned) as unknown as RouteDeathRow[];
+  // No dedup — DB unique ID constraint (onConflict('id').ignore()) handles true duplicates
+  return cleaned as unknown as RouteDeathRow[];
 }
 
 /**

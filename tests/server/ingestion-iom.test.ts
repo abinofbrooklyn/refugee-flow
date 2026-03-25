@@ -31,10 +31,22 @@ beforeEach(() => {
 // --- parseCoordinates ---
 
 describe('parseCoordinates()', () => {
-  test('Test 1: "35.12, 14.52" returns { lat: 35.12, lng: 14.52 } with precision reduction', () => {
+  test('Test 1: "35.12, 14.52" returns { lat: 35.12, lng: 14.52 }', () => {
     const result = parseCoordinates('35.12, 14.52');
     expect(result.lat).toBe(35.12);
     expect(result.lng).toBe(14.52);
+  });
+
+  test('preserves full precision coordinates (no rounding to 2 decimal places)', () => {
+    const result = parseCoordinates('31.650259, -110.366455');
+    expect(result.lat).toBe(31.650259);
+    expect(result.lng).toBe(-110.366455);
+  });
+
+  test('preserves 6+ decimal places', () => {
+    const result = parseCoordinates('35.123456, 14.654321');
+    expect(result.lat).toBe(35.123456);
+    expect(result.lng).toBe(14.654321);
   });
 
   test('Test 2: empty string returns { lat: null, lng: null }', () => {
@@ -101,11 +113,23 @@ describe('transformIomRows()', () => {
     expect(row.source_url).toBe('https://example.com/incident/12345');
   });
 
-  test('Test 7: splits Coordinates and applies reduceGeoPercision', () => {
+  test('Test 7: splits Coordinates and preserves full precision', () => {
     const result = transformIomRows(sampleRows);
     const row = result[0];
     expect(row.lat).toBe(32.88);
     expect(row.lng).toBe(13.17);
+  });
+
+  test('does not deduplicate rows — DB handles dedup via unique ID', () => {
+    // Two rows at same coords but different IDs should both be kept
+    const dupeRows: typeof sampleRows = [
+      { ...sampleRows[0], 'Main ID': '11111' },
+      { ...sampleRows[0], 'Main ID': '22222' },
+    ];
+    const result = transformIomRows(dupeRows);
+    expect(result.length).toBe(2);
+    expect(result[0].id).toBe('11111');
+    expect(result[1].id).toBe('22222');
   });
 });
 
