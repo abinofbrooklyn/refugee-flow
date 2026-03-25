@@ -40,13 +40,13 @@ describe('Seed data integrity', () => {
     });
   });
 
-  test('route_deaths lat values are precision-reduced to 2 decimal places', async () => {
-    const rows = await db('route_deaths').select('lat').whereNotNull('lat').limit(500);
-    rows.forEach((row: { lat: number }) => {
-      // float8 can produce extra digits (e.g., 35.29 → 35.290000000000001)
-      // so check that rounding to 2 decimals matches the stored value within tolerance
-      const rounded = Math.round(row.lat * 100) / 100;
-      expect(Math.abs(row.lat - rounded)).toBeLessThan(0.005);
+  test('route_deaths lat and lng are numbers not strings', async () => {
+    // route_deaths use full precision — geo reduction only applies to war_events
+    // (THREE.js globe needs reduced coords to prevent GPU crashes; MapLibre does not)
+    const rows = await db('route_deaths').select('lat', 'lng').whereNotNull('lat').limit(500);
+    rows.forEach((row: { lat: unknown; lng: unknown }) => {
+      expect(typeof row.lat).toBe('number');
+      expect(typeof row.lng).toBe('number');
     });
   });
 });
