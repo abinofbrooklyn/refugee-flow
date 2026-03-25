@@ -13,11 +13,23 @@ const { Resend, _sendMock: sendMock } = require('resend') as { Resend: jest.Mock
 
 beforeEach(() => {
   jest.clearAllMocks();
+  process.env.NODE_ENV = 'production';
   process.env.ALERT_EMAIL = 'test@example.com';
   process.env.FROM_EMAIL = 'from@example.com';
 });
 
+afterEach(() => {
+  process.env.NODE_ENV = 'test';
+});
+
 describe('sendIngestionAlert()', () => {
+  test('skips email in non-production environment', async () => {
+    process.env.NODE_ENV = 'development';
+    process.env.RESEND_API_KEY = 'test_key_123';
+    await sendIngestionAlert('acled', 'Auth failed', 3);
+    expect(Resend).not.toHaveBeenCalled();
+  });
+
   test('does not send email when RESEND_API_KEY is not set', async () => {
     delete process.env.RESEND_API_KEY;
     await sendIngestionAlert('acled', 'Auth failed', 3);

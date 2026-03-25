@@ -134,6 +134,10 @@ const SOURCE_INFO: Record<string, SourceInfo> = {
  * Send an alert email when an ingestion pipeline fails after all retries.
  */
 export async function sendIngestionAlert(source: string, errorMessage: string, attemptCount: number): Promise<void> {
+  if (process.env.NODE_ENV !== 'production') {
+    console.info('[Alert] Skipped (not production) — ingestion alert for', source);
+    return;
+  }
   const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey) {
     console.error('[Alert] RESEND_API_KEY not set — cannot send failure alert for', source);
@@ -185,6 +189,10 @@ export async function sendIngestionAlert(source: string, errorMessage: string, a
 
 export async function sendQuarantineAlert(source: string, quarantinedItems: QuarantinedItem[]): Promise<void> {
   if (!quarantinedItems.length) return;
+  if (process.env.NODE_ENV !== 'production') {
+    console.info('[Alert] Skipped (not production) — quarantine alert for', source, `(${quarantinedItems.length} rows)`);
+    return;
+  }
   const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey) {
     console.error('[Alert] RESEND_API_KEY not set — cannot send quarantine alert for', source);
