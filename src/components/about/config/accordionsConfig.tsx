@@ -142,12 +142,22 @@ export const accordions: AccordionDefinition[] = [
       },
       { children: 'By mid-2024, over 120 million people were forcibly displaced worldwide, nearly double the figure from 2017. Climate change, armed conflict, and political instability continue to accelerate displacement. Understanding the scale and human cost of this crisis is a prerequisite for meaningful action. Refugee Flow is a call to that understanding.',
       },
+
+      { children: 'How current is the data?',
+        style: qaTitleStyle,
+      },
+      { children: 'Refugee Flow automatically ingests updated data from its sources on a weekly basis. Asylum applications, migration route deaths, border crossing statistics, and conflict data are refreshed without manual intervention.',
+      },
     ],
   },
   {
     name: 'Data Sources',
     isClosed: true,
     contents: [
+      {
+        children: 'Data is automatically refreshed weekly from the sources listed below.',
+        style: { fontStyle: 'italic', marginBottom: '10px' } as React.CSSProperties,
+      },
       {
         children: (
           <>
