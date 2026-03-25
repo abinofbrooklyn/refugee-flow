@@ -9,6 +9,7 @@ import RefugeeRoute_titleGroup from './RefugeeRoute_titleGroup';
 import RefugeeRoute_textArea from './RefugeeRoute_textArea';
 import RefugeeRoute_map from './RefugeeRoute_map';
 import RefugeeRoute_map_popup from './RefugeeRoute_map_popup';
+import { useTransitionSignal } from './router/TransitionContext';
 
 const ROUTE_NAMES = [
   "Eastern Mediterranean",
@@ -66,11 +67,18 @@ const RefugeeRoute: React.FC = () => {
     }
   }, [arg]);
 
+  const transitionSignal = useTransitionSignal();
+  const loadStartRef = React.useRef<number>(0);
+  const loadDurationMsRef = React.useRef<number>(0);
+  const hasFiredSignalRef = React.useRef<boolean>(false);
+
   const allDataLoadedRef = React.useRef(false);
 
   const fetchRefugeeRoutes = useCallback(() => {
     setLoading(true);
     setError(null);
+    loadStartRef.current = performance.now();
+    hasFiredSignalRef.current = false;
 
     // Determine current route from URL slug
     const initialRoute = _.find(ROUTE_NAMES, d => toSlug(d) === arg);
@@ -86,6 +94,7 @@ const RefugeeRoute: React.FC = () => {
         setRouteDeath(d);
         setRouteIBC(ibcData);
         setLoading(false);
+        loadDurationMsRef.current = performance.now() - loadStartRef.current;
         checkCurrentRouteName(_.clone(ibcData), d);
 
         // Step 2: Prefetch all route deaths in background
@@ -105,6 +114,13 @@ const RefugeeRoute: React.FC = () => {
   useEffect(() => {
     fetchRefugeeRoutes();
   }, [fetchRefugeeRoutes]);
+
+  useEffect(() => {
+    if (!loading && !hasFiredSignalRef.current && loadStartRef.current > 0) {
+      hasFiredSignalRef.current = true;
+      transitionSignal?.signalReady(loadDurationMsRef.current);
+    }
+  }, [loading, transitionSignal]);
 
   const bannedCategoryRef = React.useRef<string[]>([]);
 
@@ -129,6 +145,12 @@ const RefugeeRoute: React.FC = () => {
   }, []);
 
   if (loading) {
+    // During route-to-route transitions, TransitionOutlet keeps old route visible
+    // so we render an invisible placeholder instead of the ScaleLoader spinner.
+    // The ScaleLoader only shows on the very first /route/ visit (no old route).
+    if (transitionSignal) {
+      return <div style={{ height: '100vh', background: '#1a1a2e' }} />;
+    }
     return (
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', background: '#1a1a2e' }}>
         <ScaleLoader color={'#ffffff'} loading={true} />
