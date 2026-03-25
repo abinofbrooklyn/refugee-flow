@@ -1,7 +1,8 @@
 import React, { useState, useRef, useCallback } from 'react';
-import { useOutlet, useLocation } from 'react-router-dom';
+import { useLocation, useOutlet, Routes, Route } from 'react-router-dom';
 import styled from 'styled-components';
 import { TransitionProvider } from './TransitionContext';
+import routeRegistry from './config/routeRegistry';
 
 type TransitionState = 'idle' | 'loading' | 'transitioning';
 
@@ -30,48 +31,43 @@ const RouteLayer = styled.div<RouteLayerProps>`
   pointer-events: ${props => (props.$isOld ? 'none' : 'auto')};
 `;
 
+/** Renders routes matched against a frozen location — keeps old route alive */
+const FrozenRoutes: React.FC<{ location: ReturnType<typeof useLocation> }> = ({ location }) => (
+  <Routes location={location}>
+    {routeRegistry.filter(r => r.path !== '/landing').map(r => (
+      <Route key={r.path} path={r.path} element={r.element} />
+    ))}
+  </Routes>
+);
+
 const TransitionOutlet: React.FC = () => {
   const outlet = useOutlet();
   const location = useLocation();
 
   const [transitionState, setTransitionState] = useState<TransitionState>('idle');
-  const [currOutlet, setCurrOutlet] = useState<React.ReactElement | null>(outlet);
-  const [prevOutlet, setPrevOutlet] = useState<React.ReactElement | null>(null);
+  const [frozenLocation, setFrozenLocation] = useState<ReturnType<typeof useLocation> | null>(null);
 
   const prevPathnameRef = useRef<string>(location.pathname);
   const transitionStateRef = useRef<TransitionState>('idle');
-  // Stores the outlet from the PREVIOUS render — always one render behind.
-  // Updated at the END of each render cycle (synchronously), so when a new
-  // location triggers a re-render, this still holds the old route's element.
-  const prevRenderOutletRef = useRef<React.ReactElement | null>(outlet);
 
   transitionStateRef.current = transitionState;
 
-  // Detect location change synchronously during render — before effects.
-  // This runs on every render; when pathname differs, we know outlet just switched.
+  // Detect location change synchronously during render.
   const isNewPath = location.pathname !== prevPathnameRef.current;
   if (isNewPath && transitionStateRef.current === 'idle') {
-    // Synchronous state update during render (React supports this pattern).
-    // prevRenderOutletRef still holds the OLD outlet from the previous render.
+    // Freeze the OLD location so we can render the old route via <Routes location={...}>
+    setFrozenLocation({ ...location, pathname: prevPathnameRef.current, key: prevPathnameRef.current });
     prevPathnameRef.current = location.pathname;
     transitionStateRef.current = 'loading';
-    // Use functional updates to avoid stale closure issues
-    setPrevOutlet(prevRenderOutletRef.current);
-    setCurrOutlet(outlet);
     setTransitionState('loading');
   }
 
-  // Update the ref AFTER all synchronous render logic has read it.
-  // On the next render, this will be the "previous" outlet.
-  prevRenderOutletRef.current = outlet;
-
   const handleSignalReady = useCallback((loadDurationMs: number) => {
-    // Only act when actively waiting for a signal (loading state)
     if (transitionStateRef.current !== 'loading') return;
 
     if (loadDurationMs < 100) {
       // Instant switch — no crossfade
-      setPrevOutlet(null);
+      setFrozenLocation(null);
       setTransitionState('idle');
       transitionStateRef.current = 'idle';
     } else {
@@ -82,15 +78,13 @@ const TransitionOutlet: React.FC = () => {
   }, []);
 
   const handleTransitionEnd = useCallback((e: React.TransitionEvent) => {
-    // Only respond to opacity transitions on the old layer itself, not bubbled events
     if (e.propertyName !== 'opacity') return;
-    setPrevOutlet(null);
+    setFrozenLocation(null);
     setTransitionState('idle');
     transitionStateRef.current = 'idle';
   }, []);
 
-  // Derive opacity values from state — single consistent JSX tree prevents remounts
-  const hasPrev = prevOutlet !== null;
+  const hasPrev = frozenLocation !== null;
   const isTransitioning = transitionState === 'transitioning';
   const oldOpacity = isTransitioning ? 0 : 1;
   const newOpacity = transitionState === 'loading' ? 0 : 1;
@@ -105,7 +99,7 @@ const TransitionOutlet: React.FC = () => {
           $animate={isTransitioning}
           onTransitionEnd={handleTransitionEnd}
         >
-          {prevOutlet}
+          <FrozenRoutes location={frozenLocation} />
         </RouteLayer>
       )}
       <RouteLayer
@@ -115,7 +109,7 @@ const TransitionOutlet: React.FC = () => {
         $animate={isTransitioning}
       >
         <TransitionProvider onSignalReady={handleSignalReady}>
-          {currOutlet}
+          {outlet}
         </TransitionProvider>
       </RouteLayer>
     </TransitionWrapper>
