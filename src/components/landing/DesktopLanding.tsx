@@ -185,6 +185,18 @@ const IntroInnerWrapper = styled.div`
     -webkit-border-radius: 4px;
   }
 `;
+const IntroInnerWrapperRight = styled.div`
+  height: calc(80% - 20px);
+  overflow-y: scroll;
+  bottom: 20px;
+  position: absolute;
+
+  &::-webkit-scrollbar{width: 3px}
+  &::-webkit-scrollbar-thumb {
+    background-color: #35354a;
+    -webkit-border-radius: 4px;
+  }
+`;
 const Introtitle = styled.p`
   transition: all 1500ms;
   font-family: 'Ubuntu';
@@ -400,7 +412,7 @@ const DesktopLanding: React.FC = () => {
 
         <IntroWrapper $wikiOn={wikiOn}>
           <Introtitle>The Approach</Introtitle>
-          <IntroInnerWrapper>
+          <IntroInnerWrapperRight>
             <IntroParagraph>
               Refugee Flow draws on multiple authoritative sources to tell the story of how people become
               refugees. This project examines one of the fundamental drivers of the global refugee crisis:
@@ -416,7 +428,7 @@ const DesktopLanding: React.FC = () => {
               they face along the way. Many who set out on these journeys never reach their destination. The
               data collected here presents where and how those lives were lost.
             </IntroParagraph>
-          </IntroInnerWrapper>
+          </IntroInnerWrapperRight>
         </IntroWrapper>
 
 
