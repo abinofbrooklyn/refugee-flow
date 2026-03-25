@@ -50,3 +50,4 @@ typings/
 config.js
 dump.rdb
 *.dumptmp/
+.env.supabase.bak
