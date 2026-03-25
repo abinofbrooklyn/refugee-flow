@@ -384,11 +384,11 @@ const DesktopLanding: React.FC = () => {
             </IntroParagraph>
             <IntroParagraph>
               By mid-2024, the United Nations High Commissioner for Refugees reported that over 120 million
-              people were forcibly displaced worldwide — nearly double the figure from just seven years prior.
+              people were forcibly displaced worldwide, nearly double the figure from just seven years prior.
               Conflict, persecution, violence, and human rights violations continue to drive this unprecedented crisis.
             </IntroParagraph>
             <IntroParagraph>
-              To become a refugee is to be stripped of the foundations of a normal life — home, community,
+              To become a refugee is to be stripped of the foundations of a normal life: home, community,
               livelihood, and identity. Refugees are met with closed borders, hostile policies, and the
               indifference of nations that see them as a burden rather than as people. Yet each refugee
               makes the impossible choice to leave behind everything they know in search of safety.
