@@ -285,7 +285,7 @@ const RefugeeRoute_map: React.FC<Props> = ({
       .attr('class', 'canvas_overlay');
 
     sizeChangeRef.current = 1;
-    const canvasEl = document.querySelector('.canvas_overlay') as HTMLCanvasElement | null;
+    const canvasEl = containerRef.current!.querySelector('.canvas_overlay') as HTMLCanvasElement | null;
     if (canvasEl) ctxRef.current = canvasEl.getContext('2d');
 
     myZoomRef.current = { start: mapRef.current.getZoom(), end: mapRef.current.getZoom() };
