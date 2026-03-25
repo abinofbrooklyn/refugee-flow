@@ -277,9 +277,9 @@ const AsyApplicationChart = React.forwardRef<
             .attr('y2', yRef.current(avg));
 
           g.append('text')
-            .attr('x', -10)
+            .attr('x', width + 5)
             .attr('y', yRef.current(avg))
-            .attr('dy', 4)
+            .attr('dy', -6)
             .text('Avg')
             .attr('fill', '#41edb8')
             .style('font-family', 'Roboto')
@@ -288,9 +288,9 @@ const AsyApplicationChart = React.forwardRef<
             .attr('text-anchor', 'end');
 
           g.append('text')
-            .attr('x', -10)
+            .attr('x', width + 5)
             .attr('y', yRef.current(avg))
-            .attr('dy', 15)
+            .attr('dy', 6)
             .text(d3.format('.2s')(avg))
             .attr('fill', '#41edb8')
             .style('font-family', 'Roboto')
