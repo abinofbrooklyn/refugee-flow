@@ -89,6 +89,31 @@ describe('Endpoint response shapes (DB-02)', () => {
     expect(typeof first.dead).toBe('string');
   });
 
+  test('GET /data/route_death?route=Americas returns only Americas deaths', async () => {
+    const res = await request(app).get('/data/route_death?route=Americas');
+    expect(res.status).toBe(200);
+    expect(Array.isArray(res.body)).toBe(true);
+    if (res.body.length > 0) {
+      res.body.forEach((row: { route: string }) => {
+        expect(row.route).toBe('Americas');
+      });
+    }
+  });
+
+  test('GET /data/route_death?route=NonExistent returns empty array', async () => {
+    const res = await request(app).get('/data/route_death?route=NonExistent');
+    expect(res.status).toBe(200);
+    expect(Array.isArray(res.body)).toBe(true);
+    expect(res.body.length).toBe(0);
+  });
+
+  test('GET /data/route_death without route param returns all routes', async () => {
+    const res = await request(app).get('/data/route_death');
+    expect(res.status).toBe(200);
+    const routes = new Set(res.body.map((r: { route: string }) => r.route));
+    expect(routes.size).toBeGreaterThan(1);
+  });
+
   test('GET /data/route_IBC_country_list returns array of {country, route}', async () => {
     const res = await request(app).get('/data/route_IBC_country_list');
     expect(res.status).toBe(200);

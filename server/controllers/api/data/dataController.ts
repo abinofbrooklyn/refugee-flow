@@ -117,8 +117,12 @@ interface RouteDeathShape {
   source_url: string | null;
 }
 
-export const findRouteDeath = async (): Promise<RouteDeathShape[]> => {
-  const rows = await db<RouteDeathRow>('route_deaths').select('*');
+export const findRouteDeath = async (route?: string): Promise<RouteDeathShape[]> => {
+  let query = db<RouteDeathRow>('route_deaths').select('*');
+  if (route) {
+    query = query.where('route', route);
+  }
+  const rows = await query;
   return rows.map(row => ({
     id: row.id,
     date: row.date,
