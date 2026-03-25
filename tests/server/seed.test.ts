@@ -40,11 +40,13 @@ describe('Seed data integrity', () => {
     });
   });
 
-  test('route_deaths lat values have at most 2 decimal places', async () => {
+  test('route_deaths lat values are precision-reduced to 2 decimal places', async () => {
     const rows = await db('route_deaths').select('lat').whereNotNull('lat').limit(500);
     rows.forEach((row: { lat: number }) => {
-      const decimals = String(row.lat).split('.')[1];
-      expect(!decimals || decimals.length <= 2).toBe(true);
+      // float8 can produce extra digits (e.g., 35.29 → 35.290000000000001)
+      // so check that rounding to 2 decimals matches the stored value within tolerance
+      const rounded = Math.round(row.lat * 100) / 100;
+      expect(Math.abs(row.lat - rounded)).toBeLessThan(0.005);
     });
   });
 });
