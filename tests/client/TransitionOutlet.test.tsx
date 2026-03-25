@@ -130,7 +130,9 @@ describe('TransitionOutlet', () => {
     const oldLayer = container.querySelector('[data-transition-layer="old"]');
     if (oldLayer) {
       await act(async () => {
-        fireEvent.transitionEnd(oldLayer);
+        const event = new Event('transitionend', { bubbles: true });
+        Object.defineProperty(event, 'propertyName', { value: 'opacity' });
+        oldLayer.dispatchEvent(event);
         await new Promise(r => setTimeout(r, 20));
       });
     }
