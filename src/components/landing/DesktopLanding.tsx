@@ -243,7 +243,7 @@ const Quote = styled.p<AnimationProps & VideoLoopProps>`
   transition: top 2100ms,opacity 4300ms;
   z-index: 2;
   &::after{
-    content: "- Filippo Grandi @ UN High Commissioner for Refugees";
+    content: "- Filippo Grandi, Former UN High Commissioner for Refugees";
     position: absolute;
     font-family: serif;
     font-size: 15px;
@@ -383,20 +383,18 @@ const DesktopLanding: React.FC = () => {
               survival and security is to flee one's home.
             </IntroParagraph>
             <IntroParagraph>
-              The United Nations High Commissioner for Refugees reports that as of 2017, 68.5 million
-              people were forcibly displaced worldwide due to persecution, conflict, violence, and human
-              rights violations.
+              By mid-2024, the United Nations High Commissioner for Refugees reported that over 120 million
+              people were forcibly displaced worldwide — nearly double the figure from just seven years prior.
+              Conflict, persecution, violence, and human rights violations continue to drive this unprecedented crisis.
             </IntroParagraph>
             <IntroParagraph>
-              To become a refugee is to subject a person to the most pervasive form of cruelty by removing
-              their basic need to lead a normal life. All aspects that make human life tolerable and meaningful
-              are lost to the refugee. Refugees are placed in inhospitable host countries that do not want them.
-              They face the brute indifference of the walls that people build between nations and cultures. Yet
-              each refugee surrenders to the hardship of leaving their old lives and the lives they could have
-              lived to find peace and safety elsewhere.
+              To become a refugee is to be stripped of the foundations of a normal life — home, community,
+              livelihood, and identity. Refugees are met with closed borders, hostile policies, and the
+              indifference of nations that see them as a burden rather than as people. Yet each refugee
+              makes the impossible choice to leave behind everything they know in search of safety.
             </IntroParagraph>
             <IntroParagraph>
-              Every refugee is an example of a world that failed to use its common strength for the common good.
+              Every refugee represents a failure of the international community to protect its most vulnerable.
             </IntroParagraph>
           </IntroInnerWrapper>
         </IntroWrapper>
@@ -405,21 +403,19 @@ const DesktopLanding: React.FC = () => {
           <Introtitle>The Approach</Introtitle>
           <IntroInnerWrapper>
             <IntroParagraph>
-              Refugee Flow gathers data from multiple reliable sources to construct a compelling account
-              on how persons become refugees. This project examines one of the direct fundamental causes
-              of the global refugee crisis, the collapse of order and stability in todays international
-              landscape.
+              Refugee Flow draws on multiple authoritative sources to tell the story of how people become
+              refugees. This project examines one of the fundamental drivers of the global refugee crisis:
+              the collapse of order and stability across regions of the world.
             </IntroParagraph>
             <IntroParagraph>
-              This visualization examines the impact conflict, persecution and violence has on the lives of
-              persons in their home countries and communities. The dataset delves into exploring what drives
-              people to flee their homes and bear the burden of a life as a refugee.
+              This visualization traces the impact of conflict, persecution, and violence on the lives of
+              people in their home countries. It explores what drives millions to flee and the dangerous
+              journeys they undertake.
             </IntroParagraph>
             <IntroParagraph>
-              The project further explores the possible routes taken by refugees. The dataset examines the
-              dangers those forcibly displaced face in their search for safety. Many refugees who depart
-              on their journey never make it to their intended destination. The data collected presents the
-              cause of these deaths along their chosen routes.
+              The project maps the routes taken by those who are forcibly displaced and documents the dangers
+              they face along the way. Many who set out on these journeys never reach their destination. The
+              data collected here presents where and how those lives were lost.
             </IntroParagraph>
           </IntroInnerWrapper>
         </IntroWrapper>
