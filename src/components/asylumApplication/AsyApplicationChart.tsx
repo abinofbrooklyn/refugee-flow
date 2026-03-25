@@ -70,8 +70,9 @@ const AsyApplicationChart = React.forwardRef<
       xRef.current = d3.scalePoint().domain(quaterListRef.current).range([0, width]);
     }
 
+    const yMax = d3.max(chartD) ?? 0;
     yRef.current = d3.scaleLinear()
-      .domain([0, d3.max(chartD) ?? 0])
+      .domain([0, yMax * 1.1])
       .range([height, 0])
       .nice();
 
@@ -123,14 +124,19 @@ const AsyApplicationChart = React.forwardRef<
       d3.selectAll('.dataPoint').remove();
     }
 
-    // Draw data points
+    // Draw data points — last point in all-years view uses different color for partial year
+    const currentYear = new Date().getFullYear().toString();
+    const isAllYears = chartD.length > 4;
+
     d3.select(mount)
       .selectAll('.dataPoint')
       .data(chartD)
       .enter()
       .append('circle')
       .attr('class', 'dataPoint')
-      .attr('fill', '#41edb8')
+      .attr('fill', (_d, i) =>
+        isAllYears && i === chartD.length - 1 && allYearsRef.current[i] === currentYear
+          ? '#ff6b6b' : '#41edb8')
       .attr('stroke', '#1b1f3a')
       .attr('stroke-linejoin', 'round')
       .attr('stroke-linecap', 'round')
@@ -305,8 +311,9 @@ const AsyApplicationChart = React.forwardRef<
       .domain(quaterListRef.current)
       .range([0, width]);
 
+    const yMaxQ = d3.max(chartData) ?? 0;
     yRef.current = d3.scaleLinear()
-      .domain([0, d3.max(chartData) ?? 0])
+      .domain([0, yMaxQ * 1.1])
       .range([height, 0])
       .nice();
 
