@@ -38,42 +38,32 @@ const TransitionOutlet: React.FC = () => {
   const [currOutlet, setCurrOutlet] = useState<React.ReactElement | null>(outlet);
   const [prevOutlet, setPrevOutlet] = useState<React.ReactElement | null>(null);
 
-  // Refs for stale-closure-safe access inside callbacks and effects
   const prevPathnameRef = useRef<string>(location.pathname);
   const transitionStateRef = useRef<TransitionState>('idle');
-
-  // lastIdleOutletRef holds the outlet element from the most recent idle state.
-  // Updated ONLY via effect after an idle render — never during render — so that
-  // a navigation render doesn't overwrite it with the new outlet before the
-  // location-change effect can stash it as prevOutlet.
-  const lastIdleOutletRef = useRef<React.ReactElement | null>(outlet);
+  // Stores the outlet from the PREVIOUS render — always one render behind.
+  // Updated at the END of each render cycle (synchronously), so when a new
+  // location triggers a re-render, this still holds the old route's element.
+  const prevRenderOutletRef = useRef<React.ReactElement | null>(outlet);
 
   transitionStateRef.current = transitionState;
 
-  // Capture the idle outlet AFTER render commits — this ensures the ref holds
-  // the OLD outlet when the next navigation render fires.
-  React.useEffect(() => {
-    if (transitionState === 'idle') {
-      lastIdleOutletRef.current = outlet;
-    }
-  });
-
-  React.useEffect(() => {
-    const newPathname = location.pathname;
-    const prevPathname = prevPathnameRef.current;
-
-    if (newPathname === prevPathname) {
-      // Same pathname — skip crossfade entirely
-      return;
-    }
-
-    // New route — stash the last idle outlet as prev, use new outlet as curr
-    prevPathnameRef.current = newPathname;
-    setPrevOutlet(lastIdleOutletRef.current);
+  // Detect location change synchronously during render — before effects.
+  // This runs on every render; when pathname differs, we know outlet just switched.
+  const isNewPath = location.pathname !== prevPathnameRef.current;
+  if (isNewPath && transitionStateRef.current === 'idle') {
+    // Synchronous state update during render (React supports this pattern).
+    // prevRenderOutletRef still holds the OLD outlet from the previous render.
+    prevPathnameRef.current = location.pathname;
+    transitionStateRef.current = 'loading';
+    // Use functional updates to avoid stale closure issues
+    setPrevOutlet(prevRenderOutletRef.current);
     setCurrOutlet(outlet);
     setTransitionState('loading');
-    transitionStateRef.current = 'loading';
-  }, [location.pathname, outlet]); // eslint-disable-line react-hooks/exhaustive-deps
+  }
+
+  // Update the ref AFTER all synchronous render logic has read it.
+  // On the next render, this will be the "previous" outlet.
+  prevRenderOutletRef.current = outlet;
 
   const handleSignalReady = useCallback((loadDurationMs: number) => {
     // Only act when actively waiting for a signal (loading state)
