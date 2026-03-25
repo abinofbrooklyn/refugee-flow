@@ -216,6 +216,15 @@ const Introtitle = styled.p`
     top: 50px;
   }
 `;
+const IntrotitleRight = styled.p`
+  transition: all 1500ms;
+  font-family: 'Ubuntu';
+  font-size: 35px;
+  font-weight: 700;
+  margin-top: 0;
+  color: white;
+  position: fixed;
+`;
 const Copyright = styled.p`
   font-family: 'Roboto';
   font-weight: 480;
@@ -411,7 +420,7 @@ const DesktopLanding: React.FC = () => {
         </IntroWrapper>
 
         <IntroWrapper $wikiOn={wikiOn}>
-          <Introtitle>The Approach</Introtitle>
+          <IntrotitleRight>The Approach</IntrotitleRight>
           <IntroInnerWrapperRight>
             <IntroParagraph>
               Refugee Flow draws on multiple authoritative sources to tell the story of how people become
