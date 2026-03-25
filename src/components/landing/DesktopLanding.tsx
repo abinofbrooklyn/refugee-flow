@@ -174,9 +174,8 @@ const IntroParagraph = styled.p`
   text-align: left;
 `;
 const IntroInnerWrapper = styled.div`
-
-  height: calc(80% - 20px);
-  overflow-y: scroll;
+  max-height: calc(80% - 20px);
+  overflow-y: auto;
   bottom: 20px;
   position: absolute;
 
