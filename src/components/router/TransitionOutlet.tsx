@@ -83,56 +83,36 @@ const TransitionOutlet: React.FC = () => {
     }
   }, []);
 
-  const handleTransitionEnd = useCallback(() => {
+  const handleTransitionEnd = useCallback((e: React.TransitionEvent) => {
+    // Only respond to opacity transitions on the old layer itself, not bubbled events
+    if (e.propertyName !== 'opacity') return;
     setPrevOutlet(null);
     setTransitionState('idle');
     transitionStateRef.current = 'idle';
   }, []);
 
-  if (transitionState === 'idle') {
-    return (
-      <TransitionWrapper>
-        <RouteLayer $opacity={1} $isOld={false}>
-          <TransitionProvider onSignalReady={handleSignalReady}>
-            {currOutlet}
-          </TransitionProvider>
-        </RouteLayer>
-      </TransitionWrapper>
-    );
-  }
+  // Derive opacity values from state — single consistent JSX tree prevents remounts
+  const hasPrev = prevOutlet !== null;
+  const oldOpacity = transitionState === 'transitioning' ? 0 : 1;
+  const newOpacity = transitionState === 'loading' ? 0 : 1;
 
-  if (transitionState === 'loading') {
-    return (
-      <TransitionWrapper>
+  return (
+    <TransitionWrapper>
+      {hasPrev && (
         <RouteLayer
           data-transition-layer="old"
-          $opacity={1}
+          $opacity={oldOpacity}
           $isOld={true}
           onTransitionEnd={handleTransitionEnd}
         >
           {prevOutlet}
         </RouteLayer>
-        <RouteLayer data-transition-layer="new" $opacity={0} $isOld={false}>
-          <TransitionProvider onSignalReady={handleSignalReady}>
-            {currOutlet}
-          </TransitionProvider>
-        </RouteLayer>
-      </TransitionWrapper>
-    );
-  }
-
-  // transitioning state: old fades out, new fades in
-  return (
-    <TransitionWrapper>
+      )}
       <RouteLayer
-        data-transition-layer="old"
-        $opacity={0}
-        $isOld={true}
-        onTransitionEnd={handleTransitionEnd}
+        data-transition-layer={hasPrev ? 'new' : undefined}
+        $opacity={newOpacity}
+        $isOld={false}
       >
-        {prevOutlet}
-      </RouteLayer>
-      <RouteLayer data-transition-layer="new" $opacity={1} $isOld={false}>
         <TransitionProvider onSignalReady={handleSignalReady}>
           {currOutlet}
         </TransitionProvider>
