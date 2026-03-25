@@ -170,3 +170,20 @@ Plans:
 - [ ] 07-08-PLAN.md — Convert server core to TypeScript: types, connection, controllers, routes, server entry (11 files)
 - [ ] 07-09-PLAN.md — Convert all 14 server ingestion modules to TypeScript
 - [ ] 07-10-PLAN.md — Convert 17 test files to .test.ts + final smoke test checkpoint
+
+### Phase 8: Crossfade Route Transitions
+
+**Goal:** Eliminate the jarring blank/spinner flash when navigating between /route/:arg pages by keeping the outgoing route visible while the incoming route loads data, then crossfading between them with a 400ms CSS opacity transition
+**Requirements**: UX-CROSSFADE
+**Depends on:** Phase 7
+**Success Criteria** (what must be TRUE):
+  1. Navigating from one /route/:arg to another shows old route staying visible while new data loads
+  2. After data loads (>100ms), old route fades out and new route fades in over 400ms simultaneously
+  3. Cached route switches happen instantly with no visible crossfade
+  4. MapLibre map canvas on old route remains fully rendered during fade-out
+  5. No ScaleLoader spinner visible during route-to-route transitions
+**Plans**: 2 plans
+
+Plans:
+- [ ] 08-01-PLAN.md — Create TransitionContext, TransitionOutlet, update NavbarLayout, fix canvas_overlay querySelector scoping
+- [ ] 08-02-PLAN.md — Wire RefugeeRoute into transition signal, suppress ScaleLoader during crossfade, visual verification
