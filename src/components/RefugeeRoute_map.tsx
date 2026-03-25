@@ -30,6 +30,37 @@ const mapCause = (cause: string | undefined): string => {
   return cause; // return as-is if it's already an old category
 };
 
+/** Compute a LngLatBounds that frames all data points for a given route */
+const computeRouteBounds = (
+  data: RouteDeath[],
+  routeName: string | undefined
+): maplibregl.LngLatBoundsLike | null => {
+  const routeData = routeName
+    ? data.filter(d => d.route === routeName)
+    : data;
+
+  const valid = routeData.filter(
+    d => d.lng != null && d.lat != null && d.lng !== 0 && d.lat !== 0
+      && d.lat >= -90 && d.lat <= 90 && d.lng >= -180 && d.lng <= 180
+  );
+
+  if (valid.length === 0) return null;
+
+  let minLng = Infinity, maxLng = -Infinity;
+  let minLat = Infinity, maxLat = -Infinity;
+  for (const d of valid) {
+    if (d.lng! < minLng) minLng = d.lng!;
+    if (d.lng! > maxLng) maxLng = d.lng!;
+    if (d.lat! < minLat) minLat = d.lat!;
+    if (d.lat! > maxLat) maxLat = d.lat!;
+  }
+
+  return [
+    [minLng, minLat],
+    [maxLng, maxLat],
+  ];
+};
+
 interface RouteDeathWithCoords extends RouteDeath {
   map_coord_x?: number;
   map_coord_y?: number;
@@ -114,12 +145,19 @@ const RefugeeRoute_map: React.FC<Props> = ({
     currentMapParamsRef.current = _.find(dataDict, d => d.route === currentRouteName) || dataDict[0];
 
     if (prevRouteName !== currentRouteName) {
-      canvas_overlay_render(() =>
-        mapRef.current!.flyTo({
-          center: [currentMapParamsRef.current.center_lng, currentMapParamsRef.current.center_lat],
-          zoom: currentMapParamsRef.current.zoom,
-        })
-      );
+      const bounds = computeRouteBounds(data, currentRouteName);
+      if (bounds) {
+        canvas_overlay_render(() =>
+          mapRef.current!.fitBounds(bounds, { padding: 60, maxZoom: 12 })
+        );
+      } else {
+        canvas_overlay_render(() =>
+          mapRef.current!.flyTo({
+            center: [currentMapParamsRef.current.center_lng, currentMapParamsRef.current.center_lat],
+            zoom: currentMapParamsRef.current.zoom,
+          })
+        );
+      }
     } else {
       canvas_overlay_render();
     }
@@ -262,6 +300,7 @@ const RefugeeRoute_map: React.FC<Props> = ({
       container: containerRef.current,
       style: 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json',
       attributionControl: false,
+      // Start at a reasonable default — fitBounds will adjust after padding is set
       center: [params.center_lng, params.center_lat],
       zoom: params.zoom,
     }).addControl(new maplibregl.NavigationControl({}), 'top-right');
@@ -269,6 +308,12 @@ const RefugeeRoute_map: React.FC<Props> = ({
     // Push the map's effective viewport left so content isn't hidden behind the slideout (55% width)
     const slideoutWidth = Math.round(containerRef.current.offsetWidth * 0.55);
     mapRef.current.setPadding({ top: 0, bottom: 0, left: 0, right: slideoutWidth });
+
+    // Auto-fit to the data bounds for this route (after padding is set so fitBounds accounts for sidebar)
+    const bounds = computeRouteBounds(data, currentRouteName);
+    if (bounds) {
+      mapRef.current.fitBounds(bounds, { padding: 60, maxZoom: 12, duration: 0 });
+    }
 
     mapContainerWidthRef.current = containerRef.current.offsetWidth;
     mapContainerHeightRef.current = containerRef.current.offsetHeight;
