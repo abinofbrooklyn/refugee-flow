@@ -45,7 +45,7 @@ const NavbarContainer = styled.div`
   }
 
   > a:first-child:after{
-    content: 'A Comparitive Study on Conflicts and Refugee Movement';
+    content: 'Mapping the Human Cost of Conflict';
     font-family: 'Ubuntu';
     font-weight: 100;
     color: white;

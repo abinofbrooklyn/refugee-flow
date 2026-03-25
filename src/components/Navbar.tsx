@@ -46,7 +46,7 @@ const NavbarContainer = styled.div<NavContainerProps>`
   }
 
   > a:first-child:after{
-    content: 'A Comparative Study on Global Conflict and Human Movement';
+    content: 'Mapping the Human Cost of Conflict';
     font-family: 'Ubuntu';
     font-weight: 100;
     color: white;
