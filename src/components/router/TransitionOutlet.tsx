@@ -15,6 +15,7 @@ const TransitionWrapper = styled.div`
 interface RouteLayerProps {
   $opacity: number;
   $isOld: boolean;
+  $animate: boolean;
 }
 
 const RouteLayer = styled.div<RouteLayerProps>`
@@ -24,8 +25,8 @@ const RouteLayer = styled.div<RouteLayerProps>`
   width: 100%;
   height: 100%;
   opacity: ${props => props.$opacity};
-  transition: opacity 400ms ease-in-out;
-  will-change: opacity;
+  transition: ${props => (props.$animate ? 'opacity 400ms ease-in-out' : 'none')};
+  will-change: ${props => (props.$animate ? 'opacity' : 'auto')};
   pointer-events: ${props => (props.$isOld ? 'none' : 'auto')};
 `;
 
@@ -100,7 +101,8 @@ const TransitionOutlet: React.FC = () => {
 
   // Derive opacity values from state — single consistent JSX tree prevents remounts
   const hasPrev = prevOutlet !== null;
-  const oldOpacity = transitionState === 'transitioning' ? 0 : 1;
+  const isTransitioning = transitionState === 'transitioning';
+  const oldOpacity = isTransitioning ? 0 : 1;
   const newOpacity = transitionState === 'loading' ? 0 : 1;
 
   return (
@@ -110,6 +112,7 @@ const TransitionOutlet: React.FC = () => {
           data-transition-layer="old"
           $opacity={oldOpacity}
           $isOld={true}
+          $animate={isTransitioning}
           onTransitionEnd={handleTransitionEnd}
         >
           {prevOutlet}
@@ -119,6 +122,7 @@ const TransitionOutlet: React.FC = () => {
         data-transition-layer={hasPrev ? 'new' : undefined}
         $opacity={newOpacity}
         $isOld={false}
+        $animate={isTransitioning}
       >
         <TransitionProvider onSignalReady={handleSignalReady}>
           {currOutlet}
