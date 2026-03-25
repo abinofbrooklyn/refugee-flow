@@ -257,7 +257,7 @@ const AsyApplicationChart = React.forwardRef<
         g.select('line').transition().duration(1000)
           .attr('y1', yRef.current(avg))
           .attr('y2', yRef.current(avg));
-        g.selectAll('text:last-of-type').text(d3.format('.2s')(avg));
+        g.select('text').text('Avg ' + d3.format('.2s')(avg));
         g.selectAll('text').transition().duration(1000).attr('y', yRef.current(avg));
       });
     } else {
@@ -277,21 +277,22 @@ const AsyApplicationChart = React.forwardRef<
             .attr('y2', yRef.current(avg));
 
           g.append('text')
-            .attr('x', -10)
+            .attr('x', 5)
             .attr('y', yRef.current(avg))
-            .attr('dy', -12)
-            .text('Avg')
+            .attr('dy', -8)
+            .text('Avg ' + d3.format('.2s')(avg))
             .attr('fill', '#41edb8')
             .style('font-family', 'Roboto')
             .style('font-weight', 400)
             .style('font-size', '10px')
-            .attr('text-anchor', 'end');
+            .attr('text-anchor', 'start');
 
+          // Hidden second text element kept for transition updates
           g.append('text')
-            .attr('x', -10)
+            .attr('x', 5)
             .attr('y', yRef.current(avg))
-            .attr('dy', -1)
-            .text(d3.format('.2s')(avg))
+            .attr('dy', -8)
+            .text('')
             .attr('fill', '#41edb8')
             .style('font-family', 'Roboto')
             .style('font-weight', 400)
