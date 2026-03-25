@@ -4,7 +4,9 @@ dotenv.config();
 import knex, { Knex } from 'knex';
 import { parse } from 'pg-connection-string';
 
-const connStr = process.env.DATABASE_URL || '';
+const connStr = process.env.NODE_ENV === 'production'
+  ? (process.env.DATABASE_URL_PRODUCTION || process.env.DATABASE_URL || '')
+  : (process.env.DATABASE_URL || '');
 const isSSL = connStr.includes('sslmode=');
 const cleanUrl = connStr.replace(/[?&]sslmode=[^&]*/g, '').replace(/\?$/, '');
 const parsed = parse(cleanUrl);

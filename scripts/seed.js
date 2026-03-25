@@ -59,8 +59,12 @@ async function seed() {
       }
     });
   });
-  await db.batchInsert('asy_applications', asyRows, 500);
-  console.log(`Seeded asy_applications: ${asyRows.length} rows`);
+  // Use chunked insert with onConflict ignore — source JSON has duplicates
+  for (let i = 0; i < asyRows.length; i += 500) {
+    await db('asy_applications').insert(asyRows.slice(i, i + 500)).onConflict(['year', 'quarter', 'origin', 'destination']).ignore();
+  }
+  const asyCount = await db('asy_applications').count('* as c');
+  console.log(`Seeded asy_applications: ${asyCount[0].c} rows (${asyRows.length} source, dupes ignored)`);
 
   // === 4. ROUTE DEATHS ===
   // Source shape: flat array of records. Keep dead/missing/dead_and_missing as text.
