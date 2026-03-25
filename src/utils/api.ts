@@ -23,6 +23,26 @@ function get_routeDeath(): Promise<RouteDeath[]> {
   return cached_routeDeath;
 }
 
+// Per-route cache for hybrid loading
+const cached_routeDeathByRoute: Record<string, Promise<RouteDeath[]>> = {};
+
+function get_routeDeathByRoute(route: string): Promise<RouteDeath[]> {
+  if (route in cached_routeDeathByRoute) return cached_routeDeathByRoute[route];
+  const url = `${baseUrl}/data/route_death?route=${encodeURIComponent(route)}`;
+  cached_routeDeathByRoute[route] = fetch(url)
+    .then(res => res.json() as Promise<RouteDeath[]>)
+    .catch((err: unknown) => {
+      delete cached_routeDeathByRoute[route];
+      throw err;
+    });
+  return cached_routeDeathByRoute[route];
+}
+
+// Prefetch all route deaths in background — populates the full cache
+function prefetchAllRouteDeaths(): Promise<RouteDeath[]> {
+  return get_routeDeath();
+}
+
 function get_routeCountryList(): Promise<CountryRoute[]> {
   const url = `${baseUrl}/data/route_IBC_country_list`;
   const request = new Request(url, {
@@ -59,6 +79,8 @@ function get_routeCrossingCount(): Promise<CrossingCountByCountry> {
 
 export {
   get_routeDeath,
+  get_routeDeathByRoute,
+  prefetchAllRouteDeaths,
   get_routeCountryList,
   get_routeIBC,
   get_routeCrossingCount,

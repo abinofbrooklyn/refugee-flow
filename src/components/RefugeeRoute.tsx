@@ -3,7 +3,7 @@ import _ from 'lodash';
 import { ScaleLoader } from 'react-spinners';
 import { useParams } from 'react-router-dom';
 
-import { get_routeDeath, get_routeIBC } from './../utils/api';
+import { get_routeDeath, get_routeDeathByRoute, get_routeIBC } from './../utils/api';
 import type { RouteDeath, IbcCrossing } from '../types/api';
 import RefugeeRoute_titleGroup from './RefugeeRoute_titleGroup';
 import RefugeeRoute_textArea from './RefugeeRoute_textArea';
@@ -66,24 +66,41 @@ const RefugeeRoute: React.FC = () => {
     }
   }, [arg]);
 
+  const allDataLoadedRef = React.useRef(false);
+
   const fetchRefugeeRoutes = useCallback(() => {
     setLoading(true);
     setError(null);
-    Promise.all([get_routeDeath(), get_routeIBC()])
+
+    // Determine current route from URL slug
+    const initialRoute = _.find(ROUTE_NAMES, d => toSlug(d) === arg);
+
+    // Step 1: Load current route deaths + IBC in parallel (fast initial render)
+    const deathPromise = initialRoute
+      ? get_routeDeathByRoute(initialRoute)
+      : get_routeDeath(); // fallback to all if route unknown
+
+    Promise.all([deathPromise, get_routeIBC()])
       .then(([d, _d]) => {
-        // get_routeIBC returns IbcCrossing[] but the component uses it as a dict keyed by route
-        // The actual API returns a dict object; cast accordingly
         const ibcData = _d as unknown as IbcData;
         setRouteDeath(d);
         setRouteIBC(ibcData);
         setLoading(false);
         checkCurrentRouteName(_.clone(ibcData), d);
+
+        // Step 2: Prefetch all route deaths in background
+        if (!allDataLoadedRef.current && initialRoute) {
+          get_routeDeath().then(allDeaths => {
+            allDataLoadedRef.current = true;
+            setRouteDeath(allDeaths);
+          }).catch(() => { /* silent — we already have current route data */ });
+        }
       })
       .catch(() => {
         setLoading(false);
         setError('Failed to load route data. Please refresh.');
       });
-  }, [checkCurrentRouteName]);
+  }, [arg, checkCurrentRouteName]);
 
   useEffect(() => {
     fetchRefugeeRoutes();

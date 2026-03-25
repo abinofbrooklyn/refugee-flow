@@ -40,7 +40,8 @@ router.get('/asy_application_all', async (req: Request, res: Response): Promise<
 
 router.get('/route_death', async (req: Request, res: Response): Promise<void> => {
   try {
-    const data = await findRouteDeath();
+    const route = typeof req.query.route === 'string' ? req.query.route : undefined;
+    const data = await findRouteDeath(route);
     res.json(data);
   } catch (err) {
     res.status(500).json({ error: (err as Error).message });
