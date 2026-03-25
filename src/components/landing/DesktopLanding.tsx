@@ -374,9 +374,15 @@ const DesktopLanding: React.FC = () => {
     const animTimer = window.setTimeout(() => setAnimation(true), 1000);
     const videoInterval = window.setInterval(() => setVideoLoop(prev => !prev), 1650);
 
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setWikiOn(false);
+    };
+    window.addEventListener('keydown', handleKeyDown);
+
     return () => {
       clearTimeout(animTimer);
       clearInterval(videoInterval);
+      window.removeEventListener('keydown', handleKeyDown);
     };
   }, []);
 
