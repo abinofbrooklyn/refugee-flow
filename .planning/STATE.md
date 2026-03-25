@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-stopped_at: Phase 8 context gathered
-last_updated: "2026-03-25T16:47:50.734Z"
+stopped_at: Completed 08-01-PLAN.md
+last_updated: "2026-03-25T17:26:04.442Z"
 progress:
   total_phases: 8
   completed_phases: 6
-  total_plans: 40
-  completed_plans: 40
+  total_plans: 42
+  completed_plans: 41
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-11)
 
 **Core value:** Users can explore the human cost of conflict through an interactive, data-accurate visualization.
-**Current focus:** Phase 07 — start-v2-typescript-migration
+**Current focus:** Phase 08 — crossfade-route-transitions
 
 ## Current Position
 
-Phase: 07 (start-v2-typescript-migration) — EXECUTING
-Plan: 8 of 10
+Phase: 08 (crossfade-route-transitions) — EXECUTING
+Plan: 1 of 2
 
 ## Performance Metrics
 
@@ -79,6 +79,7 @@ Plan: 8 of 10
 | Phase 07-start-v2-typescript-migration P07 | 16 | 2 tasks | 9 files |
 | Phase 07-start-v2-typescript-migration PP10 | 14 | 1 tasks | 19 files |
 | Phase 07-start-v2-typescript-migration P10 | 45 | 2 tasks | 36 files |
+| Phase 08-crossfade-route-transitions P01 | 270 | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -161,6 +162,8 @@ Recent decisions affecting current work:
 - [Phase 07-start-v2-typescript-migration]: jest.Mock intersection type for mocks with extra properties (jest.fn() as jest.Mock & { destroy: jest.Mock })
 - [Phase 07-start-v2-typescript-migration]: Annotation overlay moved from render side-effect to useEffect with ref to prevent stale closure crash on initial navigation
 - [Phase 07-start-v2-typescript-migration]: Fuse 3.x search result shape is {item:{key}} not {key} — ibcCountry search destructuring fixed with .item unwrapping
+- [Phase 08-crossfade-route-transitions]: TransitionOutlet uses idle/loading/transitioning state machine with transitionStateRef guard to prevent stale signalReady calls from initial mount
+- [Phase 08-crossfade-route-transitions]: canvas_overlay querySelector scoped to containerRef.current to prevent DOM collision during crossfade coexistence
 
 ### Roadmap Evolution
 
@@ -177,6 +180,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-25T16:47:50.727Z
-Stopped at: Phase 8 context gathered
-Resume file: .planning/phases/08-crossfade-route-transitions/08-CONTEXT.md
+Last session: 2026-03-25T17:26:04.436Z
+Stopped at: Completed 08-01-PLAN.md
+Resume file: None
