@@ -74,8 +74,15 @@ const RefugeeRoute: React.FC = () => {
 
   const allDataLoadedRef = React.useRef(false);
 
+  // Track whether we've ever loaded data — only show spinner on first load
+  const hasDataRef = React.useRef(false);
+
   const fetchRefugeeRoutes = useCallback(() => {
-    setLoading(true);
+    // Only show loading spinner on the very first load.
+    // On route-to-route switches, keep showing old data while new data loads.
+    if (!hasDataRef.current) {
+      setLoading(true);
+    }
     setError(null);
     loadStartRef.current = performance.now();
     hasFiredSignalRef.current = false;
@@ -91,6 +98,7 @@ const RefugeeRoute: React.FC = () => {
     Promise.all([deathPromise, get_routeIBC()])
       .then(([d, _d]) => {
         const ibcData = _d as unknown as IbcData;
+        hasDataRef.current = true;
         setRouteDeath(d);
         setRouteIBC(ibcData);
         setLoading(false);
@@ -145,12 +153,6 @@ const RefugeeRoute: React.FC = () => {
   }, []);
 
   if (loading) {
-    // During route-to-route transitions, TransitionOutlet keeps old route visible
-    // so we render an invisible placeholder instead of the ScaleLoader spinner.
-    // The ScaleLoader only shows on the very first /route/ visit (no old route).
-    if (transitionSignal) {
-      return <div style={{ height: '100vh', background: '#1a1a2e' }} />;
-    }
     return (
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', background: '#1a1a2e' }}>
         <ScaleLoader color={'#ffffff'} loading={true} />
