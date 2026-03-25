@@ -1,15 +1,16 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route, Outlet, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 
 import Navbar from '../Navbar';
 import LandingResolver from './LandingResolver';
+import TransitionOutlet from './TransitionOutlet';
 
 import routeRegistry from './config/routeRegistry';
 
 const NavbarLayout: React.FC = () => (
   <>
     <Navbar />
-    <Outlet />
+    <TransitionOutlet />
   </>
 );
 
