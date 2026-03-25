@@ -76,10 +76,11 @@ export const accordions: AccordionDefinition[] = [
               <a target="_blank" rel="noopener noreferrer" href='https://www.linkedin.com/in/abins'>Abin Abraham - Co-Creator</a>
             </em>
             &nbsp;
-            is drawn to the intersection of technology, art, and policy.
-            He is pursuing creative ways to understand the complex challenges facing the world
-            today and believes that creativity is the key to effective policymaking.
-            He works as a web developer at the United Nations Global Compact.
+            is a technical leader who builds and manages complex systems while helping others
+            understand them. With a background spanning software engineering, cybersecurity,
+            and enterprise platforms, he is drawn to distilling complexity into clarity,
+            whether through data, design, or narrative. He believes technology reaches its
+            highest purpose when it serves the common good.
           </>
         ),
       },
@@ -109,37 +110,37 @@ export const accordions: AccordionDefinition[] = [
       { children: 'What is Refugee Flow?',
         style: qaTitleStyle,
       },
-      { children: 'Is an exploratory investigation of the migration crisis. Combining multiple datasets and interactive visualizations, the project aims to allow users to create a better understanding of the current crisis.',
+      { children: 'Refugee Flow is an interactive visualization that brings together conflict data, migration routes, and asylum statistics to help users understand the global displacement crisis. It combines multiple authoritative datasets into one explorable experience.',
       },
 
       { children: 'How can design and technology help find solutions in migration?',
         style: qaTitleStyle,
       },
-      { children: 'Building solutions for the migration crisis requires political will, which must be driven by society. We are continually presented with facts and figures of the lingering refugee crisis but are unmoved. Our idea is to present this data in new, interesting, and visually appealing ways. Facts inform us, but they don\'t push us to act. Emotion gets people to act. Refugee Flow aims to merge design and technology to help better understand the migration crisis in a way that resonates with users. We hope this inspires better solutions.',
+      { children: 'Facts alone rarely move people to act. Refugee Flow merges design and technology to present displacement data in ways that resonate on a human level. By making the crisis tangible and explorable, we believe users can develop a deeper understanding that drives better conversations and better solutions.',
       },
 
       { children: 'What makes your team unique for this project?',
         style: qaTitleStyle,
       },
-      { children: 'Will brings the creative mind of a designer with new interpretations of existing information. He has the development chops to turn creative concepts into a working application. Abin brings his web development background along with a nuanced understanding of the UN system. This awareness allows him to see what change is needed. Together, they provide a unique set of creative design capabilities.',
+      { children: 'Will brings the creative mind of a designer who turns complex information into compelling visual experiences. Abin brings a systems engineering background with a focus on distilling complexity into clarity. Together, they combine design thinking with technical depth to build something that neither could alone.',
       },
 
       { children: 'What does Refugee Flow do differently than existing datasets?',
         style: qaTitleStyle,
       },
-      { children: 'Refugee Flow has collected multiple datasets together to create an exploratory look at the crisis in a way that has never been done before. No other project is as dynamic or interactive as the one we built. Previous dashboards or portals show static data but Refugee Flow allows users to explore and discover facts on their own. Instead of only showing general trends over time, Refugee Flow allows users to dive in deeper and move beyond trends by seeing information on a case by case basis.',
+      { children: 'Most displacement dashboards show static charts and summary statistics. Refugee Flow lets users explore the data themselves. You can rotate a 3D globe of conflict events, trace migration routes, examine deaths along those routes on a case-by-case basis, and see asylum trends over time. It turns data into an experience.',
       },
 
       { children: 'Who can use Refugee Flow and how?',
         style: qaTitleStyle,
       },
-      { children: 'Anyone can use Refugee Flow. We built it as an exploratory tool to bring greater understanding to the crisis. This tool is for the person who has heard about the crisis, but wants to learn more.',
+      { children: 'Anyone. Refugee Flow is built for the person who has heard about the crisis but wants to understand it more deeply. No background in data or policy is needed.',
       },
 
       { children: 'Why is Refugee Flow important?',
         style: qaTitleStyle,
       },
-      { children: 'Currently, UNHCR reports that 68.5 million people are forcibly displaced around the world. Funding to tackle the current challenge is decreasing, not increasing. By 2050 the continued impact of climate change will forcibly displace 1 billion people. The crisis is getting worse, not better. We must gain a greater understanding and we need to figure out better solutions to this crisis. Refugee Flow is a call to this action.',
+      { children: 'By mid-2024, over 120 million people were forcibly displaced worldwide, nearly double the figure from 2017. Climate change, armed conflict, and political instability continue to accelerate displacement. Understanding the scale and human cost of this crisis is a prerequisite for meaningful action. Refugee Flow is a call to that understanding.',
       },
     ],
   },
