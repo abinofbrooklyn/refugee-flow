@@ -39,16 +39,23 @@ const TransitionOutlet: React.FC = () => {
 
   // Refs for stale-closure-safe access inside callbacks and effects
   const prevPathnameRef = useRef<string>(location.pathname);
-  const prevOutletRef = useRef<React.ReactElement | null>(outlet);
   const transitionStateRef = useRef<TransitionState>('idle');
-  const outletRef = useRef<React.ReactElement | null>(outlet);
 
-  // Keep refs in sync with latest values on every render
-  outletRef.current = outlet;
-  if (transitionState === 'idle') {
-    prevOutletRef.current = outlet;
-  }
+  // lastIdleOutletRef holds the outlet element from the most recent idle state.
+  // Updated ONLY via effect after an idle render — never during render — so that
+  // a navigation render doesn't overwrite it with the new outlet before the
+  // location-change effect can stash it as prevOutlet.
+  const lastIdleOutletRef = useRef<React.ReactElement | null>(outlet);
+
   transitionStateRef.current = transitionState;
+
+  // Capture the idle outlet AFTER render commits — this ensures the ref holds
+  // the OLD outlet when the next navigation render fires.
+  React.useEffect(() => {
+    if (transitionState === 'idle') {
+      lastIdleOutletRef.current = outlet;
+    }
+  });
 
   React.useEffect(() => {
     const newPathname = location.pathname;
@@ -59,13 +66,13 @@ const TransitionOutlet: React.FC = () => {
       return;
     }
 
-    // New route — stash current outlet as prev, update curr
+    // New route — stash the last idle outlet as prev, use new outlet as curr
     prevPathnameRef.current = newPathname;
-    setPrevOutlet(prevOutletRef.current);
-    setCurrOutlet(outletRef.current);
+    setPrevOutlet(lastIdleOutletRef.current);
+    setCurrOutlet(outlet);
     setTransitionState('loading');
     transitionStateRef.current = 'loading';
-  }, [location.pathname]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [location.pathname, outlet]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleSignalReady = useCallback((loadDurationMs: number) => {
     // Only act when actively waiting for a signal (loading state)
