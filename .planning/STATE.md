@@ -169,6 +169,7 @@ Recent decisions affecting current work:
 
 - Phase 7 added: Start v2 TypeScript migration
 - Phase 8 added: Crossfade Route Transitions
+- Phase 9 added: ACLED War/Conflict Data Ingestion (extracted from Phase 4 blocker)
 
 ### Pending Todos
 

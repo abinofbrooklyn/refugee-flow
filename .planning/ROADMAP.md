@@ -15,7 +15,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 1: Stabilize** - Fix memory leaks, error handling, security vulnerabilities, and UX gaps in the existing app
 - [x] **Phase 2: Modernize Stack** - Replace Webpack 4 with Vite, upgrade React 18 and THREE.js r150+, remove dead dependencies
 - [x] **Phase 3: Database Migration** - Move all data from MongoDB to PostgreSQL/Supabase with geo precision baked in (completed 2026-03-17)
-- [x] **Phase 4: Data Ingestion Pipeline** - Automate ACLED, UNHCR, and IOM data ingestion plus admin CSV upload; normalize all ingested data at ingestion time (completed 2026-03-21)
+- [x] **Phase 4: Data Ingestion Pipeline** - Automate UNHCR, IOM, Eurostat, Frontex, CBP, and UK Home Office data ingestion plus admin CSV upload; normalize all ingested data at ingestion time (completed 2026-03-21). ACLED ingestion moved to Phase 9.
 - [ ] **Phase 5: Data Coverage** - Audit, validate, and close gaps in data coverage across years and corridors
 - [x] **Phase 6: React Router v6 Migration** - Eliminate legacy context API warnings by upgrading react-router-dom to v6 (completed 2026-03-20)
 
@@ -74,15 +74,15 @@ Plans:
 - [x] 03-04-PLAN.md — Integration tests for endpoint shapes, geo precision, dedup, and end-to-end verification
 
 ### Phase 4: Data Ingestion Pipeline
-**Goal**: War, asylum, and route death data flows into the database automatically each week; admin can supplement with CSV uploads
+**Goal**: Asylum, route death, and border crossing data flows into the database automatically each week; admin can supplement with CSV uploads
 **Depends on**: Phase 3
-**Requirements**: INGEST-01, INGEST-02, INGEST-03, INGEST-04, INGEST-05, INGEST-06, INGEST-07
+**Requirements**: INGEST-02, INGEST-03, INGEST-04, INGEST-05, INGEST-06, INGEST-07
 **Success Criteria** (what must be TRUE):
-  1. ACLED, UNHCR, and IOM ingestion jobs run on schedule and new data appears in the app without manual intervention
+  1. UNHCR, IOM, Eurostat, Frontex, CBP, and UK Home Office ingestion jobs run on schedule and new data appears in the app without manual intervention
   2. Every lat/lng value from any ingestion source is precision-reduced and deduplicated before reaching the database
   3. Admin can navigate to /admin with a shared-secret password, upload a CSV, preview the parsed rows, and commit or cancel
   4. When an ingestion job fails, an error row with details appears in the ingestion_log table
-**Plans**: 16 plans (Plan 07 blocked on ACLED API access)
+**Plans**: 15 plans
 
 Plans:
 - [x] 04-01-PLAN.md — Database migration (ingestion_log table, event_id type fix), shared utilities, install dependencies
@@ -187,3 +187,14 @@ Plans:
 Plans:
 - [ ] 08-01-PLAN.md — Create TransitionContext, TransitionOutlet, update NavbarLayout, fix canvas_overlay querySelector scoping
 - [ ] 08-02-PLAN.md — Wire RefugeeRoute into transition signal, suppress ScaleLoader during crossfade, visual verification
+
+### Phase 9: ACLED War/Conflict Data Ingestion
+
+**Goal:** War/conflict data ingested automatically from ACLED API on a weekly schedule, with geo precision reduction for the THREE.js globe
+**Requirements**: INGEST-01
+**Depends on:** Phase 4 (ingestion infrastructure), ACLED API access grant
+**BLOCKED:** Waiting on ACLED API access (email sent to access@acleddata.com)
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd:plan-phase 9 to break down)
