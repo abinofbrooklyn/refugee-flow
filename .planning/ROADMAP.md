@@ -201,10 +201,11 @@ Plans:
 
 ### Phase 10: Route Dashboard UX Improvements
 
-**Goal:** [To be planned]
-**Requirements**: TBD
+**Goal:** Each route page auto-frames its map to the data concentration area on load using per-route fitBounds, replacing the generic zoom:3.5 that left most routes poorly framed with too much empty map
+**Requirements**: UX-FRAMING
 **Depends on:** Phase 8
-**Plans:** 0 plans
+**Plans:** 2 plans
 
 Plans:
-- [ ] TBD (run /gsd:plan-phase 10 to break down)
+- [ ] 10-01-PLAN.md — Add bounds type, per-route bounds data, and fitBounds helper replacing flyTo in map component
+- [ ] 10-02-PLAN.md — Visual tuning of per-route bounds values and user verification checkpoint
