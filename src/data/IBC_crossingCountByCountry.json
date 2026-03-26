@@ -2,82 +2,82 @@
   {
     "route": "Eastern Mediterranean",
     "total_cross": 1323934,
-    "center_lng": 30.21,
-    "center_lat": 39.32,
+    "center_lng": 26.0,
+    "center_lat": 38.0,
     "zoom": 3.5,
     "bounds": [22.0, 34.0, 32.0, 42.0]
   },
   {
     "route": "Central Mediterranean",
     "total_cross": 687285,
-    "center_lng": 24.67,
-    "center_lat": 37.76,
+    "center_lng": 15.0,
+    "center_lat": 35.5,
     "zoom": 3.5,
-    "bounds": [8.0, 30.0, 20.0, 40.0]
+    "bounds": [0.0, 29.0, 22.0, 42.0]
   },
   {
     "route": "Western Mediterranean",
     "total_cross": 56863,
-    "center_lng": 2.46,
-    "center_lat": 37.03,
+    "center_lng": 0.0,
+    "center_lat": 37.5,
     "zoom": 3.5,
-    "bounds": [-6.0, 33.0, 10.0, 42.0]
+    "bounds": [-9.0, 32.0, 11.0, 44.0]
   },
   {
     "route": "English Channel",
     "total_cross": 190118,
     "center_lng": 1.5,
-    "center_lat": 49.0,
+    "center_lat": 51.0,
     "zoom": 3.5,
-    "bounds": [-0.5, 50.5, 3.5, 52.0]
+    "bounds": [-1.5, 50.3, 4.0, 52.0]
   },
   {
     "route": "Western Balkans",
     "total_cross": 259738,
-    "center_lng": 30.01,
-    "center_lat": 45.17,
+    "center_lng": 22.0,
+    "center_lat": 43.5,
     "zoom": 3.5,
-    "bounds": [14.0, 37.0, 30.0, 49.0]
+    "bounds": [13.0, 36.0, 30.0, 50.0]
   },
   {
     "route": "Eastern Land Borders",
     "total_cross": 5437,
-    "center_lng": 40.0,
-    "center_lat": 52.5,
+    "center_lng": 22.0,
+    "center_lat": 52.0,
     "zoom": 3.5,
-    "bounds": [14.0, 46.0, 32.0, 56.0]
+    "bounds": [11.0, 44.0, 33.0, 60.0]
   },
   {
     "route": "Americas",
     "total_cross": 5314232,
-    "center_lng": -90.0,
-    "center_lat": 22.0,
+    "center_lng": -99.0,
+    "center_lat": 27.0,
     "zoom": 3.5,
-    "bounds": [-118.0, 15.0, -88.0, 40.0]
+    "bounds": [-118.0, 14.0, -80.0, 40.5]
   },
   {
     "route": "Western African",
     "total_cross": 2692,
-    "center_lng": 2.76,
-    "center_lat": 26.55,
+    "center_lng": -12.0,
+    "center_lat": 23.0,
     "zoom": 3.5,
-    "bounds": [-18.0, 15.0, 0.0, 36.0]
+    "bounds": [-18.0, 10.0, 1.0, 36.0]
   },
   {
     "route": "Horn of Africa",
     "total_cross": 945,
-    "center_lng": 42.0,
-    "center_lat": 8.0,
+    "center_lng": 44.0,
+    "center_lat": 11.5,
     "zoom": 3.5,
-    "bounds": [38.0, 5.0, 50.0, 16.0]
+    "bounds": [37.0, 4.0, 52.0, 18.0]
   },
   {
     "route": "East & Southern Africa",
     "total_cross": 135,
-    "center_lng": 45.0,
-    "center_lat": -25.0,
+    "center_lng": 35.0,
+    "center_lat": -15.0,
     "zoom": 3.5,
-    "bounds": [25.0, -30.0, 50.0, -5.0]
+    "bounds": [12.0, -35.0, 52.0, 5.0]
   },
   {
     "route": "Iran-Afghanistan Corridor",
