@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-stopped_at: Phase 10 context gathered
-last_updated: "2026-03-26T00:03:11.200Z"
+stopped_at: Completed 10-01-PLAN.md
+last_updated: "2026-03-26T00:23:11.020Z"
 progress:
   total_phases: 10
   completed_phases: 7
-  total_plans: 41
-  completed_plans: 44
+  total_plans: 43
+  completed_plans: 45
 ---
 
 # Project State
@@ -19,11 +19,11 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-11)
 
 **Core value:** Users can explore the human cost of conflict through an interactive, data-accurate visualization.
-**Current focus:** Phase 08 — crossfade-route-transitions
+**Current focus:** Phase 10 — route-dashboard-ux-improvements
 
 ## Current Position
 
-Phase: 08 (crossfade-route-transitions) — EXECUTING
+Phase: 10 (route-dashboard-ux-improvements) — EXECUTING
 Plan: 1 of 2
 
 ## Performance Metrics
@@ -80,6 +80,7 @@ Plan: 1 of 2
 | Phase 07-start-v2-typescript-migration PP10 | 14 | 1 tasks | 19 files |
 | Phase 07-start-v2-typescript-migration P10 | 45 | 2 tasks | 36 files |
 | Phase 08-crossfade-route-transitions P01 | 270 | 2 tasks | 5 files |
+| Phase 10 P01 | 10 | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -164,6 +165,9 @@ Recent decisions affecting current work:
 - [Phase 07-start-v2-typescript-migration]: Fuse 3.x search result shape is {item:{key}} not {key} — ibcCountry search destructuring fixed with .item unwrapping
 - [Phase 08-crossfade-route-transitions]: TransitionOutlet uses idle/loading/transitioning state machine with transitionStateRef guard to prevent stale signalReady calls from initial mount
 - [Phase 08-crossfade-route-transitions]: canvas_overlay querySelector scoped to containerRef.current to prevent DOM collision during crossfade coexistence
+- [Phase 10]: Cast dataDict JSON import to RouteCrossingCount[] — TypeScript infers JSON array bounds as number[] not tuple; cast at import resolves all call sites without per-call assertions
+- [Phase 10]: navigateToRouteBounds placed outside component as pure function — no useCallback needed, no closure state dependencies
+- [Phase 10]: fitBounds called after setPadding via isStyleLoaded() guard — handles cached CDN styles (sync) and fresh loads (async 'load' event)
 
 ### Roadmap Evolution
 
@@ -182,6 +186,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-26T00:03:11.192Z
-Stopped at: Phase 10 context gathered
-Resume file: .planning/phases/10-route-dashboard-ux-improvements/10-CONTEXT.md
+Last session: 2026-03-26T00:23:11.015Z
+Stopped at: Completed 10-01-PLAN.md
+Resume file: None
