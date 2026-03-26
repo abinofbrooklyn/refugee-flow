@@ -7,9 +7,31 @@ import * as d3 from 'd3';
 import 'd3-canvas-transition';
 import { color_map } from '../data/routeDictionary';
 import '../stylesheets/RefugeeRoute_map.css';
-import type { RouteDeath } from '../types/api';
+import type { RouteDeath, RouteCrossingCount } from '../types/api';
 
-import dataDict from '../data/IBC_crossingCountByCountry.json';
+import dataDictRaw from '../data/IBC_crossingCountByCountry.json';
+const dataDict = dataDictRaw as RouteCrossingCount[];
+
+const navigateToRouteBounds = (
+  map: maplibregl.Map,
+  params: RouteCrossingCount,
+  animate: boolean
+): void => {
+  if (params.bounds) {
+    map.fitBounds(params.bounds, {
+      animate,
+      duration: animate ? 1500 : 0,
+      maxZoom: 7,
+    });
+  } else {
+    // Fallback for routes without bounds (Iran-Afghanistan Corridor, South & East Asia)
+    map.flyTo({
+      center: [params.center_lng, params.center_lat],
+      zoom: params.zoom,
+      animate,
+    });
+  }
+};
 
 // Map new IOM cause_of_death categories to original display categories
 const CAUSE_MAP: Record<string, string> = {
@@ -115,10 +137,7 @@ const RefugeeRoute_map: React.FC<Props> = ({
 
     if (prevRouteName !== currentRouteName) {
       canvas_overlay_render(() =>
-        mapRef.current!.flyTo({
-          center: [currentMapParamsRef.current.center_lng, currentMapParamsRef.current.center_lat],
-          zoom: currentMapParamsRef.current.zoom,
-        })
+        navigateToRouteBounds(mapRef.current!, currentMapParamsRef.current, true)
       );
     } else {
       canvas_overlay_render();
@@ -269,6 +288,16 @@ const RefugeeRoute_map: React.FC<Props> = ({
     // Push the map's effective viewport left so content isn't hidden behind the slideout (55% width)
     const slideoutWidth = Math.round(containerRef.current.offsetWidth * 0.55);
     mapRef.current.setPadding({ top: 0, bottom: 0, left: 0, right: slideoutWidth });
+
+    // Reframe to per-route bounds after style loads (setPadding must be set first)
+    const initParams = currentMapParamsRef.current;
+    if (mapRef.current.isStyleLoaded()) {
+      navigateToRouteBounds(mapRef.current, initParams, false);
+    } else {
+      mapRef.current.once('load', () => {
+        navigateToRouteBounds(mapRef.current!, initParams, false);
+      });
+    }
 
     mapContainerWidthRef.current = containerRef.current.offsetWidth;
     mapContainerHeightRef.current = containerRef.current.offsetHeight;
