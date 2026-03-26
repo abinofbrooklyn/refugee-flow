@@ -12,17 +12,64 @@ import type { RouteDeath, RouteCrossingCount } from '../types/api';
 import dataDictRaw from '../data/IBC_crossingCountByCountry.json';
 const dataDict = dataDictRaw as RouteCrossingCount[];
 
+/**
+ * Compute bounds from actual data points for a route, clamped by per-route
+ * max bounds from JSON. This is self-maintaining: as new data arrives via
+ * ingestion, the view auto-expands to include it — but never wider than the
+ * max bounds (e.g., English Channel never shows Germany even if data exists there).
+ */
+const computeDataBounds = (
+  data: RouteDeath[],
+  routeName: string | undefined,
+  maxBounds?: [number, number, number, number]
+): [number, number, number, number] | null => {
+  const routeData = routeName
+    ? data.filter(d => d.route === routeName)
+    : data;
+
+  const valid = routeData.filter(
+    d => d.lng != null && d.lat != null
+      && d.lat >= -90 && d.lat <= 90 && d.lng >= -180 && d.lng <= 180
+  );
+
+  if (valid.length === 0) return maxBounds ?? null;
+
+  let sw_lng = Infinity, sw_lat = Infinity;
+  let ne_lng = -Infinity, ne_lat = -Infinity;
+  for (const d of valid) {
+    if (d.lng! < sw_lng) sw_lng = d.lng!;
+    if (d.lat! < sw_lat) sw_lat = d.lat!;
+    if (d.lng! > ne_lng) ne_lng = d.lng!;
+    if (d.lat! > ne_lat) ne_lat = d.lat!;
+  }
+
+  if (maxBounds) {
+    // Clamp: data bounds can shrink within max bounds but never exceed them
+    sw_lng = Math.max(sw_lng, maxBounds[0]);
+    sw_lat = Math.max(sw_lat, maxBounds[1]);
+    ne_lng = Math.min(ne_lng, maxBounds[2]);
+    ne_lat = Math.min(ne_lat, maxBounds[3]);
+  }
+
+  return [sw_lng, sw_lat, ne_lng, ne_lat];
+};
+
 const navigateToRouteBounds = (
   map: maplibregl.Map,
   params: RouteCrossingCount,
-  animate: boolean
+  animate: boolean,
+  data: RouteDeath[],
+  routeName: string | undefined
 ): void => {
   if (params.bounds) {
-    map.fitBounds(params.bounds, {
-      animate,
-      duration: animate ? 1500 : 0,
-      maxZoom: 7,
-    });
+    const bounds = computeDataBounds(data, routeName, params.bounds);
+    if (bounds) {
+      map.fitBounds(bounds, {
+        animate,
+        duration: animate ? 1500 : 0,
+        maxZoom: 7,
+      });
+    }
   } else {
     // Fallback for routes without bounds (Iran-Afghanistan Corridor, South & East Asia)
     map.flyTo({
@@ -137,7 +184,7 @@ const RefugeeRoute_map: React.FC<Props> = ({
 
     if (prevRouteName !== currentRouteName) {
       canvas_overlay_render(() =>
-        navigateToRouteBounds(mapRef.current!, currentMapParamsRef.current, true)
+        navigateToRouteBounds(mapRef.current!, currentMapParamsRef.current, true, data, currentRouteName)
       );
     } else {
       canvas_overlay_render();
@@ -292,10 +339,10 @@ const RefugeeRoute_map: React.FC<Props> = ({
     // Reframe to per-route bounds after style loads (setPadding must be set first)
     const initParams = currentMapParamsRef.current;
     if (mapRef.current.isStyleLoaded()) {
-      navigateToRouteBounds(mapRef.current, initParams, false);
+      navigateToRouteBounds(mapRef.current, initParams, false, data, currentRouteName);
     } else {
       mapRef.current.once('load', () => {
-        navigateToRouteBounds(mapRef.current!, initParams, false);
+        navigateToRouteBounds(mapRef.current!, initParams, false, data, currentRouteName);
       });
     }
 
