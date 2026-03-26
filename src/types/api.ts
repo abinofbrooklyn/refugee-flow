@@ -58,6 +58,7 @@ export interface RouteCrossingCount {
   center_lng: number;
   center_lat: number;
   zoom: number;
+  bounds?: [number, number, number, number]; // [sw_lng, sw_lat, ne_lng, ne_lat]
 }
 
 /**
