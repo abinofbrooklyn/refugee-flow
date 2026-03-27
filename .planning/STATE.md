@@ -177,6 +177,7 @@ Recent decisions affecting current work:
 - Phase 8 added: Crossfade Route Transitions
 - Phase 9 added: ACLED War/Conflict Data Ingestion (extracted from Phase 4 blocker)
 - Phase 10 added: Route Dashboard UX Improvements
+- Phase 11 added: Data Methodology & Attribution
 
 ### Pending Todos
 

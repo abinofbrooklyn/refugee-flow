@@ -209,3 +209,13 @@ Plans:
 Plans:
 - [ ] 10-01-PLAN.md — Add bounds type, per-route bounds data, and fitBounds helper replacing flyTo in map component
 - [ ] 10-02-PLAN.md — Visual tuning of per-route bounds values and user verification checkpoint
+
+### Phase 11: Data Methodology & Attribution
+
+**Goal:** [To be planned]
+**Requirements**: TBD
+**Depends on:** Phase 10
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd:plan-phase 11 to break down)
