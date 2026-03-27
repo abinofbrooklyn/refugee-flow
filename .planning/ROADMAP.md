@@ -210,9 +210,9 @@ Plans:
 - [ ] 10-01-PLAN.md — Add bounds type, per-route bounds data, and fitBounds helper replacing flyTo in map component
 - [ ] 10-02-PLAN.md — Visual tuning of per-route bounds values and user verification checkpoint
 
-### Phase 11: Data Methodology & Attribution
+### Phase 11: About Page Relaunch
 
-**Goal:** [To be planned]
+**Goal:** Rewrite the About page to reflect the project's evolution from a static student project to a live, automated data visualization tool — including data methodology & attribution, updated project narrative, team/credits, and technical overview
 **Requirements**: TBD
 **Depends on:** Phase 10
 **Plans:** 0 plans
