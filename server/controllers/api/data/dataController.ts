@@ -117,9 +117,19 @@ interface RouteDeathShape {
   source_url: string | null;
 }
 
+const VALID_ROUTES = [
+  'Eastern Mediterranean', 'Central Mediterranean', 'Western Mediterranean',
+  'English Channel', 'Western Balkans', 'Eastern Land Borders',
+  'Americas', 'Western African', 'Horn of Africa',
+  'East & Southern Africa', 'Iran-Afghanistan Corridor', 'South & East Asia',
+];
+
 export const findRouteDeath = async (route?: string): Promise<RouteDeathShape[]> => {
   let query = db<RouteDeathRow>('route_deaths').select('*');
   if (route) {
+    if (!VALID_ROUTES.includes(route)) {
+      return []; // reject unknown routes
+    }
     query = query.where('route', route);
   }
   const rows = await query;
