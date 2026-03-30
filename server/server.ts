@@ -14,18 +14,42 @@ const app: Express = express();
 
 // Printf env
 console.info(ENV_INFO);
-// Security
-app.use(helmet());
-app.use(helmet.referrerPolicy({ policy: 'no-referrer' }));
-// CORS — allow all origins (general internet traffic)
-app.use(cors());
+// Security — Helmet v8 with CSP for MapLibre/CartoCDN/Google Fonts
+app.use(helmet({
+  contentSecurityPolicy: {
+    useDefaults: false,
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'"],
+      styleSrc: ["'self'", 'https:', "'unsafe-inline'"],
+      imgSrc: ["'self'", 'data:', 'blob:', 'https://*.basemaps.cartocdn.com', 'https://*.cartocdn.com'],
+      fontSrc: ["'self'", 'https://fonts.gstatic.com'],
+      connectSrc: ["'self'", 'https://*.basemaps.cartocdn.com', 'https://*.cartocdn.com'],
+      workerSrc: ["'self'", 'blob:'],
+      childSrc: ["'self'", 'blob:'],
+      objectSrc: ["'none'"],
+      baseUri: ["'self'"],
+      formAction: ["'self'"],
+      frameAncestors: ["'none'"],
+      upgradeInsecureRequests: [],
+    },
+  },
+  referrerPolicy: { policy: 'no-referrer' },
+  crossOriginEmbedderPolicy: false,
+}));
+// CORS — allow all origins, GET/HEAD only (POST/PUT/DELETE blocked for cross-origin browsers)
+app.use(cors({
+  origin: '*',
+  methods: ['GET', 'HEAD'],
+}));
 // Gzipping
 app.use(compression());
 
-// Rate limiting — 200 requests per 15-minute window per IP on /data routes
+// Rate limiting — 300 requests per 15-minute window per IP on /data routes
+// (museum kiosk: single IP for many sequential visitors, 6 endpoints x 50 visitors = 300)
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 200,
+  max: 300,
   standardHeaders: true,
   legacyHeaders: false,
   message: { error: 'Rate limit exceeded. Try again in 15 minutes.' },
