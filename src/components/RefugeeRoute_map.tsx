@@ -8,7 +8,7 @@ import 'd3-canvas-transition';
 import { color_map } from '../data/routeDictionary';
 import '../stylesheets/RefugeeRoute_map.css';
 import type { RouteDeath, RouteCrossingCount } from '../types/api';
-import { resolveClickAction } from './mapClickLogic';
+import { resolveClickAction, getHitRadius, HIT_RADIUS_MOUSE, CLICK_DEBOUNCE_MS } from './mapClickLogic';
 
 import dataDictRaw from '../data/IBC_crossingCountByCountry.json';
 const dataDict = dataDictRaw as RouteCrossingCount[];
@@ -150,6 +150,7 @@ const RefugeeRoute_map: React.FC<Props> = ({
   const mapContainerWidthRef = useRef<number>(0);
   const mapContainerHeightRef = useRef<number>(0);
   const myZoomRef = useRef({ start: 0, end: 0 });
+  const lastClickTimeRef = useRef<number>(0);
 
   // Keep refs in sync with props
   useEffect(() => {
@@ -293,14 +294,24 @@ const RefugeeRoute_map: React.FC<Props> = ({
 
   const handleMousemove = useCallback((e: maplibregl.MapMouseEvent) => {
     if (!treeRef.current) return;
-    const p = treeRef.current.find(e.point.x, e.point.y) as RouteDeathWithCoords | undefined;
+    const p = treeRef.current.find(e.point.x, e.point.y, HIT_RADIUS_MOUSE) as RouteDeathWithCoords | undefined;
     if (p) intersectedIdRef.current = p.id;
+    else intersectedIdRef.current = null;
     canvas_overlay_render();
   }, [canvas_overlay_render]);
 
   const handleClick = useCallback((e: maplibregl.MapMouseEvent) => {
     if (!treeRef.current || !mapRef.current) return;
-    const p = treeRef.current.find(e.point.x, e.point.y) as RouteDeathWithCoords | undefined;
+
+    // Debounce: ignore rapid double-clicks/taps
+    const now = performance.now();
+    if (now - lastClickTimeRef.current < CLICK_DEBOUNCE_MS) return;
+    lastClickTimeRef.current = now;
+
+    // Touch taps get a larger hit radius than mouse clicks
+    const isTouch = e.originalEvent instanceof PointerEvent && e.originalEvent.pointerType === 'touch';
+    const hitRadius = getHitRadius(isTouch);
+    const p = treeRef.current.find(e.point.x, e.point.y, hitRadius) as RouteDeathWithCoords | undefined;
 
     const action = resolveClickAction(
       p,

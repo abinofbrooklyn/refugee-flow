@@ -1,3 +1,14 @@
+/** Hit radius in pixels for quadtree point lookup */
+export const HIT_RADIUS_MOUSE = 30;
+export const HIT_RADIUS_TOUCH = 50;
+
+/** Minimum ms between clicks to prevent double-tap toggling */
+export const CLICK_DEBOUNCE_MS = 300;
+
+export function getHitRadius(isTouch: boolean): number {
+  return isTouch ? HIT_RADIUS_TOUCH : HIT_RADIUS_MOUSE;
+}
+
 export type ClickMode = 'select' | 'swap' | 'deselect';
 
 export type ClickResult =

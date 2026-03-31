@@ -268,7 +268,7 @@ const RefugeeRoute_textArea_content_currentSelectedPoint: React.FC<Props> = ({ s
     if (source) {
       source.setData({ "type": "Point", "coordinates": [map_lng, map_lat] });
     }
-    mapRef.current.jumpTo({ center: [map_lng, map_lat], zoom: 4 });
+    mapRef.current.jumpTo({ center: [map_lng, map_lat], zoom: 13 });
   };
 
   useEffect(() => {
@@ -282,7 +282,7 @@ const RefugeeRoute_textArea_content_currentSelectedPoint: React.FC<Props> = ({ s
       style: 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json',
       attributionControl: false,
       center: [map_lng as number, map_lat as number],
-      zoom: 4,
+      zoom: 13,
     });
 
     mapRef.current.on('load', () => {

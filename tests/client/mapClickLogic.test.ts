@@ -1,4 +1,4 @@
-import { resolveClickAction } from '../../src/components/mapClickLogic';
+import { resolveClickAction, getHitRadius, HIT_RADIUS_MOUSE, HIT_RADIUS_TOUCH, CLICK_DEBOUNCE_MS } from '../../src/components/mapClickLogic';
 
 describe('resolveClickAction', () => {
   const point = (id: number, lng = 10, lat = 20) => ({ id, lng, lat });
@@ -89,6 +89,40 @@ describe('resolveClickAction', () => {
     it('low zoom levels still add 2', () => {
       const result = resolveClickAction(point(1), null, false, 1);
       expect(result.zoom).toBe(3);
+    });
+  });
+
+  describe('getHitRadius', () => {
+    it('returns larger radius for touch input', () => {
+      expect(getHitRadius(true)).toBe(HIT_RADIUS_TOUCH);
+      expect(getHitRadius(true)).toBe(50);
+    });
+
+    it('returns smaller radius for mouse input', () => {
+      expect(getHitRadius(false)).toBe(HIT_RADIUS_MOUSE);
+      expect(getHitRadius(false)).toBe(30);
+    });
+
+    it('touch radius is larger than mouse radius', () => {
+      expect(getHitRadius(true)).toBeGreaterThan(getHitRadius(false));
+    });
+  });
+
+  describe('constants', () => {
+    it('debounce threshold is 300ms', () => {
+      expect(CLICK_DEBOUNCE_MS).toBe(300);
+    });
+  });
+
+  describe('click missed all bubbles (quadtree radius miss)', () => {
+    it('does nothing when no bubble is nearby and nothing is selected', () => {
+      const result = resolveClickAction(undefined, null, false, 5);
+      expect(result).toEqual({ mode: 'deselect' });
+    });
+
+    it('deselects when no bubble is nearby and a point is selected', () => {
+      const result = resolveClickAction(undefined, 42, true, 5);
+      expect(result).toEqual({ mode: 'deselect' });
     });
   });
 });

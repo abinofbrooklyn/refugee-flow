@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import styled, { css } from 'styled-components';
 import _ from 'lodash';
 import type { RouteDeath } from '../types/api';
@@ -141,12 +141,10 @@ const RefugeeRoute_textArea: React.FC<Props> = ({
   slideoutCollapsed,
 }) => {
   const [currentTab, setCurrentTab] = useState<number>(1);
-  const selectedDataPointRef = useRef<string | null>(null);
 
   // When selected_data changes: switch to tab 3
   // When clickedPointRemoved: switch back to tab 1
   useEffect(() => {
-    selectedDataPointRef.current = selected_data;
     if (selected_data != null) setCurrentTab(3);
   }, [selected_data]);
 
@@ -192,7 +190,7 @@ const RefugeeRoute_textArea: React.FC<Props> = ({
       <RefugeeRoute_textArea_contentManager
         currentRouteName={currentRouteName}
         currentTab={currentTab}
-        selected_dataPoint={selectedDataPointRef.current}
+        selected_dataPoint={selected_data}
         route_death_data={route_death}
         IBC_data={route_IBC}
       />
