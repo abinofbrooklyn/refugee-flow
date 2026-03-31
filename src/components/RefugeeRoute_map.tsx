@@ -354,28 +354,32 @@ const RefugeeRoute_map: React.FC<Props> = ({
     if (!containerRef.current) return;
 
     const params = currentMapParamsRef.current;
+    const slideoutWidth = Math.round(containerRef.current.offsetWidth * 0.55);
 
-    mapRef.current = new maplibregl.Map({
+    // Compute initial bounds so the map never flashes at the wrong position
+    const initBounds = params.bounds
+      ? computeDataBounds(data, currentRouteName, params.bounds)
+      : null;
+
+    const mapOptions: maplibregl.MapOptions = {
       container: containerRef.current,
       style: 'https://basemaps.cartocdn.com/gl/dark-matter-gl-style/style.json',
       attributionControl: false,
-      center: [params.center_lng, params.center_lat],
-      zoom: params.zoom,
-    }).addControl(new maplibregl.NavigationControl({}), 'top-right');
+    };
 
-    // Push the map's effective viewport left so content isn't hidden behind the slideout (55% width)
-    const slideoutWidth = Math.round(containerRef.current.offsetWidth * 0.55);
-    mapRef.current.setPadding({ top: 0, bottom: 0, left: 0, right: slideoutWidth });
-
-    // Reframe to per-route bounds after style loads (setPadding must be set first)
-    const initParams = currentMapParamsRef.current;
-    if (mapRef.current.isStyleLoaded()) {
-      navigateToRouteBounds(mapRef.current, initParams, false, data, currentRouteName);
+    if (initBounds) {
+      mapOptions.bounds = initBounds;
+      mapOptions.fitBoundsOptions = { maxZoom: 7, padding: { top: 0, bottom: 0, left: 0, right: slideoutWidth } };
     } else {
-      mapRef.current.once('load', () => {
-        navigateToRouteBounds(mapRef.current!, initParams, false, data, currentRouteName);
-      });
+      mapOptions.center = [params.center_lng, params.center_lat];
+      mapOptions.zoom = params.zoom;
     }
+
+    mapRef.current = new maplibregl.Map(mapOptions)
+      .addControl(new maplibregl.NavigationControl({}), 'top-right');
+
+    // Set padding for slideout (also needed for non-bounds routes and subsequent navigations)
+    mapRef.current.setPadding({ top: 0, bottom: 0, left: 0, right: slideoutWidth });
 
     mapContainerWidthRef.current = containerRef.current.offsetWidth;
     mapContainerHeightRef.current = containerRef.current.offsetHeight;
