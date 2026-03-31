@@ -1,0 +1,108 @@
+name: Deploy
+
+on:
+  push:
+    branches: [master]
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  AWS_REGION: us-east-1
+  ECS_CLUSTER: refugee-flow-cluster
+  ECS_SERVICE: refugee-flow-service
+  ECR_REPOSITORY: refugee-flow
+  CF_STACK_NAME: refugee-flow
+
+jobs:
+  deploy-frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - run: npm ci
+
+      - run: npm run build
+
+      - name: Verify frontend build
+        run: test -f dist/index.html && echo "Frontend build verified"
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Sync to S3
+        run: aws s3 sync dist/ s3://${{ secrets.S3_BUCKET }} --delete
+
+      - name: Invalidate CloudFront cache
+        run: aws cloudfront create-invalidation --distribution-id ${{ secrets.CF_DIST_ID }} --paths "/*"
+
+  deploy-backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Login to ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build and push Docker image
+        id: build-push
+        env:
+          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
+          docker tag $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG $ECR_REGISTRY/$ECR_REPOSITORY:latest
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+          docker push $ECR_REGISTRY/$ECR_REPOSITORY:latest
+          echo "image=$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
+
+      - name: Resolve task definition ARNs from CloudFormation
+        id: cf-outputs
+        run: |
+          EXEC_ROLE_ARN=$(aws cloudformation describe-stacks --stack-name $CF_STACK_NAME --query "Stacks[0].Outputs[?OutputKey=='ECSTaskExecutionRoleArn'].OutputValue" --output text)
+          TASK_ROLE_ARN=$(aws cloudformation describe-stacks --stack-name $CF_STACK_NAME --query "Stacks[0].Outputs[?OutputKey=='ECSTaskRoleArn'].OutputValue" --output text)
+          SECRET_ARN=$(aws cloudformation describe-stacks --stack-name $CF_STACK_NAME --query "Stacks[0].Outputs[?OutputKey=='SecretsManagerArn'].OutputValue" --output text)
+          CF_DIST_ID=$(aws cloudformation describe-stacks --stack-name $CF_STACK_NAME --query "Stacks[0].Outputs[?OutputKey=='CloudFrontDistributionId'].OutputValue" --output text)
+          echo "exec_role_arn=$EXEC_ROLE_ARN" >> $GITHUB_OUTPUT
+          echo "task_role_arn=$TASK_ROLE_ARN" >> $GITHUB_OUTPUT
+          echo "secret_arn=$SECRET_ARN" >> $GITHUB_OUTPUT
+          echo "cf_dist_id=$CF_DIST_ID" >> $GITHUB_OUTPUT
+
+      - name: Substitute placeholders in task definition
+        run: |
+          sed -i 's|PLACEHOLDER_EXECUTION_ROLE_ARN|${{ steps.cf-outputs.outputs.exec_role_arn }}|g' infrastructure/task-definition.json
+          sed -i 's|PLACEHOLDER_TASK_ROLE_ARN|${{ steps.cf-outputs.outputs.task_role_arn }}|g' infrastructure/task-definition.json
+          sed -i 's|PLACEHOLDER_SECRET_ARN|${{ steps.cf-outputs.outputs.secret_arn }}|g' infrastructure/task-definition.json
+          sed -i 's|PLACEHOLDER_CF_DIST_ID|${{ steps.cf-outputs.outputs.cf_dist_id }}|g' infrastructure/task-definition.json
+          echo "Substituted ARNs in task-definition.json:"
+          python3 -c "import json; d=json.load(open('infrastructure/task-definition.json')); print('executionRoleArn:', d['executionRoleArn']); print('taskRoleArn:', d['taskRoleArn']); print('secret valueFrom:', d['containerDefinitions'][0]['secrets'][0]['valueFrom'])"
+
+      - name: Render ECS task definition
+        id: task-def
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: infrastructure/task-definition.json
+          container-name: refugee-flow-api
+          image: ${{ steps.build-push.outputs.image }}
+
+      - name: Deploy to ECS
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v2
+        with:
+          task-definition: ${{ steps.task-def.outputs.task-definition }}
+          service: ${{ env.ECS_SERVICE }}
+          cluster: ${{ env.ECS_CLUSTER }}
+          wait-for-service-stability: true
