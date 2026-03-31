@@ -1,8 +1,6 @@
 # Superpowers brainstorming sessions
 .superpowers/
 
-# GSD planning files (contain infrastructure decisions, IAM details, secrets references)
-.planning/
 
 # Logs
 logs
