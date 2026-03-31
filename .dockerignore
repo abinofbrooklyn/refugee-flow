@@ -1,0 +1,17 @@
+node_modules
+dist
+.planning
+.git
+.github
+.env
+.env.*
+*.md
+tests
+coverage
+src
+public
+vite.config.*
+tsconfig.json
+eslint*
+.prettierrc
+.superpowers
