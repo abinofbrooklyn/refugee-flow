@@ -210,7 +210,7 @@ Plans:
 Plans:
 - [x] 10-01-PLAN.md — Add bounds type, per-route bounds data, and fitBounds helper replacing flyTo in map component
 - [x] 10-02-PLAN.md — Visual tuning of per-route bounds values and user verification checkpoint
-- [ ] 10-03-PLAN.md — Fix popup map zoom level when clicking death marker bubbles (TBD)
+- [ ] 10-03-PLAN.md — Fix bubble click zoom (cap at 7, deselect returns to route fitBounds)
 
 ### Phase 11: About Page Relaunch
 
