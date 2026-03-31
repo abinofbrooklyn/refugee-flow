@@ -12,6 +12,10 @@ import dataRoutes from './routes/dataRoute';
 
 const app: Express = express();
 
+// Trust CloudFront proxy — required for correct req.ip and rate limiting
+// Without this, express-rate-limit sees all requests as coming from CloudFront's edge IP
+app.set('trust proxy', 1);
+
 // Printf env
 console.info(ENV_INFO);
 // Security — Helmet v8 with CSP for MapLibre/CartoCDN/Google Fonts
