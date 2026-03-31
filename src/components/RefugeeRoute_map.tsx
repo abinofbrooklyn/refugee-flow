@@ -8,6 +8,7 @@ import 'd3-canvas-transition';
 import { color_map } from '../data/routeDictionary';
 import '../stylesheets/RefugeeRoute_map.css';
 import type { RouteDeath, RouteCrossingCount } from '../types/api';
+import { resolveClickAction } from './mapClickLogic';
 
 import dataDictRaw from '../data/IBC_crossingCountByCountry.json';
 const dataDict = dataDictRaw as RouteCrossingCount[];
@@ -140,6 +141,7 @@ const RefugeeRoute_map: React.FC<Props> = ({
   const slideoutCollapsedRef = useRef<boolean>(slideoutCollapsed);
   const intersectedIdRef = useRef<number | null>(null);
   const mouseover_toggleRef = useRef<boolean>(true);
+  const selectedPointIdRef = useRef<number | null>(null);
   const sizeScalerRef = useRef<d3.ScaleLinear<number, number> | null>(null);
   const dataFilteredRef = useRef<RouteDeathWithCoords[]>([]);
   const treeRef = useRef<d3.Quadtree<RouteDeathWithCoords> | null>(null);
@@ -181,6 +183,8 @@ const RefugeeRoute_map: React.FC<Props> = ({
     const prevRouteName = currentRouteNameRef.current;
     currentRouteNameRef.current = currentRouteName;
     currentMapParamsRef.current = _.find(dataDict, d => d.route === currentRouteName) || dataDict[0];
+    selectedPointIdRef.current = null;
+    mouseover_toggleRef.current = true;
 
     if (prevRouteName !== currentRouteName) {
       canvas_overlay_render(() =>
@@ -297,25 +301,38 @@ const RefugeeRoute_map: React.FC<Props> = ({
   const handleClick = useCallback((e: maplibregl.MapMouseEvent) => {
     if (!treeRef.current || !mapRef.current) return;
     const p = treeRef.current.find(e.point.x, e.point.y) as RouteDeathWithCoords | undefined;
-    if (p && mouseover_toggleRef.current) passClickedPointManager(p);
 
-    mouseover_toggleRef.current = !mouseover_toggleRef.current;
+    const action = resolveClickAction(
+      p,
+      selectedPointIdRef.current,
+      !mouseover_toggleRef.current,
+      mapRef.current.getZoom(),
+    );
 
-    if (p) {
-      // register/cancel mousemove listener
-      if (!mouseover_toggleRef.current) {
-        mapRef.current.off('mousemove', handleMousemove);
-      } else {
-        mapRef.current.on('mousemove', handleMousemove);
-      }
-      // fly
-      if (!mouseover_toggleRef.current) {
-        canvas_overlay_render(() => mapRef.current!.flyTo({ center: [p.lng ?? 0, p.lat ?? 0], zoom: 10 }));
-      } else {
-        canvas_overlay_render(() => mapRef.current!.flyTo({ center: [p.lng ?? 0, p.lat ?? 0], zoom: 9 }));
-      }
-      // inform cancel selected points
-      if (mouseover_toggleRef.current) passRemoveClickedPointManager();
+    if (action.mode === 'deselect') {
+      mouseover_toggleRef.current = true;
+      selectedPointIdRef.current = null;
+      intersectedIdRef.current = null;
+      mapRef.current.on('mousemove', handleMousemove);
+      passRemoveClickedPointManager();
+      canvas_overlay_render();
+    } else if (action.mode === 'swap') {
+      selectedPointIdRef.current = action.pointId;
+      intersectedIdRef.current = action.pointId;
+      passClickedPointManager(p!);
+      canvas_overlay_render(() =>
+        mapRef.current!.flyTo({ center: action.center }),
+      );
+    } else {
+      // select
+      mouseover_toggleRef.current = false;
+      selectedPointIdRef.current = action.pointId;
+      intersectedIdRef.current = action.pointId;
+      mapRef.current.off('mousemove', handleMousemove);
+      passClickedPointManager(p!);
+      canvas_overlay_render(() =>
+        mapRef.current!.flyTo({ center: action.center, zoom: action.zoom }),
+      );
     }
   }, [canvas_overlay_render, handleMousemove, passClickedPointManager, passRemoveClickedPointManager]);
 
