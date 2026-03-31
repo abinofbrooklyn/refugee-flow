@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-stopped_at: Completed 12-02-PLAN.md
-last_updated: "2026-03-30T04:14:53.774Z"
+stopped_at: Completed 14-01-PLAN.md
+last_updated: "2026-03-31T22:27:11.240Z"
 progress:
-  total_phases: 13
-  completed_phases: 9
-  total_plans: 45
-  completed_plans: 48
+  total_phases: 15
+  completed_phases: 8
+  total_plans: 50
+  completed_plans: 49
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-03-11)
 
 **Core value:** Users can explore the human cost of conflict through an interactive, data-accurate visualization.
-**Current focus:** Phase 12 — security-hardening
+**Current focus:** Phase 14 — aws-cloudformation-deployment
 
 ## Current Position
 
-Phase: 12 (security-hardening) — EXECUTING
-Plan: 1 of 2
+Phase: 14 (aws-cloudformation-deployment) — EXECUTING
+Plan: 1 of 4
 
 ## Performance Metrics
 
@@ -84,6 +84,7 @@ Plan: 1 of 2
 | Phase 10 P02 | 10 | 2 tasks | 2 files |
 | Phase 12-security-hardening P01 | 141 | 2 tasks | 3 files |
 | Phase 12-security-hardening P02 | 159 | 2 tasks | 4 files |
+| Phase 14-aws-cloudformation-deployment P01 | 6 | 4 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -177,6 +178,10 @@ Recent decisions affecting current work:
 - [Phase 12-security-hardening]: healthLimiter defined in dataRoute.ts (not server.ts) — server.ts uses export = app (CommonJS interop); avoids changing export pattern
 - [Phase 12-security-hardening]: useDefaults: false for CSP — explicit directives for predictability; crossOriginEmbedderPolicy: false for MapLibre tile loading
 - [Phase 12-security-hardening]: apiLimiter raised 200 -> 300 req/15min — museum kiosk single IP for many sequential visitors (6 endpoints x 50 visitors)
+- [Phase 14-aws-cloudformation-deployment]: Dockerfile CMD uses dist-server/server/server.js — tsc preserves source directory structure in output
+- [Phase 14-aws-cloudformation-deployment]: npm ci --legacy-peer-deps in Dockerfile — eslint-config-airbnb@19 requires eslint@^8, project uses eslint@10
+- [Phase 14-aws-cloudformation-deployment]: trust proxy 1 = trust first proxy hop (CloudFront only, no ALB between CF and Fargate)
+- [Phase 14-aws-cloudformation-deployment]: CF_DIST_ID guard: invalidateCloudFrontCache never throws — data is in DB, cache expires naturally if invalidation fails
 
 ### Roadmap Evolution
 
@@ -201,6 +206,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-30T01:19:27.851Z
-Stopped at: Completed 12-02-PLAN.md
+Last session: 2026-03-31T22:27:11.235Z
+Stopped at: Completed 14-01-PLAN.md
 Resume file: None
