@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-stopped_at: Completed 14-01-PLAN.md
-last_updated: "2026-03-31T22:27:11.240Z"
+stopped_at: Completed 14-02-PLAN.md
+last_updated: "2026-03-31T22:30:39.291Z"
 progress:
   total_phases: 15
   completed_phases: 8
   total_plans: 50
-  completed_plans: 49
+  completed_plans: 50
 ---
 
 # Project State
@@ -85,6 +85,7 @@ Plan: 1 of 4
 | Phase 12-security-hardening P01 | 141 | 2 tasks | 3 files |
 | Phase 12-security-hardening P02 | 159 | 2 tasks | 4 files |
 | Phase 14-aws-cloudformation-deployment P01 | 6 | 4 tasks | 5 files |
+| Phase 14-aws-cloudformation-deployment P02 | 9 | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -182,6 +183,10 @@ Recent decisions affecting current work:
 - [Phase 14-aws-cloudformation-deployment]: npm ci --legacy-peer-deps in Dockerfile — eslint-config-airbnb@19 requires eslint@^8, project uses eslint@10
 - [Phase 14-aws-cloudformation-deployment]: trust proxy 1 = trust first proxy hop (CloudFront only, no ALB between CF and Fargate)
 - [Phase 14-aws-cloudformation-deployment]: CF_DIST_ID guard: invalidateCloudFrontCache never throws — data is in DB, cache expires naturally if invalidation fails
+- [Phase 14-aws-cloudformation-deployment]: HasDomain condition gates Route53/ACM/Lambda — CloudFormation template deploys with CloudFront default URL before domain finalized
+- [Phase 14-aws-cloudformation-deployment]: Custom ApiCachePolicy MinTTL=0/DefaultTTL=3600 for /data/* — API responses cached 1h, invalidated by ingestion crons (not CachingDisabled)
+- [Phase 14-aws-cloudformation-deployment]: task-definition.json PLACEHOLDER_ prefix convention for all dynamic ARNs substituted by deploy.yml sed from CloudFormation outputs
+- [Phase 14-aws-cloudformation-deployment]: ECS MinimumHealthyPercent=0 — single-task setup allows in-place replacement without blocking on second healthy task
 
 ### Roadmap Evolution
 
@@ -206,6 +211,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-31T22:27:11.235Z
-Stopped at: Completed 14-01-PLAN.md
+Last session: 2026-03-31T22:30:39.284Z
+Stopped at: Completed 14-02-PLAN.md
 Resume file: None

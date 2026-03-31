@@ -247,7 +247,7 @@ Plans:
 **Goal:** Deploy the Refugee Flow app to AWS using CloudFormation — ECS Fargate for Express API, S3 + CloudFront for static frontend, Route 53 for DNS, Secrets Manager for env vars, GitHub Actions for CI/CD, CloudWatch for monitoring
 **Requirements**: DEPLOY-01, DEPLOY-02, DEPLOY-03, DEPLOY-04, DEPLOY-05, DEPLOY-06, DEPLOY-07, DEPLOY-08, DEPLOY-09
 **Depends on:** Phase 13
-**Plans:** 1/4 plans executed
+**Plans:** 2/4 plans executed
 
 Plans:
 - [ ] 14-01-PLAN.md — Create multi-stage Dockerfile and .dockerignore, verify container starts and serves API
