@@ -186,8 +186,11 @@ const RefugeeRoute_map: React.FC<Props> = ({
     currentMapParamsRef.current = _.find(dataDict, d => d.route === currentRouteName) || dataDict[0];
     selectedPointIdRef.current = null;
     mouseover_toggleRef.current = true;
+    intersectedIdRef.current = null;
 
     if (prevRouteName !== currentRouteName) {
+      passRemoveClickedPointManager();
+      mapRef.current.on('mousemove', handleMousemove);
       canvas_overlay_render(() =>
         navigateToRouteBounds(mapRef.current!, currentMapParamsRef.current, true, data, currentRouteName)
       );
