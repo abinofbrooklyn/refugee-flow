@@ -189,6 +189,7 @@ Recent decisions affecting current work:
 - Phase 13 added: Route Map Rendering Performance (rAF throttle, sizeScaler optimization, quadtree efficiency)
 - Phase 14 added: AWS CloudFormation Deployment (ECS Fargate, S3+CloudFront, Route 53, GitHub Actions CI/CD)
 - Phase 15 added: Responsive Display Audit (verify all views on large exhibits, 4K, ultrawide, tablets, laptops)
+- Phase 10 reopened: popup map zoom too far out when clicking death marker bubbles
 
 ### Pending Todos
 

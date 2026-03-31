@@ -204,11 +204,13 @@ Plans:
 **Goal:** Each route page auto-frames its map to the data concentration area on load using per-route fitBounds, replacing the generic zoom:3.5 that left most routes poorly framed with too much empty map
 **Requirements**: UX-FRAMING
 **Depends on:** Phase 8
-**Plans:** 2/2 plans complete
+**Status:** REOPENED — popup map zoom too far out when clicking death marker bubbles
+**Plans:** 3 plans (2 complete, 1 new)
 
 Plans:
-- [ ] 10-01-PLAN.md — Add bounds type, per-route bounds data, and fitBounds helper replacing flyTo in map component
-- [ ] 10-02-PLAN.md — Visual tuning of per-route bounds values and user verification checkpoint
+- [x] 10-01-PLAN.md — Add bounds type, per-route bounds data, and fitBounds helper replacing flyTo in map component
+- [x] 10-02-PLAN.md — Visual tuning of per-route bounds values and user verification checkpoint
+- [ ] 10-03-PLAN.md — Fix popup map zoom level when clicking death marker bubbles (TBD)
 
 ### Phase 11: About Page Relaunch
 
