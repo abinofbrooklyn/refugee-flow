@@ -1,7 +1,7 @@
 # Phase 10: Route Dashboard UX Improvements - Research
 
-**Researched:** 2026-03-25
-**Domain:** MapLibre GL JS fitBounds, per-route map framing, sidebar-aware viewport
+**Researched:** 2026-03-30 (updated — gap closure for Plan 03)
+**Domain:** MapLibre GL JS click handlers, flyTo zoom control, ref-based state pattern, deselect to fitBounds
 **Confidence:** HIGH
 
 ---
@@ -19,18 +19,6 @@
 - **Iran-Afghanistan Corridor:** NO CHANGE — current framing is fine
 - **South & East Asia:** NO CHANGE — current framing is fine
 
-### Per-route target framing (locked)
-- **Eastern Mediterranean:** Tight on Aegean Sea — Greek islands, Turkish coast
-- **Central Mediterranean:** Tunisia to southern Italy/Greece, Algeria coast visible. Libya-Italy sea cluster centered
-- **Western Mediterranean:** Morocco-Spain-Alboran corridor. Strait of Gibraltar centered
-- **English Channel:** Dover Strait tight — London/Oxford to Calais/Bruges/Lille
-- **Western Balkans:** Athens/Istanbul up through Balkans to Vienna
-- **Eastern Land Borders:** Poland-Lithuania-Belarus border corridor down to Hungary/Slovakia
-- **Americas:** US-Mexico border corridor. Denver at top, Mexico City at bottom
-- **Western African:** Senegal/Mauritania/Morocco Atlantic coast. Canary Islands approach centered
-- **Horn of Africa:** Djibouti/Yemen/Gulf of Aden corridor
-- **East & Southern Africa:** DRC/Congo to South Africa/Eswatini, east to Madagascar
-
 ### Claude's Discretion
 - Whether to use fitBounds with per-route padding overrides, or compute custom bounds per route
 - How to handle the initial map creation vs route-switch flyTo (both need updated framing)
@@ -42,15 +30,25 @@ None — discussion stayed within phase scope
 
 ---
 
+<phase_requirements>
+## Phase Requirements
+
+| ID | Description | Research Support |
+|----|-------------|-----------------|
+| UX-FRAMING | Per-route fitBounds framing replacing static zoom:3.5 | Plans 01+02 complete. Plan 03 closes the gap: bubble click zoom too far out + deselect must return to route fitBounds |
+</phase_requirements>
+
+---
+
 ## Summary
 
-Phase 10 replaces the static `zoom: 3.5` / generic center-point approach used for all 12 route pages with per-route tuned map framing using MapLibre `fitBounds`. Two routes (Iran-Afghanistan Corridor, South & East Asia) are confirmed fine as-is and require no changes.
+Plans 01 and 02 are complete and user-approved. The `navigateToRouteBounds` helper exists, `fitBounds` with per-route bounds is in production for all 10 routes, and the initial load / route-switch framing works correctly.
 
-The core challenge is that pure auto-fit from data bounding box is insufficient for several routes. The English Channel route's data points extend into Germany, but the desired view is the tight Dover Strait. The solution is a hybrid: compute data bounds from `RouteDeath[]` lat/lng points, then apply per-route override bounds stored in `IBC_crossingCountByCountry.json`. The override bounds are the canonical truth for each route's framing; auto-computed bounds serve as fallback only for routes without overrides.
+Phase 10 was reopened because `handleClick` still uses hardcoded `zoom: 10` / `zoom: 9` (lines 313-315 of `RefugeeRoute_map.tsx`). Clicking a death marker bubble either zooms to street level (zoom 10) or slightly less (zoom 9), both far too close. The desired behavior is: SELECT zooms in moderately (current zoom + 2, capped at 7), SWAP between bubbles pans without zooming, and DESELECT (click same bubble or empty map) returns to the route's `fitBounds` framing via `navigateToRouteBounds`.
 
-The sidebar-aware padding system already works correctly. MapLibre `fitBounds` respects the map's current padding state set by `map.setPadding()` — no additional work needed for sidebar integration. The same framing logic must be applied at two points: (1) initial map creation (currently `new maplibregl.Map({ center, zoom })`), and (2) route-switch navigation (currently `map.flyTo({ center, zoom })`). Both sites read from `currentMapParamsRef.current` which in turn reads from `IBC_crossingCountByCountry.json`.
+The existing Plan 10-03 captures the correct three-mode click logic. One implementation detail needs correction: the new `handleClick` in Plan 10-03 adds `data` and `currentRouteName` directly to the `useCallback` dependency array. This is unsafe in this codebase — the map event listener is registered once in the empty-dep `useEffect([], [])`, so a new `handleClick` reference won't be picked up by the map. The deselect path should read `data` and `currentRouteName` from `dataGroupedRef` and `currentRouteNameRef` (already synced in effects), or use `currentMapParamsRef` directly, consistent with how every other callback in this file avoids stale closures.
 
-**Primary recommendation:** Add `bounds` array (`[sw_lng, sw_lat, ne_lng, ne_lat]`) to each `RouteCrossingCount` entry in `IBC_crossingCountByCountry.json`. Replace `flyTo` and initial map positioning with a `fitBounds` helper that reads from these per-route bounds when present, falling back to center/zoom for the two unchanged routes. The `fitBounds` call passes `{ animate: false }` on initial load and normal animation options on route switch.
+**Primary recommendation:** Implement Plan 10-03 as written but route the deselect path through refs instead of prop closure, and reset `selectedPointIdRef.current` on route change.
 
 ---
 
@@ -59,169 +57,94 @@ The sidebar-aware padding system already works correctly. MapLibre `fitBounds` r
 ### Core
 | Library | Version | Purpose | Why Standard |
 |---------|---------|---------|--------------|
-| maplibre-gl | 2.4.0 (installed) | Map rendering and viewport control | Already the project's map library |
+| maplibre-gl | 2.4.0 (pinned) | Map rendering, flyTo, fitBounds | Already the project's map library |
 
-No additional libraries needed. This is a configuration and data-tuning phase, not a new library phase.
-
-**MapLibre fitBounds signature (verified from installed types):**
-```typescript
-fitBounds(bounds: LngLatBoundsLike, options?: FitBoundsOptions, eventData?: any): this;
-```
-
-**FitBoundsOptions (verified from installed types):**
-```typescript
-type FitBoundsOptions = FlyToOptions & {
-  linear?: boolean;
-  offset?: PointLike;
-  maxZoom?: number;
-  maxDuration?: number;
-  padding?: number | RequireAtLeastOne<PaddingOptions>;
-};
-```
-
-**LngLatBoundsLike (verified):**
-```typescript
-type LngLatBoundsLike = LngLatBounds | [LngLatLike, LngLatLike] | [number, number, number, number];
-// [number, number, number, number] = [sw_lng, sw_lat, ne_lng, ne_lat]
-```
-
-**Key finding:** `fitBounds` accepts an optional `padding` parameter that **adds** to the map's existing padding state set by `setPadding`. Since `setPadding` already accounts for the sidebar's 55% right offset, passing no `padding` to `fitBounds` is the correct approach — the map's viewport awareness is already configured.
+No additional libraries. This is a logic fix in an existing file.
 
 ---
 
 ## Architecture Patterns
 
-### Recommended Data Structure Change
+### Established Component Pattern: Refs for Prop Values
 
-Extend `IBC_crossingCountByCountry.json` with a `bounds` field per route entry. The `center_lng`, `center_lat`, and `zoom` fields remain for the two unchanged routes (used as fallback).
+Every callback in `RefugeeRoute_map.tsx` that needs prop values reads from synced refs, not from prop closures. This is the intentional pattern established in Phase 7 (TypeScript migration decision: "Mutable map instance variables migrated to useRef in RefugeeRoute_map — avoids stale closure issues while preserving direct mutation semantics for canvas rendering").
 
-```json
-{
-  "route": "English Channel",
-  "total_cross": 190118,
-  "center_lng": 1.5,
-  "center_lat": 49.0,
-  "zoom": 3.5,
-  "bounds": [0.5, 50.5, 2.5, 51.5]
-}
-```
+The map event listener registration happens once in `useEffect([], [])`. A new `handleClick` reference created by adding `data` or `currentRouteName` to `useCallback` dependencies would NOT be picked up by the existing listener — the old reference stays registered.
 
-The `RouteCrossingCount` TypeScript type in `src/types/api.ts` must be updated to include the optional field:
-```typescript
-export interface RouteCrossingCount {
-  route: string;
-  total_cross: number;
-  center_lng: number;
-  center_lat: number;
-  zoom: number;
-  bounds?: [number, number, number, number]; // [sw_lng, sw_lat, ne_lng, ne_lat]
-}
-```
+**Available refs for handleClick deselect path:**
+- `currentMapParamsRef.current` — current route's `RouteCrossingCount` (has `bounds`, `center_lng`, `center_lat`, `zoom`) — already updated in the `currentRouteName` useEffect
+- `dataGroupedRef.current` — grouped data by route — synced in the `data` useEffect
+- `currentRouteNameRef.current` — current route name — synced in the `currentRouteName` useEffect
 
-### Pattern 1: fitBounds Helper Replacing flyTo
+These refs are everything `navigateToRouteBounds` needs. The deselect path becomes:
 
-**What:** A `navigateToRouteBounds` helper that checks for per-route `bounds` in `currentMapParamsRef`, calls `fitBounds` if present, falls back to `flyTo` if not.
-
-**When to use:** Both at initial map creation and on route switch.
-
-```typescript
-// Source: verified from maplibre-gl 2.4.0 types
-const navigateToRouteBounds = (
-  map: maplibregl.Map,
-  params: RouteCrossingCount,
-  animate: boolean
-) => {
-  if (params.bounds) {
-    map.fitBounds(params.bounds, {
-      animate,
-      duration: animate ? 1500 : 0,
-      maxZoom: 8,
-    });
-  } else {
-    map.flyTo({
-      center: [params.center_lng, params.center_lat],
-      zoom: params.zoom,
-      animate,
-    });
-  }
-};
-```
-
-**Key detail:** Pass `animate: false` on initial map load (inside the `useEffect(() => {}, [])` after `map.on('load')` or after `setPadding`). Pass `animate: true` (with duration) on route-switch navigation.
-
-### Pattern 2: Initial Map Creation Change
-
-Current code (line ~261-271 in `RefugeeRoute_map.tsx`):
-```typescript
-mapRef.current = new maplibregl.Map({
-  container: containerRef.current,
-  style: '...',
-  center: [params.center_lng, params.center_lat],
-  zoom: params.zoom,
-});
-mapRef.current.setPadding({ top: 0, bottom: 0, left: 0, right: slideoutWidth });
-```
-
-The `new maplibregl.Map()` constructor does not accept `bounds` — it only accepts `center`/`zoom`. The pattern is:
-1. Create map with any valid center/zoom (the static values work fine as placeholders)
-2. After `setPadding`, call `fitBounds` once the map style is loaded
-
-The correct hook is the map's `'load'` event, OR (since the map renders immediately) calling `fitBounds` after `setPadding` synchronously works in MapLibre 2.x when the style loads synchronously via CDN cache.
-
-**Safe pattern using 'load' event:**
-```typescript
-// Source: maplibre-gl 2.4.0 docs pattern
-mapRef.current.once('load', () => {
-  navigateToRouteBounds(mapRef.current!, params, false);
-});
-```
-
-### Pattern 3: Route-Switch Navigation Change
-
-Current code (line ~118 in `RefugeeRoute_map.tsx`):
 ```typescript
 canvas_overlay_render(() =>
-  mapRef.current!.flyTo({
-    center: [currentMapParamsRef.current.center_lng, currentMapParamsRef.current.center_lat],
-    zoom: currentMapParamsRef.current.zoom,
-  })
+  navigateToRouteBounds(
+    mapRef.current!,
+    currentMapParamsRef.current,
+    true,
+    Object.values(dataGroupedRef.current).flat(),
+    currentRouteNameRef.current
+  )
 );
 ```
 
-Replacement: pass the `fitBounds` call as the callback to `canvas_overlay_render`:
+Or, since `navigateToRouteBounds` already reads `params.bounds` and falls back to `center_lng`/`zoom`, and the bounds were computed from data at setup time, the simpler pattern is sufficient:
+
 ```typescript
 canvas_overlay_render(() =>
-  navigateToRouteBounds(mapRef.current!, currentMapParamsRef.current, true)
+  navigateToRouteBounds(
+    mapRef.current!,
+    currentMapParamsRef.current,
+    true,
+    [],             // data only needed if route has no bounds; both no-bounds routes don't need deselect reset
+    currentRouteNameRef.current
+  )
 );
 ```
 
-### Per-Route Bounds Values
+The safest approach is to pass the data from refs — `Object.values(dataGroupedRef.current).flat()` — to avoid any edge case for future routes added without bounds.
 
-These are the tuned bounds to store in `IBC_crossingCountByCountry.json` based on user-specified target framing. Coordinate values are `[sw_lng, sw_lat, ne_lng, ne_lat]`:
+### Pattern: selectedPointIdRef for Three-Mode Click State
 
-| Route | SW (lng, lat) | NE (lng, lat) | Notes |
-|-------|--------------|--------------|-------|
-| Eastern Mediterranean | 22.0, 34.0 | 32.0, 42.0 | Aegean Sea tight — Turkey to Greek islands |
-| Central Mediterranean | 8.0, 30.0 | 20.0, 40.0 | Libya coast to southern Italy/Greece |
-| Western Mediterranean | -6.0, 33.0 | 10.0, 42.0 | Morocco-Alboran-Sardinia corridor |
-| English Channel | -0.5, 50.5 | 3.5, 52.0 | Dover Strait — London to Calais/Bruges |
-| Western Balkans | 14.0, 37.0 | 30.0, 49.0 | Athens to Vienna corridor |
-| Eastern Land Borders | 14.0, 46.0 | 32.0, 56.0 | Poland-Belarus border to Hungary |
-| Americas | -118.0, 15.0 | -88.0, 40.0 | US-Mexico border corridor, Denver to Mexico City |
-| Western African | -18.0, 15.0 | 0.0, 36.0 | Senegal/Mauritania to Morocco, Canaries approach |
-| Horn of Africa | 38.0, 5.0 | 50.0, 16.0 | Djibouti/Yemen/Gulf of Aden |
-| East & Southern Africa | 25.0, -30.0 | 50.0, -5.0 | DRC to S. Africa, Madagascar visible |
-| Iran-Afghanistan Corridor | (no change) | (no change) | Use existing center/zoom |
-| South & East Asia | (no change) | (no change) | Use existing center/zoom |
+Add `const selectedPointIdRef = useRef<number | null>(null);` after line 142 (after `mouseover_toggleRef`).
 
-**Note:** These bounds are starting estimates based on user-specified geographic descriptions. They MUST be validated visually against actual app rendering during implementation. Treat as first-pass targets, not final values.
+Reset this ref on route change in the `currentRouteName` useEffect (after `currentMapParamsRef.current` update), so switching routes doesn't leave a stale selected point ID from the previous route.
+
+```typescript
+// In the currentRouteName useEffect, add after currentMapParamsRef.current assignment:
+selectedPointIdRef.current = null;
+mouseover_toggleRef.current = true; // ensure hover mode is restored on route switch
+```
+
+### Three-Mode Click Logic
+
+| State | Condition | Action |
+|-------|-----------|--------|
+| SELECT | No point selected, clicked a bubble | Set `selectedPointIdRef`, disable mousemove, zoom to `min(currentZoom + 2, 7)` |
+| SWAP | Point selected, clicked a DIFFERENT bubble | Update `selectedPointIdRef`, update sidebar info, `flyTo` center only (no zoom change) |
+| DESELECT | Point selected, clicked same bubble OR clicked empty map | Clear `selectedPointIdRef`, restore `mouseover_toggleRef = true`, re-enable mousemove, call `navigateToRouteBounds` |
+
+The existing `mouseover_toggleRef.current === false` means "a point is locked/selected" and `true` means "hover mode". This semantic is preserved.
+
+### Pattern: getZoom() for Context-Relative Zoom
+
+`mapRef.current.getZoom()` returns the current zoom level as a `number`. For SELECT:
+
+```typescript
+const currentZoom = mapRef.current.getZoom();
+const clickZoom = Math.min(currentZoom + 2, 7);
+```
+
+This prevents zooming past zoom 7 (the same cap used by `fitBounds` in `navigateToRouteBounds`), maintaining regional context. If the map is already at zoom 6 (common for dense routes), click zoom is capped at 7 — a moderate zoom-in without going to street level.
 
 ### Anti-Patterns to Avoid
 
-- **Do not call `fitBounds` before `setPadding`:** The padding must be set first or the viewport centering will be wrong (data will appear behind the sidebar).
-- **Do not use `maxZoom` too high:** Routes with sparse data (Western African, East & Southern Africa) need a ceiling to prevent extreme zoom on a single cluster. Recommend `maxZoom: 7` for sparse routes.
-- **Do not call `fitBounds` in the constructor:** `new maplibregl.Map({ bounds })` constructor exists but doesn't respect `setPadding` (padding isn't set yet). Always call `fitBounds` after `setPadding`.
-- **Do not remove center/zoom from JSON entries:** Routes without bounds (`Iran-Afghanistan Corridor`, `South & East Asia`) still need center/zoom for the fallback path. Keep all existing fields.
+- **Do not add `data` or `currentRouteName` props directly to `useCallback` deps for `handleClick`:** The map listener is registered once; React won't re-register it when the callback identity changes. Access via refs instead.
+- **Do not use `mouseover_toggleRef` as a simple toggle for the new three-mode logic:** The toggle pattern `!mouseover_toggleRef.current` breaks when a point is already selected and a different point is clicked. The `selectedPointIdRef` id-comparison is the correct discriminant.
+- **Do not forget to reset `selectedPointIdRef` on route switch:** If a user clicks a bubble on Eastern Mediterranean, then navigates to Americas, the old selected point ID would cause the first click on Americas to be treated as a SWAP instead of a SELECT.
+- **Do not omit `mapRef.current.on('mousemove', handleMousemove)` on DESELECT:** The mousemove listener is removed on SELECT. DESELECT must re-add it. Missing this leaves the map in a broken hover state after deselect.
 
 ---
 
@@ -229,113 +152,125 @@ These are the tuned bounds to store in `IBC_crossingCountByCountry.json` based o
 
 | Problem | Don't Build | Use Instead | Why |
 |---------|-------------|-------------|-----|
-| Computing pixel-perfect zoom from bounds | Custom zoom calculator | `map.fitBounds()` | MapLibre handles projection, tile density, DPI, and padding math; manual computation will be wrong on non-standard aspect ratios and exhibit displays |
-| Sidebar-aware viewport offset | Re-implementing padding math | Existing `map.setPadding()` | Already implemented at line ~270-271; `fitBounds` respects this automatically |
-| Animated transitions | Custom easing | `fitBounds` with `duration` / `flyTo` | MapLibre provides smooth flyTo-style easing internally |
+| Zoom level for bubble click | Custom projection math | `map.getZoom() + 2`, capped with `Math.min` | MapLibre's zoom is already in the right unit; simple arithmetic is correct |
+| Return-to-route animation | Custom easing | `navigateToRouteBounds` (already exists) | The helper already handles fitBounds vs flyTo fallback, animation duration, and maxZoom cap |
+| Sidebar-aware deselect framing | Re-implementing padding | Existing `map.setPadding()` state + `navigateToRouteBounds` | Padding is already set on the map instance; fitBounds respects it automatically |
 
 ---
 
 ## Common Pitfalls
 
-### Pitfall 1: fitBounds Called Before Map Style Loads
-**What goes wrong:** Calling `fitBounds` synchronously after `new maplibregl.Map()` can silently fail or produce wrong zoom on initial render if the style hasn't loaded yet.
-**Why it happens:** MapLibre's style loading is async; viewport calculations depend on tile metadata.
-**How to avoid:** Use `map.once('load', () => { fitBounds(...) })` for the initial frame. Route-switch `fitBounds` is safe to call immediately because the map is already initialized.
-**Warning signs:** Map renders at constructor center/zoom instead of fitBounds target on hard page load.
+### Pitfall 1: Stale Closure on data/currentRouteName in handleClick
 
-### Pitfall 2: fitBounds Doesn't Account for Sidebar Padding
-**What goes wrong:** Data appears centered in the full map container, not the visible left-45% area.
-**Why it happens:** If `setPadding` is called AFTER `fitBounds`, the padding is applied but the viewport center doesn't shift to compensate.
-**How to avoid:** Always call `map.setPadding(...)` before any `fitBounds` call.
-**Warning signs:** Data cluster appears visually shifted right, partially hidden behind sidebar.
+**What goes wrong:** Adding `data` and `currentRouteName` to `useCallback` deps creates a new `handleClick` reference on every prop change. But the MapLibre event listener registered in `useEffect([], [])` holds the original reference — the new one is never bound to the map.
 
-### Pitfall 3: Bounds Too Tight for Sparse Routes
-**What goes wrong:** Routes with few data points (East & Southern Africa: only 135 crossings) zoom to maxZoom on a single location cluster, losing geographic context.
-**Why it happens:** `fitBounds` will zoom to whatever level fits the bounding box — a single point fits at any zoom level.
-**How to avoid:** Always set `maxZoom` in `FitBoundsOptions`. Recommend `maxZoom: 7` as a global cap; loosen per route if needed.
-**Warning signs:** Map zooms to street level on a route page.
+**Why it happens:** MapLibre event listeners are registered imperatively (`map.on('click', handleClick)`). React's dependency array creates a new function identity, but there is no effect that calls `map.off` / `map.on` when `handleClick` changes.
 
-### Pitfall 4: canvas_overlay Callback Not Firing After fitBounds
-**What goes wrong:** The D3 canvas overlay doesn't redraw after `fitBounds` because the callback pattern wraps `flyTo`, not `fitBounds`.
-**Why it happens:** `canvas_overlay_render(cb)` calls `cb()` at the end — it doesn't listen to map events. The canvas redraws on every `'move'` event (registered at line ~296), so this is actually fine for route switches. The callback pattern is only needed to sequence the animation start.
-**How to avoid:** Pass `navigateToRouteBounds` as the callback to `canvas_overlay_render` — same pattern as the current `flyTo`. No special handling needed; `'move'` events fire during `fitBounds` animation just as they do for `flyTo`.
+**How to avoid:** Read `data` and `currentRouteName` from `dataGroupedRef.current` and `currentRouteNameRef.current` — both are synced to props via effects. Keep `handleClick` deps minimal: `[canvas_overlay_render, handleMousemove, passClickedPointManager, passRemoveClickedPointManager]`.
 
-### Pitfall 5: TypeScript Error on New `bounds` Field
-**What goes wrong:** TypeScript errors on `params.bounds` because `RouteCrossingCount` in `src/types/api.ts` doesn't have the field.
-**Why it happens:** Strict TypeScript; `RouteCrossingCount` is defined at line 55-61 of `src/types/api.ts`.
-**How to avoid:** Add `bounds?: [number, number, number, number]` to `RouteCrossingCount` before using it in the map component.
+**Warning signs:** Deselect does not return to correct route bounds after navigating between routes — it returns to the bounds of the route that was active when the component mounted.
+
+### Pitfall 2: selectedPointIdRef Not Reset on Route Switch
+
+**What goes wrong:** User clicks a bubble on Route A, then switches to Route B. The first click on a bubble on Route B is evaluated as `isDifferentPoint` (SWAP) instead of SELECT, because `selectedPointIdRef.current` still holds the ID from Route A.
+
+**Why it happens:** The ref persists across route prop changes. Route changes trigger a re-render and prop update but do not reset the ref unless explicitly cleared.
+
+**How to avoid:** In the `currentRouteName` useEffect, after updating `currentMapParamsRef.current`, also reset `selectedPointIdRef.current = null` and `mouseover_toggleRef.current = true`.
+
+**Warning signs:** First bubble click on a new route shows SWAP behavior (no zoom change, just pan) instead of SELECT behavior (zoom in).
+
+### Pitfall 3: mousemove Not Re-registered After Deselect
+
+**What goes wrong:** After deselecting a bubble, hover highlighting stops working — hovering over points no longer highlights them.
+
+**Why it happens:** SELECT calls `mapRef.current.off('mousemove', handleMousemove)`. If DESELECT omits `mapRef.current.on('mousemove', handleMousemove)`, the listener is never restored.
+
+**How to avoid:** Every DESELECT branch must call `mapRef.current.on('mousemove', handleMousemove)` before the `canvas_overlay_render` call.
+
+**Warning signs:** Hover highlights work until first bubble click, then stop permanently until page reload.
+
+### Pitfall 4: SWAP Branch Missing passClickedPointManager Update
+
+**What goes wrong:** Clicking a different bubble while one is selected pans the map but the sidebar still shows the old point's data (dead count, cause, location).
+
+**Why it happens:** SELECT calls `passClickedPointManager(p)` to update the sidebar. SWAP must also call it with the new point.
+
+**How to avoid:** SWAP branch must call `passClickedPointManager(p)` before or alongside the `canvas_overlay_render` call.
+
+**Warning signs:** Sidebar shows stale data after clicking between bubbles in dense areas.
+
+### Pitfall 5: Empty-Map Click Does Not Deselect
+
+**What goes wrong:** Clicking empty map while a bubble is selected does nothing — or worse, causes an error.
+
+**Why it happens:** The current handleClick only acts when `p` (nearest point) is truthy. If `p` is falsy (no nearby point), the handler exits early. With the new three-mode logic, a falsy `p` should trigger DESELECT when a point is already selected.
+
+**How to avoid:** Check `!p || isSamePoint` as the DESELECT condition — not just `isSamePoint`. The plan 10-03 already has this correct: `if (!p || isSamePoint)`.
 
 ---
 
 ## Code Examples
 
-Verified patterns from MapLibre 2.4.0 installed types.
+### Complete Updated handleClick
 
-### Adding bounds to RouteCrossingCount type
 ```typescript
-// src/types/api.ts — extend existing interface
-export interface RouteCrossingCount {
-  route: string;
-  total_cross: number;
-  center_lng: number;
-  center_lat: number;
-  zoom: number;
-  bounds?: [number, number, number, number]; // [sw_lng, sw_lat, ne_lng, ne_lat]
-}
-```
+// Source: derived from existing RefugeeRoute_map.tsx patterns
+// Deps intentionally minimal — data/routeName accessed via refs to avoid stale listener problem
+const handleClick = useCallback((e: maplibregl.MapMouseEvent) => {
+  if (!treeRef.current || !mapRef.current) return;
+  const p = treeRef.current.find(e.point.x, e.point.y) as RouteDeathWithCoords | undefined;
 
-### Helper function for unified navigation
-```typescript
-// Source: maplibre-gl 2.4.0 fitBounds/flyTo API (verified from installed types)
-const navigateToRouteBounds = (
-  map: maplibregl.Map,
-  params: RouteCrossingCount,
-  animate: boolean
-): void => {
-  if (params.bounds) {
-    map.fitBounds(params.bounds, {
-      animate,
-      duration: animate ? 1500 : 0,
-      maxZoom: 7,
-    });
+  const isSelected = !mouseover_toggleRef.current; // true when a point is locked
+  const isSamePoint = isSelected && p != null && p.id === selectedPointIdRef.current;
+  const isDifferentPoint = isSelected && p != null && p.id !== selectedPointIdRef.current;
+
+  if (!p || isSamePoint) {
+    // DESELECT: clicked same bubble again, or clicked empty map
+    mouseover_toggleRef.current = true;
+    selectedPointIdRef.current = null;
+    mapRef.current.on('mousemove', handleMousemove);
+    passRemoveClickedPointManager();
+    canvas_overlay_render(() =>
+      navigateToRouteBounds(
+        mapRef.current!,
+        currentMapParamsRef.current,
+        true,
+        Object.values(dataGroupedRef.current).flat(),
+        currentRouteNameRef.current
+      )
+    );
+  } else if (isDifferentPoint) {
+    // SWAP: clicked a different bubble while one is selected — pan, no zoom change
+    selectedPointIdRef.current = p.id;
+    passClickedPointManager(p);
+    canvas_overlay_render(() =>
+      mapRef.current!.flyTo({ center: [p.lng ?? 0, p.lat ?? 0] })
+    );
   } else {
-    // Fallback for routes without bounds (Iran-Afghanistan Corridor, South & East Asia)
-    map.flyTo({
-      center: [params.center_lng, params.center_lat],
-      zoom: params.zoom,
-      animate,
-    });
+    // SELECT: clicked a bubble when nothing is selected
+    mouseover_toggleRef.current = false;
+    selectedPointIdRef.current = p.id;
+    mapRef.current.off('mousemove', handleMousemove);
+    passClickedPointManager(p);
+    const currentZoom = mapRef.current.getZoom();
+    const clickZoom = Math.min(currentZoom + 2, 7);
+    canvas_overlay_render(() =>
+      mapRef.current!.flyTo({ center: [p.lng ?? 0, p.lat ?? 0], zoom: clickZoom })
+    );
   }
-};
+}, [canvas_overlay_render, handleMousemove, passClickedPointManager, passRemoveClickedPointManager]);
 ```
 
-### Initial map creation — use 'load' event for fitBounds
+### Route Change Reset (in currentRouteName useEffect)
+
 ```typescript
-// After new maplibregl.Map(...) and setPadding(...)
-mapRef.current.once('load', () => {
-  navigateToRouteBounds(mapRef.current!, params, false);
-  canvas_overlay_render();
-});
-```
-
-### Route-switch — replace flyTo in canvas_overlay_render callback
-```typescript
-// Replace current flyTo callback at line ~117-122
-canvas_overlay_render(() =>
-  navigateToRouteBounds(mapRef.current!, currentMapParamsRef.current, true)
-);
-```
-
-### JSON entry format for IBC_crossingCountByCountry.json
-```json
-{
-  "route": "English Channel",
-  "total_cross": 190118,
-  "center_lng": 1.5,
-  "center_lat": 49.0,
-  "zoom": 3.5,
-  "bounds": [-0.5, 50.5, 3.5, 52.0]
-}
+// In the existing useEffect(() => { ... }, [currentRouteName]) — add after currentMapParamsRef update:
+selectedPointIdRef.current = null;
+mouseover_toggleRef.current = true;
+// Note: mousemove listener re-registration is handled by DESELECT path; on route switch
+// the map is already in hover mode (mouseover_toggleRef was reset here), so mousemove
+// is already registered from the original map init. No re-registration needed here.
 ```
 
 ---
@@ -344,22 +279,27 @@ canvas_overlay_render(() =>
 
 | Old Approach | Current Approach | When Changed | Impact |
 |--------------|------------------|--------------|--------|
-| Static center/zoom per route | Per-route fitBounds from data | Phase 10 | Routes show the story, not empty map |
-| `flyTo` for route switches | `fitBounds` with per-route bounds | Phase 10 | Correct zoom for each route's geographic spread |
+| Static zoom:3.5 per route | Per-route fitBounds | Plans 01+02 (complete) | Routes frame data correctly on load |
+| Toggle-on-click zoom:10/9 | Three-mode: select/swap/deselect with bounded zoom | Plan 03 (this work) | Dense cluster exploration without zoom cycling; deselect restores route view |
+
+**Deprecated in handleClick:**
+- `zoom: 10` — replaced with `Math.min(currentZoom + 2, 7)` for SELECT
+- `zoom: 9` — removed; SWAP has no zoom change
+- Toggle pattern (`!mouseover_toggleRef.current` as action discriminant) — replaced with id-comparison three-mode logic
 
 ---
 
 ## Open Questions
 
-1. **Exact bounds values need visual validation**
-   - What we know: User-specified geographic descriptions for each route (e.g., "Dover Strait — London to Calais")
-   - What's unclear: The exact coordinate values in the table above are first-pass estimates. They need to be validated in-browser against actual data point rendering.
-   - Recommendation: Implementation plan should include a dedicated tuning task where each route's bounds are tested visually and adjusted. Treat the table values as starting points.
+1. **Should SWAP also call `intersectedIdRef.current = p.id`?**
+   - What we know: `intersectedIdRef` drives the white-highlight ring drawn in `canvas_overlay_drawCall`. On hover, `handleMousemove` updates it. On SELECT, mousemove is disabled so `intersectedIdRef` stays at the selected point's id — the ring persists correctly.
+   - What's unclear: On SWAP, since mousemove is still off, `intersectedIdRef.current` holds the old point's id. The ring would appear on the old point, not the new one.
+   - Recommendation: In the SWAP branch, also set `intersectedIdRef.current = p.id` before `canvas_overlay_render`. This keeps the highlight ring on the newly selected point.
 
-2. **`'load'` event timing on route hot-reloads**
-   - What we know: MapLibre fires `'load'` once when the style loads. On SPA navigation to the same route component (sidebar toggle, year filter change), the map is not destroyed/re-created.
-   - What's unclear: Whether `once('load')` is safe if the style is already loaded when the hook fires (e.g., cached style from previous render).
-   - Recommendation: Check `map.isStyleLoaded()` — if `true`, call `fitBounds` synchronously; if `false`, use `once('load')`.
+2. **Does navigateToRouteBounds in deselect need the data array?**
+   - What we know: `navigateToRouteBounds` calls `computeDataBounds(data, routeName, params.bounds)`. For routes with `params.bounds` set (all 10 active routes), `computeDataBounds` uses the data array only to compute the inner data extent — the outer max bounds clamp it. If data is an empty array, `computeDataBounds` returns `maxBounds` directly (line 35: `if (valid.length === 0) return maxBounds ?? null`).
+   - What's unclear: Whether passing an empty array `[]` is safe vs. passing the full flat data.
+   - Recommendation: Pass `Object.values(dataGroupedRef.current).flat()` for correctness. The data is already grouped in `dataGroupedRef` — flattening is O(n) and only happens on deselect click, not on every render.
 
 ---
 
@@ -368,52 +308,48 @@ canvas_overlay_render(() =>
 ### Test Framework
 | Property | Value |
 |----------|-------|
-| Framework | Jest 30.3.0 + ts-jest 29.4.6 |
+| Framework | Jest + ts-jest (installed) |
 | Config file | `jest.config.js` |
 | Quick run command | `npm test -- --testPathPattern=client --passWithNoTests` |
 | Full suite command | `npm test` |
 
 ### Phase Requirements → Test Map
-
-Phase 10 has no formal v1 requirement IDs (it's a UX improvement phase, not tracked in REQUIREMENTS.md). Testing is behavioral/visual by nature.
-
-| Behavior | Test Type | Notes |
-|----------|-----------|-------|
-| `navigateToRouteBounds` calls `fitBounds` when `bounds` present | unit | Pure function, testable |
-| `navigateToRouteBounds` falls back to `flyTo` when `bounds` absent | unit | Pure function, testable |
-| TypeScript compiles cleanly with new `bounds?` field | build check | `tsc --noEmit` |
-| Visual framing per route | manual | Cannot automate map rendering in jsdom |
+| Req ID | Behavior | Test Type | Automated Command | File Exists? |
+|--------|----------|-----------|-------------------|-------------|
+| UX-FRAMING | Three-mode click logic (select/swap/deselect) | manual | visual browser check | N/A |
+| UX-FRAMING | navigateToRouteBounds called on deselect | unit | `npx tsc --noEmit && npm run build` | build check only |
+| UX-FRAMING | TypeScript compiles with selectedPointIdRef | build | `npx tsc --noEmit` | ✅ checked after task |
 
 ### Sampling Rate
-- **Per task commit:** `npm run build` (TypeScript compile check)
+- **Per task commit:** `npx tsc --noEmit` (type check) + `npm run build` (bundle check)
 - **Per wave merge:** `npm test`
-- **Phase gate:** Visual check of all 10 updated routes in browser before `/gsd:verify-work`
+- **Phase gate:** Visual browser check of all three click modes before `/gsd:verify-work`
 
 ### Wave 0 Gaps
-- [ ] `tests/client/routeBounds.test.ts` — unit tests for `navigateToRouteBounds` helper function (covers fallback logic and fitBounds/flyTo dispatch)
+None — existing test infrastructure covers build validation. Click behavior is inherently manual-visual.
 
 ---
 
 ## Sources
 
 ### Primary (HIGH confidence)
-- Installed `node_modules/maplibre-gl/dist/maplibre-gl.d.ts` — `FitBoundsOptions`, `LngLatBoundsLike`, `fitBounds` signature, `PaddingOptions` verified directly from the installed 2.4.0 package
-- `src/components/RefugeeRoute_map.tsx` — current map init (line ~261), route switch (line ~118), sidebar padding (line ~97-107, ~270-271), `canvas_overlay_render` callback pattern (line ~171-222) — all read directly
-- `src/data/IBC_crossingCountByCountry.json` — current static center/zoom values for all 12 routes — read directly
-- `src/types/api.ts` — `RouteCrossingCount` interface at lines 55-61 — read directly
+- `src/components/RefugeeRoute_map.tsx` (read directly, 2026-03-30) — actual handleClick at lines 297-320, all ref declarations at lines 130-150, navigateToRouteBounds at lines 57-81, canvas_overlay_render at lines 237-288
+- `.planning/phases/10-route-dashboard-ux-improvements/10-03-PLAN.md` (read directly) — existing plan approach, interfaces, and task actions
+- `.planning/phases/10-route-dashboard-ux-improvements/10-01-SUMMARY.md` and `10-02-SUMMARY.md` (read directly) — confirmed plans 01+02 complete, current state of codebase
+- `.planning/STATE.md` — Phase 07 TypeScript migration decision: "Mutable map instance variables migrated to useRef in RefugeeRoute_map — avoids stale closure issues while preserving direct mutation semantics for canvas rendering"
 
 ### Secondary (MEDIUM confidence)
-- MapLibre GL JS 2.x documentation pattern: `fitBounds` respects existing map padding set by `setPadding` — consistent with the type definition showing padding as an additive override in `FitBoundsOptions`
+- MapLibre GL JS 2.4.0 API: `map.getZoom()` returns current zoom as number; `flyTo({ center })` without zoom keeps current zoom level — consistent with installed types and MapLibre documentation behavior
 
 ---
 
 ## Metadata
 
 **Confidence breakdown:**
-- Standard stack: HIGH — verified from installed package types
-- Architecture: HIGH — patterns derived directly from existing code + verified API signatures
-- Pitfalls: HIGH — derived from code inspection (ordering constraints, TypeScript types)
-- Bounds values: LOW — coordinate estimates based on geographic descriptions; require visual validation
+- Existing code state: HIGH — read directly from source file
+- Plan 10-03 approach soundness: HIGH — logic is correct; one ref/stale-closure fix identified
+- Stale closure risk: HIGH — established project pattern documented in STATE.md explicitly calls this out
+- MapLibre flyTo behavior (no zoom param = keep current): MEDIUM — consistent with docs and installed types but not re-verified from Context7 for this update
 
-**Research date:** 2026-03-25
-**Valid until:** 2026-06-25 (MapLibre 2.4.0 is pinned; stable API)
+**Research date:** 2026-03-30 (gap closure update; original research 2026-03-25)
+**Valid until:** 2026-06-30 (maplibre-gl 2.4.0 pinned; stable API)
