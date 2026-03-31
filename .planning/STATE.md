@@ -3,13 +3,13 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-stopped_at: Completed 14-02-PLAN.md
-last_updated: "2026-03-31T22:30:39.291Z"
+stopped_at: Completed 14-03-PLAN.md
+last_updated: "2026-03-31T22:35:27.062Z"
 progress:
   total_phases: 15
   completed_phases: 8
   total_plans: 50
-  completed_plans: 50
+  completed_plans: 51
 ---
 
 # Project State
@@ -86,6 +86,7 @@ Plan: 1 of 4
 | Phase 12-security-hardening P02 | 159 | 2 tasks | 4 files |
 | Phase 14-aws-cloudformation-deployment P01 | 6 | 4 tasks | 5 files |
 | Phase 14-aws-cloudformation-deployment P02 | 9 | 2 tasks | 3 files |
+| Phase 14 P03 | 3 | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -187,6 +188,8 @@ Recent decisions affecting current work:
 - [Phase 14-aws-cloudformation-deployment]: Custom ApiCachePolicy MinTTL=0/DefaultTTL=3600 for /data/* — API responses cached 1h, invalidated by ingestion crons (not CachingDisabled)
 - [Phase 14-aws-cloudformation-deployment]: task-definition.json PLACEHOLDER_ prefix convention for all dynamic ARNs substituted by deploy.yml sed from CloudFormation outputs
 - [Phase 14-aws-cloudformation-deployment]: ECS MinimumHealthyPercent=0 — single-task setup allows in-place replacement without blocking on second healthy task
+- [Phase 14-aws-cloudformation-deployment]: deploy-backend resolves task-definition.json ARNs from CloudFormation outputs at deploy time — not stored as GitHub secrets, stays in sync with stack redeployments
+- [Phase 14-aws-cloudformation-deployment]: GitHub Actions workflow triggers on branches: [master] not [main] — repo uses master as default branch
 
 ### Roadmap Evolution
 
@@ -211,6 +214,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-03-31T22:30:39.284Z
-Stopped at: Completed 14-02-PLAN.md
+Last session: 2026-03-31T22:35:27.057Z
+Stopped at: Completed 14-03-PLAN.md
 Resume file: None

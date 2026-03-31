@@ -50,11 +50,11 @@
 
 ### Deployment
 
-- [ ] **DEPLOY-01**: Vite frontend build succeeds and produces dist/ output
+- [x] **DEPLOY-01**: Vite frontend build succeeds and produces dist/ output
 - [x] **DEPLOY-02**: Docker image builds with multi-stage TypeScript compilation (no tsx/pm2 in production)
 - [x] **DEPLOY-03**: Container starts Express server on port 2700 and responds to HTTP requests
 - [x] **DEPLOY-04**: CloudFormation template validates and defines all AWS infrastructure (VPC, ECS, ECR, S3, CloudFront, IAM, monitoring)
-- [ ] **DEPLOY-05**: GitHub Actions deploys frontend (S3+CloudFront) and backend (ECR+ECS) on push to main using OIDC
+- [x] **DEPLOY-05**: GitHub Actions deploys frontend (S3+CloudFront) and backend (ECR+ECS) on push to main using OIDC
 - [x] **DEPLOY-06**: S3 bucket rejects direct access — only CloudFront OAC can read objects
 - [x] **DEPLOY-07**: CloudFront serves frontend HTML at default domain (d1234.cloudfront.net)
 - [x] **DEPLOY-08**: CloudFront proxies /data/* requests to ECS Fargate and returns JSON
