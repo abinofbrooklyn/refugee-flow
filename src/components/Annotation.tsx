@@ -103,7 +103,7 @@ const PLACEMENT: Record<string, PlacementFn> = {
     left: rect.right + 40,
   }),
   'Timeline': (rect) => ({
-    top: rect.top + 80,
+    top: rect.top + 95,
     left: rect.right + 15,
   }),
   'Refugee Routes': (rect) => ({
