@@ -61,3 +61,34 @@ describe('filterNewRows', () => {
     expect(result).toHaveLength(0);
   });
 });
+
+describe('IOM incremental ingestion flow', () => {
+  it('filterNewRows reduces row count when cutoff is recent', () => {
+    const allRows = [
+      makeRow('MMP001', '2026-01-15'),
+      makeRow('MMP002', '2026-02-20'),
+      makeRow('MMP003', '2026-03-10'),
+      makeRow('MMP004', '2026-03-25'),
+      makeRow('MMP005', '2026-03-28'),
+      makeRow('MMP006', '2026-03-30'),
+    ];
+    const dbMaxDate = '2026-03-25';
+    const newRows = filterNewRows(allRows, dbMaxDate);
+
+    expect(newRows).toHaveLength(3);
+    expect(newRows.map(r => r.id)).toEqual(['MMP004', 'MMP005', 'MMP006']);
+  });
+
+  it('second run with same data returns zero new rows', () => {
+    const allRows = [
+      makeRow('MMP001', '2026-03-28'),
+      makeRow('MMP002', '2026-03-30'),
+    ];
+    const firstRun = filterNewRows(allRows, null);
+    expect(firstRun).toHaveLength(2);
+
+    const secondRun = filterNewRows(allRows, '2026-03-30');
+    expect(secondRun).toHaveLength(1);
+    expect(secondRun[0].id).toBe('MMP002');
+  });
+});
