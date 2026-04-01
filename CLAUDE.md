@@ -1,5 +1,43 @@
 # Refugee Flow — Project Instructions
 
+## SECURITY FIRST — MANDATORY
+
+**This is a security-first project. These rules are absolute and override all other instructions.**
+
+### Before EVERY git push, commit, or PR:
+
+Run a security check. If ANY of the following are found in staged files, **STOP and alert the user**:
+
+1. **Secrets & credentials:** API keys, passwords, tokens, access keys, secret keys, connection strings with passwords
+2. **AWS identifiers:** Account IDs, ARNs, resource IDs (distribution IDs, bucket names with account numbers, role ARNs)
+3. **Infrastructure code:** CloudFormation templates, Terraform files, task definitions, Lambda source, Dockerfiles with secrets — these expose architecture and account details
+4. **PII:** Email addresses, phone numbers, personal names in code (not in git author metadata)
+5. **Internal URLs:** Supabase connection strings, CloudFront distribution URLs, S3 bucket URLs, ALB DNS names
+
+### What is NEVER committed to this public repo:
+
+- `infrastructure/` — CloudFormation, task definitions, Lambda code (in .gitignore)
+- `.env` — credentials and secrets (in .gitignore)
+- `.planning/` — internal project planning (filtered by pre-push hook)
+- Any file containing AWS account IDs, ARNs, or resource identifiers
+- Any file containing database connection strings or API keys
+- Hardcoded emails, passwords, or tokens anywhere in source code
+
+### How to check before pushing:
+
+```bash
+# Scan staged files for secrets patterns
+git diff --cached --name-only | xargs grep -l -iE '(AKIA|aws_secret|password|api_key|token|secret|\.supabase\.com|dkr\.ecr\.|cloudfront\.net/|s3\.amazonaws)' 2>/dev/null
+```
+
+If this returns ANY files, do not push. Fix the files first.
+
+### If you created a file and aren't sure if it's safe:
+
+**Ask the user before committing.** The cost of asking is zero. The cost of leaking credentials is catastrophic.
+
+---
+
 ## Overview
 
 Interactive conflict/refugee visualization app. React 18 + Express + PostgreSQL (Supabase). Part of the "Places & Spaces: Mapping Science" traveling museum exhibit (https://scimaps.org/macroscopes, Iteration 15). The exhibit travels to museums, libraries, and conferences worldwide — the app runs on kiosks, tablets, and touch screens with arbitrary display sizes.
@@ -52,8 +90,9 @@ server/                 # Express backend
 tests/
   client/               # Frontend tests (jsdom)
   server/               # Backend tests (node)
-infrastructure/         # AWS CloudFormation + task definitions
-.planning/              # GSD workflow (not pushed to git)
+infrastructure/         # LOCAL ONLY — never in git (contains AWS account IDs, ARNs)
+.planning/              # LOCAL ONLY — filtered by pre-push hook
+.env                    # LOCAL ONLY — credentials and secrets
 ```
 
 ## Key Conventions
@@ -83,7 +122,7 @@ infrastructure/         # AWS CloudFormation + task definitions
 
 ## Blocked Work
 
-- **ACLED API access:** Registered with @centerfortomorrow.com email, emailed access@acleddata.com for Partner-level access. Ingestion code exists (server/ingestion/acledIngestion.ts) but can't run without credentials.
+- **ACLED API access:** Registered with institutional email, awaiting Partner-level access approval. Ingestion code exists (server/ingestion/acledIngestion.ts) but can't run without credentials.
 - **refugeeflow.com domain:** Registration failed (new AWS account). Need to contact AWS Support. Template supports custom domain — just needs DomainName parameter.
 
 ## Data Sources (Automated)
@@ -100,24 +139,16 @@ infrastructure/         # AWS CloudFormation + task definitions
 
 ## Environment Variables
 
-See `.env.example` for all required variables. Key ones:
-- `DATABASE_URL` — local PostgreSQL
-- `DATABASE_URL_PRODUCTION` — Supabase (port 5432, not 6543)
-- `RESEND_API_KEY` — email alerts for ingestion failures
-- `ACLED_EMAIL` / `ACLED_PASSWORD` — ACLED API (when access granted)
-- `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` — AWS CLI
+See `.env.example` for variable names and descriptions. Never log, print, or commit actual values. Use `process.env.VAR_NAME` only — never hardcode.
 
 ## AWS Deployment
 
 - **Architecture:** CloudFront → S3 (static frontend) + ALB → ECS Fargate (Express API)
-- **Region:** us-east-1
-- **CI/CD:** Push to `main` triggers GitHub Actions (frontend → S3 sync + invalidate, backend → ECR push → ECS deploy)
+- **CI/CD:** Push to `main` triggers GitHub Actions (frontend + backend deploy)
 - **Auth:** GitHub OIDC (no long-lived keys)
-- **Secrets:** AWS Secrets Manager — DATABASE_URL, ADMIN_SECRET, RESEND_API_KEY
-- **GitHub repo secrets:** AWS_ROLE_ARN, S3_BUCKET, CF_DIST_ID
-- **Monitoring:** 4 CloudWatch alarms (CPU, task count, Lambda crashes, restart rate), SNS email alerts
-- **CloudFront API cache:** Query strings forwarded, 1h default TTL, ingestion crons invalidate /data/* after updates
-- **Template:** infrastructure/cloudformation.yaml (local only, not in git — contains sensitive AWS config)
+- **Secrets:** Stored in AWS Secrets Manager and GitHub repo secrets — never in code
+- **Template:** infrastructure/cloudformation.yaml (LOCAL ONLY — never committed, contains account-specific config)
+- **Details:** See infrastructure/ directory locally for full config. Never share publicly.
 
 ## Routes (12 total)
 
@@ -125,4 +156,4 @@ All routes defined in src/data/IBC_crossingCountByCountry.json with per-route fi
 
 ## Organization
 
-The Center for Tomorrow Limited (UK nonprofit, Company No. 17032685) — provides institutional email for ACLED API access. Refugee Flow is an independent project, not a Center project.
+Affiliated with The Center for Tomorrow (UK nonprofit) for institutional API access. Refugee Flow is an independent project.
