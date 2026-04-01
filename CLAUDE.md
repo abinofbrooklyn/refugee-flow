@@ -84,7 +84,7 @@ infrastructure/         # AWS CloudFormation + task definitions
 ## Blocked Work
 
 - **ACLED API access:** Registered with @centerfortomorrow.com email, emailed access@acleddata.com for Partner-level access. Ingestion code exists (server/ingestion/acledIngestion.ts) but can't run without credentials.
-- **refugeeflow.com domain:** Registration failed (new AWS account fraud prevention). Need to contact AWS Support. CloudFormation template has Route 53 + ACM built in — just needs DomainName parameter.
+- **refugeeflow.com domain:** Registration failed (new AWS account). Need to contact AWS Support. Template supports custom domain — just needs DomainName parameter.
 
 ## Data Sources (Automated)
 
@@ -109,18 +109,15 @@ See `.env.example` for all required variables. Key ones:
 
 ## AWS Deployment
 
-- **CloudFront URL:** https://d1apamzo7oo4z.cloudfront.net
-- **Domain:** refugeeflow.com (pending AWS Support — registration blocked on new account)
-- **Stack name:** refugee-flow (us-east-1)
 - **Architecture:** CloudFront → S3 (static frontend) + ALB → ECS Fargate (Express API)
+- **Region:** us-east-1
 - **CI/CD:** Push to `main` triggers GitHub Actions (frontend → S3 sync + invalidate, backend → ECR push → ECS deploy)
-- **Auth:** GitHub OIDC (no long-lived keys), scoped to abinofbrooklyn/refugee-flow:main
-- **Secrets:** AWS Secrets Manager (refugee-flow/production) — DATABASE_URL, ADMIN_SECRET, RESEND_API_KEY
+- **Auth:** GitHub OIDC (no long-lived keys)
+- **Secrets:** AWS Secrets Manager — DATABASE_URL, ADMIN_SECRET, RESEND_API_KEY
 - **GitHub repo secrets:** AWS_ROLE_ARN, S3_BUCKET, CF_DIST_ID
 - **Monitoring:** 4 CloudWatch alarms (CPU, task count, Lambda crashes, restart rate), SNS email alerts
-- **Billing:** $15/month budget with 80% alert to abin.abraham4@gmail.com
-- **CloudFront API cache:** Query strings forwarded (QueryStringBehavior: all), 1h default TTL, ingestion crons invalidate /data/* after successful updates
-- **Template:** infrastructure/cloudformation.yaml (~1050 lines)
+- **CloudFront API cache:** Query strings forwarded, 1h default TTL, ingestion crons invalidate /data/* after updates
+- **Template:** infrastructure/cloudformation.yaml (local only, not in git — contains sensitive AWS config)
 
 ## Routes (12 total)
 

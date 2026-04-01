@@ -4,6 +4,9 @@
 # Personal Claude instructions (not shared)
 CLAUDE.local.md
 
+# Infrastructure (sensitive — contains AWS account IDs, ARNs, architecture)
+infrastructure/
+
 
 # Logs
 logs
