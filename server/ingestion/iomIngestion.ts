@@ -94,6 +94,18 @@ export function transformIomRows(csvRows: IomCsvRow[]): RouteDeathRow[] {
 }
 
 /**
+ * Filter transformed rows to only those on or after the cutoff date.
+ * Returns all rows if cutoffDate is null (first run / empty table).
+ */
+export function filterNewRows(
+  rows: RouteDeathRow[],
+  cutoffDate: string | null,
+): RouteDeathRow[] {
+  if (!cutoffDate) return rows;
+  return rows.filter(r => r.date != null && r.date >= cutoffDate);
+}
+
+/**
  * Download the IOM Missing Migrants CSV and parse it into row objects.
  */
 export async function fetchAndParseIomCsv(): Promise<IomCsvRow[]> {
