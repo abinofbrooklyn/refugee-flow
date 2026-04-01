@@ -84,4 +84,9 @@ router.get('/route_IBC', async (req: Request, res: Response): Promise<void> => {
 
 router.get('/ingestion-health', healthLimiter, getIngestionHealth);
 
+// ALB health check — lightweight, no DB hit
+router.get('/health', (_req: Request, res: Response) => {
+  res.status(200).json({ status: 'ok' });
+});
+
 export default router;
