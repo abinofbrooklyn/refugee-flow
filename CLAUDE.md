@@ -141,7 +141,7 @@ infrastructure/         # LOCAL ONLY — never in git (contains AWS account IDs,
 
 See `.env.example` for all required variables. Never log, print, or commit actual values. Key ones:
 - `DATABASE_URL` — local PostgreSQL
-- `DATABASE_URL_PRODUCTION` — Supabase (port 5432, not 6543)
+- `DATABASE_URL_PRODUCTION` — Supabase production database
 - `RESEND_API_KEY` — email alerts for ingestion failures
 - `ACLED_EMAIL` / `ACLED_PASSWORD` — ACLED API (when access granted)
 - `AWS_ACCESS_KEY_ID` / `AWS_SECRET_ACCESS_KEY` — AWS CLI
