@@ -106,6 +106,15 @@ export function filterNewRows(
 }
 
 /**
+ * Query the most recent incident date in route_deaths.
+ * Returns null if the table is empty (triggers full import).
+ */
+export async function getLatestIomDate(): Promise<string | null> {
+  const result = await db('route_deaths').max('date as max_date').first();
+  return result?.max_date ?? null;
+}
+
+/**
  * Download the IOM Missing Migrants CSV and parse it into row objects.
  */
 export async function fetchAndParseIomCsv(): Promise<IomCsvRow[]> {
@@ -118,9 +127,9 @@ export async function fetchAndParseIomCsv(): Promise<IomCsvRow[]> {
 }
 
 /**
- * Main entry: download IOM CSV, transform, upsert into route_deaths, log result.
- * Always downloads full CSV — no date-filter API exists.
- * Uses onConflict('id').ignore() to skip existing records efficiently.
+ * Main entry: download IOM CSV, transform, filter to new rows, upsert into route_deaths.
+ * Always downloads full CSV (IOM has no date-filter API), but only inserts rows
+ * newer than the latest date already in the DB. First run imports all rows.
  */
 export async function runIomIngestion(): Promise<IngestionResult> {
   const startedAt = new Date();
@@ -132,11 +141,22 @@ export async function runIomIngestion(): Promise<IngestionResult> {
     // Log normalization summary
     console.log(`[IOM] ${csvRows.length} CSV rows -> ${rows.length} after normalization+dedup`);
 
+    // Incremental: only process rows newer than what's already in DB
+    const cutoffDate = await getLatestIomDate();
+    const newRows = filterNewRows(rows, cutoffDate);
+    console.log(`[IOM] ${rows.length} total, ${newRows.length} new (cutoff: ${cutoffDate ?? 'first run'})`);
+
+    if (newRows.length === 0) {
+      console.log('[IOM] No new rows — skipping upsert');
+      await logIngestion({ source: 'iom', status: 'success', rowsAffected: 0, startedAt, quarantineCount: 0 });
+      return { source: 'iom', rowsAffected: 0, quarantineCount: 0, duration: Date.now() - start };
+    }
+
     // Validate rows — quarantine bad data, proceed with clean
-    let cleanRows = rows as unknown as Record<string, unknown>[];
+    let cleanRows = newRows as unknown as Record<string, unknown>[];
     let quarantineCount = 0;
     try {
-      const { clean, quarantined } = await validateRows('iom', rows as unknown as Record<string, unknown>[]);
+      const { clean, quarantined } = await validateRows('iom', newRows as unknown as Record<string, unknown>[]);
       cleanRows = clean;
       quarantineCount = quarantined.length;
       if (quarantined.length > 0) {
