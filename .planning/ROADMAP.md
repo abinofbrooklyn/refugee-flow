@@ -15,7 +15,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 1: Stabilize** - Fix memory leaks, error handling, security vulnerabilities, and UX gaps in the existing app
 - [x] **Phase 2: Modernize Stack** - Replace Webpack 4 with Vite, upgrade React 18 and THREE.js r150+, remove dead dependencies
 - [x] **Phase 3: Database Migration** - Move all data from MongoDB to PostgreSQL/Supabase with geo precision baked in (completed 2026-03-17)
-- [ ] **Phase 4: Data Ingestion Pipeline** - Automate UNHCR, IOM, Eurostat, Frontex, CBP, and UK Home Office data ingestion plus admin CSV upload; normalize all ingested data at ingestion time. ACLED ingestion moved to Phase 9. REOPENED: IOM automation (plan 04-20) added.
+- [x] **Phase 4: Data Ingestion Pipeline** - Automate UNHCR, IOM, Eurostat, Frontex, CBP, and UK Home Office data ingestion plus admin CSV upload; normalize all ingested data at ingestion time (completed 2026-03-21). ACLED ingestion moved to Phase 9.
 - [ ] **Phase 5: Data Coverage** - Audit, validate, and close gaps in data coverage across years and corridors
 - [x] **Phase 6: React Router v6 Migration** - Eliminate legacy context API warnings by upgrading react-router-dom to v6 (completed 2026-03-20)
 
@@ -101,7 +101,6 @@ Plans:
 - [x] 04-14-PLAN.md — UNHCR + Eurostat automation verified (already built in 04-03/04-04/04-08/04-09)
 - [ ] 04-15-PLAN.md — Data validation: migration 004 (quarantine table), validator module with TDD (4 rule types)
 - [ ] 04-16-PLAN.md — Data validation: alerter extension + integrate validator into all 7 ingestion pipelines
-- [ ] 04-20-PLAN.md — Automate IOM Missing Migrants ingestion (stable CSV URL, weekly cron, diff-based upsert)
 
 ### Phase 5: Data Coverage
 **Goal**: The app accurately reflects what data exists — year range and route display match actual database contents with no silent gaps
