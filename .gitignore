@@ -1,6 +1,9 @@
 # Superpowers brainstorming sessions
 .superpowers/
 
+# Personal Claude instructions (not shared)
+CLAUDE.local.md
+
 
 # Logs
 logs
