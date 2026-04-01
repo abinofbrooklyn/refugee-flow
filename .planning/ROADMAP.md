@@ -112,6 +112,14 @@ Plans:
   3. All major IOM-tracked migration corridors appear on the route map
 **Plans**: TBD
 
+**Notes from Phase 14 deployment (2026-03-31):**
+- API response sizes are very large: `reduced_war_data` 5.5 MB, `asy_application_all` 10.5 MB, `route_death` 9 MB
+- TTFB for war and asylum endpoints is 3.5-4s on cold cache — database queries are slow
+- Need to optimize query logic (original queries were sloppy/unoptimized)
+- Add gzip/brotli compression to Express (browsers decompress automatically, ~80-90% size reduction)
+- Consider pre-building static JSON at ingestion time for data that only changes on ingest
+- Consider CloudFront cache warming (Lambda ping every 55min) to avoid cold cache penalty
+
 ### Phase 6: React Router v6 Migration
 **Goal**: Eliminate legacy context API warnings by upgrading react-router-dom from v5 to v6, removing all deprecated patterns
 **Depends on**: Phase 1 (stabilize)
@@ -193,8 +201,16 @@ Plans:
 **Goal:** War/conflict data ingested automatically from ACLED API on a weekly schedule, with geo precision reduction for the THREE.js globe
 **Requirements**: INGEST-01
 **Depends on:** Phase 4 (ingestion infrastructure), ACLED API access grant
-**BLOCKED:** Waiting on ACLED API access (email sent to access@acleddata.com)
+**BLOCKED:** Waiting on ACLED API access (registered with @centerfortomorrow.com, emailed access@acleddata.com for Partner-level access)
 **Plans:** 0 plans
+
+**Additional task: Optimize data delivery**
+- Add Express `compression` middleware (gzip/brotli) — zero frontend changes, browsers decompress automatically
+- Optimize `reduced_war_data` query — currently 5.5 MB, 3.7s TTFB
+- Optimize `asy_application_all` query — currently 10.5 MB, 3.6s TTFB
+- Optimize `route_death` query — currently 9 MB, 0.8s TTFB (acceptable but large)
+- Consider pre-building static JSON during ingestion for datasets that don't change between ingestion runs
+- Automate IOM Missing Migrants ingestion (currently manual via seed.js, stable CSV URL exists)
 
 Plans:
 - [ ] TBD (run /gsd:plan-phase 9 to break down)
